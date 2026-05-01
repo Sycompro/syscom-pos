@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function GET() {
     try {
-        const pool = await getConnection();
+        const session = await getServerSession(authOptions);
+        const pool = await getConnection(session?.user?.company);
         
         const result = await pool.request()
             .query("SELECT codtar as id, nomtar as name FROM tbl01tar WHERE flag = 1");

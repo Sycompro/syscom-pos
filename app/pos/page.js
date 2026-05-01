@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, Package, Info, Plus, Minus, X, CheckCircle2, AlertCircle, Receipt, User, Clock, Lock } from 'lucide-react';
+import { Search, ShoppingCart, Package, Info, Plus, Minus, X, CheckCircle2, AlertCircle, Receipt, User, Clock, Lock, Banknote, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 export default function POSPage() {
+    const { data: session } = useSession();
     const [searchTerm, setSearchTerm] = useState('');
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -176,9 +178,21 @@ export default function POSPage() {
                     </div>
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                            Syscom POS Cloud
+                            {session?.user?.company || 'Syscom POS Cloud'}
                         </h1>
-                        <p className="text-slate-400 text-sm">Almacén: {warehouse} | Caja: {idApeCaj || 'Sin Apertura'}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                            <p className="text-slate-400 text-sm flex items-center gap-1">
+                                <User className="w-3 h-3 text-cyan-400" /> {session?.user?.name || 'Cajero'}
+                            </p>
+                            <span className="text-slate-600">•</span>
+                            <p className="text-slate-400 text-sm flex items-center gap-1">
+                                <Package className="w-3 h-3 text-cyan-400" /> Almacén: {warehouse}
+                            </p>
+                            <span className="text-slate-600">•</span>
+                            <p className={`text-sm font-bold flex items-center gap-1 ${idApeCaj ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                <Clock className="w-3 h-3" /> {idApeCaj ? `Caja: ${idApeCaj}` : 'Caja Cerrada'}
+                            </p>
+                        </div>
                     </div>
                 </div>
                 

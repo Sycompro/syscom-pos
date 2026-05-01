@@ -1,17 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 import sql from 'mssql';
-
-const sqlConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    server: process.env.DB_SERVER,
-    options: {
-        encrypt: false,
-        trustServerCertificate: true
-    }
-};
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 function incrementCorrelative(current) {
     if (!current || !current.includes('-')) return current;
@@ -21,6 +12,7 @@ function incrementCorrelative(current) {
 }
 
 export async function POST(request) {
+    const session = await getServerSession(authOptions);
     const body = await request.json();
     const {
         docType,
@@ -34,7 +26,7 @@ export async function POST(request) {
         exchangeRate = 1
     } = body;
 
-    const pool = await sql.connect(sqlConfig);
+    const pool = await getConnection(session?.user?.company);
     const transaction = new sql.Transaction(pool);
 
     try {
@@ -76,7 +68,7 @@ export async function POST(request) {
             .input('idapecaj', sql.Int, idApeCaj)
             .input('selpago', sql.Int, paymentMethod || 1)
             .input('codtar', sql.Char(2), body.codtar || '')
-            .input('codusu', sql.Char(10), 'WEB_POS')
+            .input('codusu', sql.Char(10), session?.user?.username || 'WEB_POS')
             .query(`
                 INSERT INTO mst01fac (fecha, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codtar, codusu, flag, tfact)
                 VALUES (@fecha, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, ' ', ' ')
