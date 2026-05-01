@@ -6,8 +6,15 @@ import { authOptions } from "../auth/[...nextauth]/route";
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
-        const pool = await getConnection(session?.user?.company);
         
+        if (!session?.user?.company) {
+            console.warn('[API/PaymentMethods] No session found');
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+
+        const pool = await getConnection(session.user.company);
+        
+        // Verificamos si la tabla existe antes de consultar
         const result = await pool.request()
             .query("SELECT codtar as id, nomtar as name FROM tbl01tar WHERE flag = 1");
 
@@ -23,7 +30,10 @@ export async function GET() {
         return NextResponse.json(methods);
 
     } catch (err) {
-        console.error('Payment methods error:', err);
-        return NextResponse.json({ error: 'Error al obtener métodos de pago' }, { status: 500 });
+        console.error('[API/PaymentMethods] CRITICAL ERROR:', err.message);
+        return NextResponse.json({ 
+            error: 'Error al obtener métodos de pago',
+            details: err.message
+        }, { status: 500 });
     }
 }

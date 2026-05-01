@@ -160,26 +160,50 @@ export default function POSPage() {
 
     if (!mounted) return null;
 
-    // --- RENDER APERTURA DE CAJA ---
+    // --- RENDER APERTURA DE CAJA (DISEÑO PREMIUM) ---
     if (!idApeCaj) {
         return (
-            <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 font-sans">
+            <div style={{ 
+                minHeight: '100vh', width: '100vw', background: '#f8fafc', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                fontFamily: "'Outfit', sans-serif", position: 'relative', overflow: 'hidden' 
+            }}>
+                {/* Adornos de fondo */}
+                <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 70%)' }} />
+                <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%)' }} />
+
                 <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 p-12 max-w-lg w-full text-center"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ 
+                        background: '#ffffff', borderRadius: '40px', 
+                        boxShadow: '0 30px 100px rgba(15, 23, 42, 0.08)', 
+                        border: '1px solid #f1f5f9', padding: '60px', 
+                        maxWidth: '480px', w: '90%', textAlign: 'center', position: 'relative', zIndex: 10 
+                    }}
                 >
-                    <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
-                        <Wallet className="w-12 h-12" />
+                    <div style={{ 
+                        width: '90px', height: '90px', background: '#eff6ff', 
+                        borderRadius: '30px', display: 'flex', alignItems: 'center', 
+                        justifyContent: 'center', margin: '0 auto 32px', color: '#3b82f6' 
+                    }}>
+                        <Wallet size={44} strokeWidth={2.5} />
                     </div>
-                    <h1 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Caja Cerrada</h1>
-                    <p className="text-slate-500 mb-10 leading-relaxed">Debes realizar la apertura de caja con un monto inicial para comenzar a registrar ventas hoy.</p>
+
+                    <h1 style={{ fontSize: '36px', fontWeight: '900', color: '#0f172a', marginBottom: '16px', letterSpacing: '-1px' }}>
+                        Caja Cerrada
+                    </h1>
+                    <p style={{ fontSize: '16px', color: '#64748b', marginBottom: '40px', lineHeight: '1.6', fontWeight: '500' }}>
+                        Para comenzar a vender, ingresa el monto inicial con el que cuentas en efectivo.
+                    </p>
                     
-                    <form onSubmit={handleOpenCash} className="space-y-6">
-                        <div className="text-left">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-4 mb-2 block">Monto Inicial (Soles)</label>
-                            <div className="relative">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-slate-400">S/</span>
+                    <form onSubmit={handleOpenCash} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                        <div style={{ textAlign: 'left' }}>
+                            <label style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.15em', marginLeft: '12px', marginBottom: '10px', display: 'block' }}>
+                                SALDO INICIAL EN SOLES
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <div style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', fontSize: '24px', fontWeight: '800', color: '#cbd5e1' }}>S/</div>
                                 <input 
                                     type="number" 
                                     step="0.01"
@@ -188,25 +212,49 @@ export default function POSPage() {
                                     placeholder="0.00"
                                     value={openingAmount}
                                     onChange={(e) => setOpeningAmount(e.target.value)}
-                                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl py-5 pl-14 pr-6 text-2xl font-bold text-slate-900 outline-none transition-all"
+                                    style={{ 
+                                        width: '100%', background: '#f8fafc', border: '2.5px solid #f1f5f9', 
+                                        borderRadius: '24px', padding: '24px 24px 24px 60px', 
+                                        fontSize: '28px', fontWeight: '900', color: '#0f172a', 
+                                        outline: 'none', transition: 'all 0.3s', boxSizing: 'border-box' 
+                                    }}
+                                    onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; e.target.style.background = '#fff'; }}
+                                    onBlur={(e) => { e.target.style.borderColor = '#f1f5f9'; e.target.style.background = '#f8fafc'; }}
                                 />
                             </div>
                         </div>
+
                         <button 
                             disabled={isOpeningCash}
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white py-6 rounded-2xl font-black text-xl shadow-xl shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                            style={{ 
+                                width: '100%', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', 
+                                color: '#fff', padding: '24px', borderRadius: '24px', 
+                                border: 'none', fontSize: '18px', fontWeight: '800', 
+                                cursor: 'pointer', boxShadow: '0 20px 40px rgba(37, 99, 235, 0.25)', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
+                                transition: 'all 0.4s', opacity: isOpeningCash ? 0.7 : 1
+                            }}
+                            onMouseEnter={(e) => e.target.style.transform = 'translateY(-3px)'}
+                            onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
                         >
-                            {isOpeningCash ? 'Abriendo...' : 'Abrir Caja Ahora'}
-                            {!isOpeningCash && <ArrowRight className="w-6 h-6" />}
+                            {isOpeningCash ? 'Procesando...' : 'Abrir Caja Ahora'}
+                            {!isOpeningCash && <ArrowRight size={22} />}
                         </button>
                     </form>
-                    <button 
-                        onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                        className="mt-8 text-slate-400 hover:text-slate-600 font-bold text-sm flex items-center justify-center gap-2 mx-auto"
-                    >
-                        <LogOut className="w-4 h-4" /> Cerrar Sesión
-                    </button>
+
+                    <div style={{ marginTop: '40px', paddingTop: '30px', borderTop: '1px solid #f1f5f9' }}>
+                        <button 
+                            onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                            style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 auto' }}
+                        >
+                            <LogOut size={16} /> Salir del sistema
+                        </button>
+                    </div>
                 </motion.div>
+                
+                <style jsx>{`
+                    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+                `}</style>
             </div>
         );
     }
