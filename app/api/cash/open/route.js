@@ -16,40 +16,60 @@ export async function POST(request) {
         const pool = await getConnection(session.user.company);
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0];
-        const timeStr = now.toTimeString().split(' ')[0].substring(0, 5); // HH:mm
+        const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
 
-        // 1. Verificar si ya hay una caja abierta para este usuario/punto
-        const check = await pool.request()
-            .input('codusu', sql.Char(10), session.user.username)
-            .input('codpto', sql.Char(2), pointOfSale)
-            .query("SELECT idapecaj FROM dtl_restpos_apecaj WHERE estado = 1 AND codpto = @codpto");
-
-        if (check.recordset.length > 0) {
-            return NextResponse.json({ error: 'Ya existe una caja abierta para este punto de venta' }, { status: 400 });
+        // --- DETECCIÓN DE ESQUEMA ---
+        let schemaType = 'ERP';
+        try {
+            await pool.request().query("SELECT TOP 0 * FROM dtl_restpos_apecaj");
+        } catch (e) {
+            schemaType = 'POS';
         }
 
-        // 2. Insertar apertura
-        const result = await pool.request()
-            .input('fecape', sql.DateTime, dateStr)
-            .input('hora', sql.Char(5), timeStr)
-            .input('codpto', sql.Char(2), pointOfSale)
-            .input('codusu', sql.Char(10), session.user.username)
-            .input('apesol', sql.Float, amount || 0)
-            .input('apedol', sql.Float, 0)
-            .input('apeeur', sql.Float, 0)
-            .input('tmov', sql.Int, 1)
-            .input('estado', sql.Int, 1)
-            .query(`
-                INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur)
-                VALUES (@fecape, @hora, @codpto, @codusu, @tmov, @estado, @apesol, @apedol, @apeeur);
-                SELECT SCOPE_IDENTITY() as id;
-            `);
+        if (schemaType === 'ERP') {
+            // Lógica Esquema ERP
+            const check = await pool.request()
+                .input('codpto', sql.Char(2), pointOfSale)
+                .query("SELECT idapecaj FROM dtl_restpos_apecaj WHERE estado = 1 AND codpto = @codpto");
 
-        return NextResponse.json({ 
-            success: true, 
-            id: result.recordset[0].id,
-            message: 'Caja abierta correctamente' 
-        });
+            if (check.recordset.length > 0) {
+                return NextResponse.json({ error: 'Ya existe una caja abierta en este punto' }, { status: 400 });
+            }
+
+            const result = await pool.request()
+                .input('fecape', sql.DateTime, dateStr)
+                .input('hora', sql.Char(5), timeStr)
+                .input('codpto', sql.Char(2), pointOfSale)
+                .input('codusu', sql.Char(10), session.user.username)
+                .input('apesol', sql.Float, amount || 0)
+                .query(`
+                    INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur)
+                    VALUES (@fecape, @hora, @codpto, @codusu, 1, 1, @apesol, 0, 0);
+                    SELECT SCOPE_IDENTITY() as id;
+                `);
+            return NextResponse.json({ success: true, id: result.recordset[0].id });
+        } else {
+            // Lógica Esquema POS (DB_GYM y similares)
+            const sedeId = session.user.sedeId || 1;
+            const check = await pool.request()
+                .input('sedeId', sql.Int, sedeId)
+                .query("SELECT CajaId FROM Caja WHERE Vigente = 1 AND SedeId = @sedeId");
+
+            if (check.recordset.length > 0) {
+                return NextResponse.json({ error: 'Ya existe una caja abierta para esta sede' }, { status: 400 });
+            }
+
+            const result = await pool.request()
+                .input('fecha', sql.DateTime, now)
+                .input('monto', sql.Float, amount || 0)
+                .input('sedeId', sql.Int, sedeId)
+                .query(`
+                    INSERT INTO Caja (FechaApertura, MontoApertura, Vigente, SedeId, EstadoCajaId, Turno)
+                    VALUES (@fecha, @monto, 1, @sedeId, 1, 1);
+                    SELECT SCOPE_IDENTITY() as id;
+                `);
+            return NextResponse.json({ success: true, id: result.recordset[0].id });
+        }
 
     } catch (err) {
         console.error('Cash open error:', err);
