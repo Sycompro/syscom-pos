@@ -94,11 +94,8 @@ function SignInContent() {
         boxSizing: 'border-box',
         overflow: 'hidden'
       }}>
-        {/* Efectos de luz ambiental */}
         <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '500px', height: '500px', background: 'rgba(99, 102, 241, 0.15)', borderRadius: '50%', filter: 'blur(100px)' }} />
         <div style={{ position: 'absolute', bottom: '-5%', left: '-5%', width: '300px', height: '300px', background: 'rgba(20, 184, 166, 0.12)', borderRadius: '50%', filter: 'blur(80px)' }} />
-        
-        {/* Patrón de puntos sutil */}
         <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'radial-gradient(#fff 1px, transparent 0)', backgroundSize: '30px 30px' }} />
 
         <div style={{ position: 'relative', zIndex: 10 }}>
@@ -152,7 +149,7 @@ function SignInContent() {
         </div>
       </div>
 
-      {/* ── PANEL DERECHO: Formulario Moderno ── */}
+      {/* ── PANEL DERECHO: Formulario ── */}
       <div style={{
         width: '58%',
         background: '#ffffff',
@@ -160,13 +157,9 @@ function SignInContent() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '60px',
-        boxSizing: 'border-box',
-        position: 'relative'
+        boxSizing: 'border-box'
       }}>
-        {/* Adornos sutiles de fondo */}
-        <div style={{ position: 'absolute', top: 0, right: 0, width: '40%', height: '40%', background: 'radial-gradient(circle at top right, #f1f5f9, transparent)', opacity: 0.5 }} />
-
-        <div style={{ width: '100%', maxWidth: '480px', position: 'relative', zIndex: 10 }}>
+        <div style={{ width: '100%', maxWidth: '480px' }}>
           
           <div style={{ marginBottom: '52px' }}>
             <div style={{ display: 'inline-block', padding: '6px 14px', background: '#f1f5f9', borderRadius: '10px', fontSize: '11px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '24px' }}>Acceso al Sistema</div>
@@ -181,10 +174,7 @@ function SignInContent() {
           {step === 1 && (
             <form onSubmit={handleNextStep} style={{ display: 'flex', flexDirection: 'column', gap: '36px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: '12px', fontWeight: '800', color: '#94a3b8', letterSpacing: '0.05em' }}>EMPRESA / SEDE</label>
-                  {loadingCompanies && <span style={{ fontSize: '11px', color: '#3b82f6', fontWeight: '700', animation: 'pulse 1.5s infinite' }}>Actualizando lista...</span>}
-                </div>
+                <label style={{ fontSize: '12px', fontWeight: '800', color: '#94a3b8', letterSpacing: '0.05em' }}>EMPRESA / SEDE</label>
                 <div style={{ position: 'relative' }}>
                   <select 
                     value={selectedCompany?.id || ''}
@@ -197,26 +187,15 @@ function SignInContent() {
                       width: '100%',
                       padding: '22px 28px',
                       borderRadius: '24px',
-                      border: '2px solid #f1f5f9',
+                      border: '2px solid #e2e8f0',
                       background: '#f8fafc',
-                      color: '#0f172a',
+                      color: '#0f172a', // Texto oscuro explícito
                       fontSize: '17px',
                       fontWeight: '700',
                       appearance: 'none',
                       outline: 'none',
                       cursor: 'pointer',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#3b82f6';
-                      e.target.style.background = '#fff';
-                      e.target.style.boxShadow = '0 15px 35px rgba(59, 130, 246, 0.08)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#f1f5f9';
-                      e.target.style.background = '#f8fafc';
-                      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.02)';
+                      transition: 'all 0.3s'
                     }}
                   >
                     {loadingCompanies ? (
@@ -225,7 +204,7 @@ function SignInContent() {
                       <option>Sin empresas disponibles</option>
                     ) : (
                       companies.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
+                        <option key={c.id} value={c.id} style={{ color: '#0f172a' }}>{c.name}</option>
                       ))
                     )}
                   </select>
@@ -248,20 +227,17 @@ function SignInContent() {
                   width: '100%',
                   padding: '22px',
                   borderRadius: '24px',
-                  background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                  background: '#0f172a',
                   color: '#fff',
                   border: 'none',
                   fontSize: '18px',
                   fontWeight: '800',
                   cursor: 'pointer',
-                  boxShadow: '0 20px 40px rgba(15, 23, 42, 0.25)',
-                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  opacity: (loadingCompanies || companies.length === 0) ? 0.5 : 1
+                  boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)',
+                  transition: 'all 0.3s'
                 }}
-                onMouseEnter={(e) => { if (!e.target.disabled) e.target.style.transform = 'translateY(-3px)'; e.target.style.boxShadow = '0 25px 50px rgba(15, 23, 42, 0.35)'; }}
-                onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 20px 40px rgba(15, 23, 42, 0.25)'; }}
               >
-                Ingresar ahora
+                Continuar
               </button>
             </form>
           )}
@@ -269,51 +245,63 @@ function SignInContent() {
           {step === 2 && (
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               
-              <div style={{ 
-                background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', 
-                padding: '24px', 
-                borderRadius: '28px', 
-                border: '2px solid #bae6fd', 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center' 
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                   <div style={{ width: '40px', height: '40px', background: '#3b82f6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                   </div>
-                   <div>
-                     <div style={{ fontSize: '10px', fontWeight: '900', color: '#0369a1', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Empresa</div>
-                     <div style={{ fontSize: '17px', fontWeight: '800', color: '#0c4a6e' }}>{selectedCompany?.name}</div>
-                   </div>
+              <div style={{ background: '#eff6ff', padding: '24px', borderRadius: '28px', border: '2px solid #bae6fd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                   <div style={{ fontSize: '10px', fontWeight: '900', color: '#0369a1', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Sede Activa</div>
+                   <div style={{ fontSize: '17px', fontWeight: '800', color: '#0c4a6e' }}>{selectedCompany?.name}</div>
                 </div>
-                <button type="button" onClick={() => setStep(1)} style={{ background: '#fff', border: 'none', padding: '10px 18px', borderRadius: '14px', color: '#0ea5e9', fontWeight: '800', fontSize: '12px', cursor: 'pointer', boxShadow: '0 8px 20px rgba(14, 165, 233, 0.15)' }}>Cambiar</button>
+                <button type="button" onClick={() => setStep(1)} style={{ background: '#fff', border: 'none', padding: '10px 18px', borderRadius: '14px', color: '#0ea5e9', fontWeight: '800', fontSize: '12px', cursor: 'pointer', boxShadow: '0 8px 20px rgba(0,0,0,0.05)' }}>Cambiar</button>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
                   <input 
                     type="text" 
                     required 
-                    autoFocus
-                    placeholder="Tu usuario"
+                    placeholder="Usuario de la sede"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    style={{ width: '100%', padding: '20px 24px', borderRadius: '20px', border: '2px solid #f1f5f9', background: '#f8fafc', fontSize: '16px', fontWeight: '700', outline: 'none', boxSizing: 'border-box', transition: 'all 0.3s' }}
-                    onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                    onBlur={(e) => e.target.style.borderColor = '#f1f5f9'}
+                    style={{ 
+                      width: '100%', 
+                      padding: '22px 24px 22px 64px', 
+                      borderRadius: '24px', 
+                      border: '2.5px solid #f1f5f9', 
+                      background: '#f8fafc', 
+                      color: '#0f172a', // TEXTO OSCURO OBLIGATORIO
+                      fontSize: '16px', 
+                      fontWeight: '700', 
+                      outline: 'none', 
+                      boxSizing: 'border-box',
+                      transition: 'all 0.3s'
+                    }}
                   />
                 </div>
                 <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  </div>
                   <input 
                     type="password" 
                     required 
                     placeholder="Contraseña"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    style={{ width: '100%', padding: '20px 24px', borderRadius: '20px', border: '2px solid #f1f5f9', background: '#f8fafc', fontSize: '16px', fontWeight: '700', outline: 'none', boxSizing: 'border-box', transition: 'all 0.3s' }}
-                    onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                    onBlur={(e) => e.target.style.borderColor = '#f1f5f9'}
+                    style={{ 
+                      width: '100%', 
+                      padding: '22px 24px 22px 64px', 
+                      borderRadius: '24px', 
+                      border: '2.5px solid #f1f5f9', 
+                      background: '#f8fafc', 
+                      color: '#0f172a', // TEXTO OSCURO OBLIGATORIO
+                      fontSize: '16px', 
+                      fontWeight: '700', 
+                      outline: 'none', 
+                      boxSizing: 'border-box',
+                      transition: 'all 0.3s'
+                    }}
                   />
                 </div>
               </div>
@@ -336,9 +324,9 @@ function SignInContent() {
                   border: 'none',
                   fontSize: '18px',
                   fontWeight: '800',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 20px 40px rgba(37, 99, 235, 0.25)',
-                  transition: 'all 0.4s'
+                  cursor: 'pointer',
+                  boxShadow: '0 20px 40px rgba(37, 99, 235, 0.2)',
+                  transition: 'all 0.3s'
                 }}
               >
                 {isLoading ? 'Verificando...' : 'Acceder al POS'}
@@ -347,8 +335,8 @@ function SignInContent() {
           )}
 
           <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '10px', height: '10px', background: '#10b981', borderRadius: '50%', boxShadow: '0 0 10px rgba(16, 185, 129, 0.4)' }} />
-            <div style={{ fontSize: '11px', fontWeight: '800', color: '#cbd5e1', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Sistema Verificado · Cloud-Sync</div>
+            <div style={{ width: '10px', height: '10px', background: '#10b981', borderRadius: '50%' }} />
+            <div style={{ fontSize: '11px', fontWeight: '800', color: '#cbd5e1', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Conexión Protegida · Syscom Cloud</div>
           </div>
 
         </div>
@@ -356,23 +344,9 @@ function SignInContent() {
 
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
-        
-        @keyframes pulse {
-          0% { opacity: 0.6; }
-          50% { opacity: 1; }
-          100% { opacity: 0.6; }
-        }
-
-        body { 
-          margin: 0; 
-          padding: 0; 
-          -webkit-font-smoothing: antialiased;
-        }
-
-        /* Suavizar transiciones de los inputs */
-        input, select, button {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        body { margin: 0; padding: 0; background: #fff; }
+        input::placeholder { color: #94a3b8; }
+        input:focus { border-color: #3b82f6 !important; background: #fff !important; }
       `}</style>
     </div>
   );
