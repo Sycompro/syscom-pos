@@ -5,7 +5,7 @@ export async function GET() {
     try {
         const pool = await getConnection();
         const result = await pool.request()
-            .query("SELECT TOP 1 idapecaj FROM dtl_restpos_apecaj WHERE estado = 'A' ORDER BY fecape DESC");
+            .query("SELECT TOP 1 idapecaj FROM dtl_restpos_apecaj WHERE estado = 1 ORDER BY fecape DESC");
         
         if (result.recordset.length > 0) {
             return NextResponse.json({ id: result.recordset[0].idapecaj });

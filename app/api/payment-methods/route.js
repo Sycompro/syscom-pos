@@ -10,7 +10,11 @@ export async function GET() {
 
         const methods = [
             { id: 'EF', name: 'EFECTIVO', type: 1 },
-            ...result.recordset.map(r => ({ id: r.id.trim(), name: r.name.trim(), type: 3 }))
+            ...(result.recordset || []).map(r => ({ 
+                id: (r.id || '').toString().trim(), 
+                name: (r.name || '').toString().trim(), 
+                type: 3 
+            }))
         ];
 
         return NextResponse.json(methods);
