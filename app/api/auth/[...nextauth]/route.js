@@ -76,6 +76,7 @@ export const authOptions = {
              
              if (erpResult.recordset.length > 0) {
                 const user = erpResult.recordset[0];
+                console.log(`[Auth] ¡ÉXITO! Usuario ${user.Usuario} autenticado en ${dbName}`);
                 return {
                   id: user.Usuario,
                   name: user.FullName?.trim() || user.Usuario,
