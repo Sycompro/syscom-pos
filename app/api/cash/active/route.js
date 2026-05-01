@@ -1,20 +1,9 @@
 import { NextResponse } from 'next/server';
-import sql from 'mssql';
-
-const sqlConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    server: process.env.DB_SERVER,
-    options: {
-        encrypt: false,
-        trustServerCertificate: true
-    }
-};
+import { getConnection } from '@/lib/db';
 
 export async function GET() {
     try {
-        const pool = await sql.connect(sqlConfig);
+        const pool = await getConnection();
         const result = await pool.request()
             .query("SELECT TOP 1 idapecaj FROM dtl_restpos_apecaj WHERE estado = 'A' ORDER BY fecape DESC");
         

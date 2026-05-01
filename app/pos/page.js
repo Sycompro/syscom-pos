@@ -24,8 +24,10 @@ export default function POSPage() {
     const [newCustomer, setNewCustomer] = useState({ 
         nomcli: '', ruccli: '', nrodni: '', dircli: '', telcli: '', email: '' 
     });
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         // Cargar caja activa al iniciar
         const loadCaja = async () => {
             try {
@@ -43,9 +45,14 @@ export default function POSPage() {
             try {
                 const res = await fetch('/api/payment-methods');
                 const data = await res.json();
-                setAvailableMethods(data);
+                if (Array.isArray(data)) {
+                    setAvailableMethods(data);
+                } else {
+                    setAvailableMethods([]);
+                }
             } catch (e) {
                 console.error('Methods load error:', e);
+                setAvailableMethods([]);
             }
         };
 
@@ -62,6 +69,8 @@ export default function POSPage() {
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
+
+    if (!mounted) return null;
 
     const searchProducts = async () => {
         setLoading(true);

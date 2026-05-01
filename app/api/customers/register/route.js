@@ -1,26 +1,15 @@
 import { NextResponse } from 'next/server';
+import { getConnection } from '@/lib/db';
 import sql from 'mssql';
-
-const sqlConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    server: process.env.DB_SERVER,
-    options: {
-        encrypt: false,
-        trustServerCertificate: true
-    }
-};
 
 export async function POST(request) {
     const body = await request.json();
     const { nomcli, ruccli, nrodni, dircli } = body;
 
     try {
-        const pool = await sql.connect(sqlConfig);
+        const pool = await getConnection();
         
         // 1. Generar nuevo código de cliente (6 dígitos correlativos)
-        // Buscamos el último código numérico
         const lastCli = await pool.request()
             .query("SELECT TOP 1 codcli FROM mst01cli WHERE ISNUMERIC(codcli) = 1 ORDER BY codcli DESC");
         
@@ -30,7 +19,7 @@ export async function POST(request) {
             newCode = (current + 1).toString().padStart(6, '0');
         }
 
-        // 2. Insertar usando el SP o directo (usaremos el SP GrabaMstCliWeb hallado antes)
+        // 2. Insertar usando el SP GrabaMstCliWeb
         await pool.request()
             .input('codcli', sql.Char(6), newCode)
             .input('nomcli', sql.VarChar(60), nomcli)

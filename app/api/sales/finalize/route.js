@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getConnection } from '@/lib/db';
 import sql from 'mssql';
 
 const sqlConfig = {
@@ -21,12 +22,12 @@ function incrementCorrelative(current) {
 
 export async function POST(request) {
     const body = await request.json();
-    const { 
-        docType, 
-        pointOfSale, 
-        codcli, 
-        items, 
-        idApeCaj, 
+    const {
+        docType,
+        pointOfSale,
+        codcli,
+        items,
+        idApeCaj,
         paymentMethod,
         warehouse,
         currency = 'S',
@@ -83,10 +84,10 @@ export async function POST(request) {
 
         // 4. Insertar Detalle (dtl01fac) y Actualizar Stock
         const stockField = `stk${(warehouse || '01').padStart(2, '0')}`;
-        
+
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            
+
             // Insertar Detalle
             await transaction.request()
                 .input('fecha', sql.DateTime, new Date())
@@ -120,10 +121,10 @@ export async function POST(request) {
 
         await transaction.commit();
 
-        return NextResponse.json({ 
-            success: true, 
+        return NextResponse.json({
+            success: true,
             message: 'Venta finalizada con éxito',
-            documentNumber: ndocu 
+            documentNumber: ndocu
         });
 
     } catch (err) {
