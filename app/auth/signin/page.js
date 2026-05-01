@@ -6,11 +6,17 @@ import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Building2, User, Lock, ArrowRight, AlertCircle, Loader2, KeyRound, CheckCircle2 } from 'lucide-react';
 
+import { LayoutDashboard, ShoppingCart } from 'lucide-react';
+
 function SignInContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const callbackUrl = searchParams.get('callbackUrl') || '/pos';
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
     
+    // Si la URL de retorno es explícitamente /pos, mostramos directamente el POS. Si no, mostramos la selección.
+    const isPosRoute = callbackUrl.includes('/pos');
+    
+    const [mode, setMode] = useState(isPosRoute ? 'pos' : null); // null = select, 'pos' = POS form
     const [step, setStep] = useState(1); // 1 = código empresa, 2 = usuario/contraseña
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -39,14 +45,14 @@ function SignInContent() {
                 username: username.trim(),
                 password: password.trim(),
                 redirect: false,
-                callbackUrl
+                callbackUrl: '/pos'
             });
 
             if (result?.error) {
                 setError('Código, usuario o contraseña incorrectos');
                 setIsLoading(false);
             } else {
-                router.push(callbackUrl);
+                router.push('/pos');
                 router.refresh();
             }
         } catch (err) {
@@ -55,26 +61,71 @@ function SignInContent() {
         }
     };
 
+    if (mode === null) {
+        return (
+            <div className="w-full max-w-2xl p-8 relative z-10 animate-in fade-in zoom-in duration-500">
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">Portal de Acceso</h1>
+                    <p className="text-gray-400 text-lg">Selecciona el módulo al que deseas ingresar</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Botón Dashboard */}
+                    <button 
+                        onClick={() => signIn('google', { callbackUrl: '/' })}
+                        className="bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/10 hover:border-blue-500/50 p-8 rounded-[2rem] text-left transition-all hover:-translate-y-2 group shadow-xl hover:shadow-blue-500/20"
+                    >
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg">
+                            <LayoutDashboard className="w-8 h-8 text-white" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">Panel Administrativo</h2>
+                        <p className="text-slate-400 text-sm">Acceso mediante Google Workspace para administradores y gerencia.</p>
+                    </button>
+
+                    {/* Botón POS */}
+                    <button 
+                        onClick={() => setMode('pos')}
+                        className="bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/10 hover:border-emerald-500/50 p-8 rounded-[2rem] text-left transition-all hover:-translate-y-2 group shadow-xl hover:shadow-emerald-500/20"
+                    >
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-6 shadow-lg">
+                            <ShoppingCart className="w-8 h-8 text-white" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">Syscom POS</h2>
+                        <p className="text-slate-400 text-sm">Sistema de Punto de Venta usando credenciales del ERP (código y sede).</p>
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Modo POS (Formulario de 2 pasos)
     return (
-        <div className="w-full max-w-md p-8 relative z-10">
+        <div className="w-full max-w-md p-8 relative z-10 animate-in slide-in-from-right-8 duration-500">
+            <button 
+                onClick={() => setMode(null)}
+                className="mb-6 text-sm font-medium text-slate-400 hover:text-white flex items-center gap-2 transition-colors"
+            >
+                ← Volver al Portal
+            </button>
+
             <div className="bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl shadow-black/50">
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 mb-6 shadow-lg shadow-blue-600/20">
-                        <Building2 className="text-white w-8 h-8" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 mb-6 shadow-lg shadow-emerald-500/20">
+                        <ShoppingCart className="text-white w-8 h-8" />
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Acceso POS</h1>
-                    <p className="text-gray-400">
+                    <p className="text-gray-400 text-sm">
                         {step === 1 ? 'Ingresa el código de tu empresa' : 'Ingresa tus credenciales de sede'}
                     </p>
                 </div>
 
                 {/* Indicador de pasos */}
                 <div className="flex items-center justify-center gap-3 mb-8">
-                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${step >= 1 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-slate-500'}`}>
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${step >= 1 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>
                         <KeyRound className="w-3 h-3" /> Empresa
                     </div>
                     <div className="w-6 h-px bg-white/10" />
-                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${step >= 2 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-slate-500'}`}>
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${step >= 2 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>
                         <User className="w-3 h-3" /> Acceso
                     </div>
                 </div>
@@ -84,7 +135,7 @@ function SignInContent() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400 ml-1">Código de Empresa</label>
                             <div className="relative group">
-                                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+                                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
                                 <input
                                     type="text"
                                     required
@@ -92,7 +143,7 @@ function SignInContent() {
                                     placeholder="Ej: gimobile24"
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
+                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all placeholder:text-gray-600"
                                 />
                             </div>
                         </div>
@@ -106,7 +157,7 @@ function SignInContent() {
 
                         <button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/25 active:scale-[0.98] flex items-center justify-center gap-2 group mt-4"
+                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98] flex items-center justify-center gap-2 group mt-4"
                         >
                             Verificar Empresa
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -134,7 +185,7 @@ function SignInContent() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400 ml-1">Usuario</label>
                             <div className="relative group">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
                                 <input
                                     type="text"
                                     required
@@ -142,7 +193,7 @@ function SignInContent() {
                                     placeholder="Ingresa tu usuario"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
+                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all placeholder:text-gray-600"
                                 />
                             </div>
                         </div>
@@ -151,14 +202,14 @@ function SignInContent() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400 ml-1">Contraseña</label>
                             <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
                                 <input
                                     type="password"
                                     required
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
+                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all placeholder:text-gray-600"
                                 />
                             </div>
                         </div>
@@ -173,7 +224,7 @@ function SignInContent() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-4"
+                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-4"
                         >
                             {isLoading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
