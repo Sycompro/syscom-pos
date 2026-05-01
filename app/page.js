@@ -144,7 +144,6 @@ export default function SalesDashboard() {
           </div>
         </div>
       </div>
-      </div>
     </div>
     </div>
   );
