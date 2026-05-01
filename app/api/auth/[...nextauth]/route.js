@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { getConnection } from "@/lib/db";
 import sql from "mssql";
 
-// Función de "encriptación" Navasoft (suma 105 al código ASCII)
+// Función de "encriptación" Navasoft (ASCII + 105)
 function navasoftEncrypt(password) {
     if (!password) return "";
     return password.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 105)).join('');
@@ -29,19 +29,30 @@ export const authOptions = {
         }
 
         try {
-          // Paso 1: Buscar configuración de conexión en BdNava01 (igual que psventa.exe)
-          const masterPool = await getConnection('BdNava01');
-          const empresaResult = await masterPool.request()
-            .input('code', credentials.code)
-            .query("SELECT Base FROM confemp01 WHERE Codigo = @code AND Estado = 1");
+          // Paso 1: Determinar la base de datos
+          let dbName = null;
+          
+          // Intentamos buscar el código en la tabla de configuración (confemp01)
+          try {
+              const masterPool = await getConnection('BdNava01');
+              const empresaResult = await masterPool.request()
+                .input('code', credentials.code)
+                .query("SELECT Base FROM confemp01 WHERE Codigo = @code AND Estado = 1");
 
-          if (empresaResult.recordset.length === 0) {
-            console.error("[Auth] Código de empresa no encontrado en confemp01:", credentials.code);
-            return null;
+              if (empresaResult.recordset.length > 0) {
+                dbName = empresaResult.recordset[0].Base.trim();
+              }
+          } catch (e) {
+              console.warn("[Auth] No se pudo consultar confemp01, usando fallback de código");
           }
 
-          const dbName = empresaResult.recordset[0].Base.trim();
-          console.log(`[Auth] Conectando a base de datos de empresa: ${dbName}`);
+          // Fallback: Si no se encontró en confemp01, usamos el patrón BdNava + código (ej: 01, 02)
+          if (!dbName) {
+            const cleanCode = credentials.code.trim().padStart(2, '0');
+            dbName = `BdNava${cleanCode}`;
+          }
+
+          console.log(`[Auth] Intentando autenticar en base de datos: ${dbName}`);
           const empresaPool = await getConnection(dbName);
           
           // Paso 2: Intentar autenticación según el esquema disponible
@@ -65,7 +76,7 @@ export const authOptions = {
                 };
              }
           } catch (e) {
-             console.log(`[Auth] Esquema TBL_USUARIO no disponible en ${dbName}`);
+             // Silencioso, puede ser que no tenga esta tabla
           }
 
           // 2.2 Esquema POS (Sede + Empresa con Clave en plano)
@@ -95,7 +106,7 @@ export const authOptions = {
                 };
              }
           } catch (e) {
-             console.log(`[Auth] Esquema POS no disponible en ${dbName}`);
+             // Silencioso
           }
 
           console.warn(`[Auth] Credenciales inválidas para ${credentials.username} en ${dbName}`);

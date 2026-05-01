@@ -3,39 +3,66 @@ import { getConnection } from '@/lib/db';
 
 export async function GET() {
     try {
-        console.log('[API] Fetching companies from BdNava01 (confemp01)...');
+        console.log('[API] Consolidating company list with database verification...');
         
-        // Usamos BdNava01 como fuente de verdad para los códigos que espera psventa.exe
-        const pool = await getConnection('BdNava01');
-        
-        const result = await pool.request()
-            .query("SELECT Codigo, Base FROM confemp01 WHERE Estado = 1");
-        
-        // Mapeo de nombres "bonitos" sincronizados con el Dashboard
-        const nameMap = {
-            'BdNava01': 'GIM.BRA S.A.C.',
-            'DB_GIMBRAMOVIL': 'GIM.BRA S.A.C.',
-            'DB_BUNNYMOVIL': 'BUNNY BRA S.A.C.',
-            'BdNava02': 'BUNNY BRA S.A.C.',
-            'DB_GYM': 'GYMBRA E.I.R.L.',
-            'BdNava05': 'GYMBRA E.I.R.L.',
-            'BdNava03': 'HERRERA SUCSE WIKY ALEXIS',
-            'BdNava04': 'IMPORTACIONES GYA S.A.C',
-            'PRUEBA_GYM': 'GYMBRA (PRUEBAS)'
-        };
+        // 1. Obtener bases de datos reales en el servidor
+        const masterPool = await getConnection('master');
+        const dbResult = await masterPool.request().query("SELECT name FROM sys.databases");
+        const existingDbs = new Set(dbResult.recordset.map(d => d.name.trim()));
 
-        const companies = result.recordset.map(c => {
-            const base = (c.Base || '').trim();
-            const code = (c.Codigo || '').trim();
-            return {
-                id: code,
-                code: code,
-                name: nameMap[base] || nameMap[code] || code.toUpperCase(),
-                database: base
-            };
+        // 2. Obtener nombres comerciales de BdNavaSys
+        const poolSys = await getConnection('BdNavaSys');
+        const resSys = await poolSys.request()
+            .query("SELECT codcia, nomcia FROM sysnavacia WHERE estado = 1 AND codcia <> '00'");
+        
+        // 3. Obtener códigos técnicos de confemp01
+        const poolMaster = await getConnection('BdNava01');
+        const resMaster = await poolMaster.request()
+            .query("SELECT Codigo, Base FROM confemp01 WHERE Estado = 1");
+
+        const companiesMap = new Map();
+
+        // Procesar sysnavacia (Prioridad: Nombres comerciales)
+        resSys.recordset.forEach(c => {
+            const code = c.codcia.trim();
+            const dbName = `BdNava${code}`;
+            if (existingDbs.has(dbName)) {
+                companiesMap.set(dbName, {
+                    id: code,
+                    code: code,
+                    name: c.nomcia.trim().toUpperCase(),
+                    database: dbName
+                });
+            }
         });
 
-        console.log(`[API] Found ${companies.length} companies mapping to ERP codes`);
+        // Procesar confemp01 (Prioridad: Códigos técnicos/POS)
+        resMaster.recordset.forEach(c => {
+            const base = c.Base.trim();
+            const code = c.Codigo.trim();
+            
+            if (existingDbs.has(base)) {
+                // Si la base ya está mapeada, mantenemos el nombre bonito pero permitimos el código técnico
+                if (companiesMap.has(base)) {
+                    // Opcional: Podríamos agregar el código técnico como alias o permitir ambos
+                } else {
+                    // Es una base POS específica (ej: DB_GYM)
+                    let prettyName = code.toUpperCase();
+                    if (code.toLowerCase().includes('gym')) prettyName = 'GYMBRA (POS)';
+                    
+                    companiesMap.set(base, {
+                        id: code,
+                        code: code,
+                        name: prettyName,
+                        database: base
+                    });
+                }
+            }
+        });
+
+        const companies = Array.from(companiesMap.values());
+        console.log(`[API] Validated ${companies.length} active companies`);
+
         return NextResponse.json(companies);
 
     } catch (err) {
