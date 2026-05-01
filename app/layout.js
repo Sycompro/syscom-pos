@@ -12,11 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="es">
       <body>
         <Providers>
-          <div className="flex min-h-screen">
-            <main className="flex-1 p-8">
-              {children}
-            </main>
-          </div>
+          {children}
         </Providers>
       </body>
     </html>

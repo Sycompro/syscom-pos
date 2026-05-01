@@ -19,7 +19,8 @@ export default function SalesDashboard() {
   }, []);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-[#070b14] p-8">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
@@ -143,6 +144,8 @@ export default function SalesDashboard() {
           </div>
         </div>
       </div>
+      </div>
+    </div>
     </div>
   );
 }
