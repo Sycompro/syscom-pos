@@ -13,7 +13,9 @@ const COMPANIES = [
     { id: 'BdNava05', name: 'TIENDA DEMO' },
 ];
 
-export default function SignInPage() {
+import { Suspense } from 'react';
+
+function SignInContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/pos';
@@ -54,99 +56,107 @@ export default function SignInPage() {
     };
 
     return (
+        <div className="w-full max-w-md p-8 relative z-10">
+            <div className="bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl shadow-black/50">
+                <div className="text-center mb-10">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 mb-6 shadow-lg shadow-blue-600/20">
+                        <Building2 className="text-white w-8 h-8" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Acceso POS</h1>
+                    <p className="text-gray-400">Selecciona tu empresa para continuar</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Empresa */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-400 ml-1">Empresa / Sede</label>
+                        <div className="relative group">
+                            <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+                            <select
+                                value={formData.company}
+                                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                                className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                            >
+                                {COMPANIES.map(c => (
+                                    <option key={c.id} value={c.id} className="bg-[#1a1a1a] text-white">{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Usuario */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-400 ml-1">Usuario</label>
+                        <div className="relative group">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+                            <input
+                                type="text"
+                                required
+                                placeholder="Ingresa tu usuario"
+                                value={formData.username}
+                                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Contraseña */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-400 ml-1">Contraseña</label>
+                        <div className="relative group">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+                            <input
+                                type="password"
+                                required
+                                placeholder="••••••••"
+                                value={formData.password}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
+                            />
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div className="flex items-center gap-2 text-red-400 bg-red-400/10 border border-red-400/20 p-3 rounded-xl text-sm animate-in fade-in slide-in-from-top-2">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-4"
+                    >
+                        {isLoading ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <>
+                                Ingresar al POS
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </>
+                        )}
+                    </button>
+                </form>
+
+                <div className="mt-8 pt-8 border-t border-white/5 text-center">
+                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Syscom Pro Ventas v2.0</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function SignInPage() {
+    return (
         <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] relative overflow-hidden">
             {/* Background Glows */}
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full" />
-
-            <div className="w-full max-w-md p-8 relative z-10">
-                <div className="bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl shadow-black/50">
-                    <div className="text-center mb-10">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 mb-6 shadow-lg shadow-blue-600/20">
-                            <Building2 className="text-white w-8 h-8" />
-                        </div>
-                        <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Acceso POS</h1>
-                        <p className="text-gray-400">Selecciona tu empresa para continuar</p>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* Empresa */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 ml-1">Empresa / Sede</label>
-                            <div className="relative group">
-                                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                                <select
-                                    value={formData.company}
-                                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all appearance-none cursor-pointer"
-                                >
-                                    {COMPANIES.map(c => (
-                                        <option key={c.id} value={c.id} className="bg-[#1a1a1a] text-white">{c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Usuario */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 ml-1">Usuario</label>
-                            <div className="relative group">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="Ingresa tu usuario"
-                                    value={formData.username}
-                                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Contraseña */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 ml-1">Contraseña</label>
-                            <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                                <input
-                                    type="password"
-                                    required
-                                    placeholder="••••••••"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
-                                />
-                            </div>
-                        </div>
-
-                        {error && (
-                            <div className="flex items-center gap-2 text-red-400 bg-red-400/10 border border-red-400/20 p-3 rounded-xl text-sm animate-in fade-in slide-in-from-top-2">
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                                <span>{error}</span>
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-4"
-                        >
-                            {isLoading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <>
-                                    Ingresar al POS
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    <div className="mt-8 pt-8 border-t border-white/5 text-center">
-                        <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Syscom Pro Ventas v2.0</p>
-                    </div>
-                </div>
-            </div>
+            
+            <Suspense fallback={<div className="text-white relative z-10 flex flex-col items-center"><Loader2 className="w-8 h-8 animate-spin mb-4" />Cargando...</div>}>
+                <SignInContent />
+            </Suspense>
         </div>
     );
 }
