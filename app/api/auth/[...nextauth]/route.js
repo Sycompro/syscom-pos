@@ -17,6 +17,7 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     CredentialsProvider({
+      id: "credentials",
       name: "ERP Credentials",
       credentials: {
         code: { label: "Código Empresa", type: "text" },
@@ -143,6 +144,9 @@ export const authOptions = {
       }
       return session;
     }
+  },
+  session: {
+    strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
