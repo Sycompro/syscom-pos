@@ -9,7 +9,6 @@ function SignInContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/';
-    const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
