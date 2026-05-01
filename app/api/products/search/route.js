@@ -42,4 +42,3 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Error en la búsqueda de productos' }, { status: 500 });
     }
 }
-旋
