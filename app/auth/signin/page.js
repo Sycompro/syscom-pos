@@ -179,7 +179,7 @@ function SignInContent() {
                   <select 
                     value={selectedCompany?.id || ''}
                     onChange={(e) => {
-                      const comp = companies.find(c => c.id === parseInt(e.target.value));
+                      const comp = companies.find(c => String(c.id) === String(e.target.value));
                       setSelectedCompany(comp);
                     }}
                     disabled={loadingCompanies}
