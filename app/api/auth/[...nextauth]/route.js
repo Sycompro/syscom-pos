@@ -24,7 +24,7 @@ export const authOptions = {
 
         try {
           // Paso 1: Buscar empresa en confemp01 (igual que psventa.exe LoginService)
-          const mainPool = await getConnection('BdNava01');
+          const mainPool = await getConnection(process.env.DB_NAME_MASTER);
           const empresaResult = await mainPool.request()
             .input('code', credentials.code)
             .query("SELECT EmpresaId, Codigo, Base, Server, Usuario, Clave FROM confemp01 WHERE Codigo = @code AND Estado = 1");
