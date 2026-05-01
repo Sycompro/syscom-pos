@@ -160,7 +160,7 @@ function SignInContent() {
                 </div>
 
                 {step === 1 ? (
-                    <form onSubmit={handleVerifyCode} className="space-y-6">
+                    <form onSubmit={handleVerifyCode} className="flex flex-col gap-6">
                         <div>
                             <label className="block text-sm font-semibold text-slate-300 mb-3">Código de Empresa</label>
                             <div className="relative">
@@ -174,7 +174,8 @@ function SignInContent() {
                                     placeholder="Ej: gimobile24"
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
-                                    className="w-full bg-slate-800/50 border border-slate-700/50 text-white rounded-xl h-14 pl-12 pr-4 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50 transition-all placeholder:text-slate-600"
+                                    className="w-full bg-slate-800/50 border border-slate-700/50 text-white rounded-xl h-14 pl-14 pr-4 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50 transition-all placeholder:text-slate-600"
+                                    style={{ paddingLeft: '3.5rem' }}
                                 />
                             </div>
                         </div>
@@ -195,7 +196,7 @@ function SignInContent() {
                         </button>
                     </form>
                 ) : (
-                    <form onSubmit={handleLogin} className="space-y-6">
+                    <form onSubmit={handleLogin} className="flex flex-col gap-6">
                         {/* Empresa verificada */}
                         <div className="flex items-center gap-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                             <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
@@ -228,7 +229,8 @@ function SignInContent() {
                                     placeholder="Ingresa tu usuario"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-slate-800/50 border border-slate-700/50 text-white rounded-xl h-14 pl-12 pr-4 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50 transition-all placeholder:text-slate-600"
+                                    className="w-full bg-slate-800/50 border border-slate-700/50 text-white rounded-xl h-14 pl-14 pr-4 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50 transition-all placeholder:text-slate-600"
+                                    style={{ paddingLeft: '3.5rem' }}
                                 />
                             </div>
                         </div>
@@ -246,7 +248,8 @@ function SignInContent() {
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-slate-800/50 border border-slate-700/50 text-white rounded-xl h-14 pl-12 pr-4 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50 transition-all placeholder:text-slate-600"
+                                    className="w-full bg-slate-800/50 border border-slate-700/50 text-white rounded-xl h-14 pl-14 pr-4 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50 transition-all placeholder:text-slate-600"
+                                    style={{ paddingLeft: '3.5rem' }}
                                 />
                             </div>
                         </div>
