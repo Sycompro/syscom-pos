@@ -4,12 +4,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { getConnection } from "@/lib/db";
 import sql from "mssql";
 
-// Función de "encriptación" Navasoft (ASCII + 105)
-function navasoftEncrypt(password) {
-    if (!password) return "";
-    return password.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 105)).join('');
-}
-
 export const authOptions = {
   providers: [
     GoogleProvider({
@@ -30,10 +24,8 @@ export const authOptions = {
         }
 
         try {
-          // Paso 1: Determinar la base de datos
+          // 1. Determinar base de datos
           let dbName = null;
-          
-          // Intentamos buscar el código en la tabla de configuración (confemp01)
           try {
               const masterPool = await getConnection('BdNava01');
               const empresaResult = await masterPool.request()
@@ -44,27 +36,43 @@ export const authOptions = {
                 dbName = empresaResult.recordset[0].Base.trim();
               }
           } catch (e) {
-              console.warn("[Auth] No se pudo consultar confemp01, usando fallback de código");
+              console.warn("[Auth] Fallback a código directo");
           }
 
-          // Fallback: Si no se encontró en confemp01, usamos el patrón BdNava + código (ej: 01, 02)
           if (!dbName) {
             const cleanCode = credentials.code.trim().padStart(2, '0');
             dbName = `BdNava${cleanCode}`;
           }
 
-          console.log(`[Auth] Intentando autenticar en base de datos: ${dbName}`);
+          console.log(`[Auth] Validando en ${dbName} para usuario: ${credentials.username}`);
           const empresaPool = await getConnection(dbName);
           
-          // Paso 2: Intentar autenticación según el esquema disponible
-          
-          // 2.1 Esquema ERP (TBL_USUARIO con Clave ofuscada)
+          // 2. Autenticación ERP con comparación ASCII (Más robusto contra encoding)
           try {
-             const encryptedPass = navasoftEncrypt(credentials.password);
+             // Generamos los códigos ASCII esperados (Shift +105)
+             const expectedCodes = credentials.password.split('').map(c => c.charCodeAt(0) + 105);
+             
+             // Construimos la condición SQL para comparar caracter por caracter
+             // NOTA: Usamos ASCII() en SQL que devuelve el valor de 0-255
+             // Si el código es > 255 (Unicode), usamos el valor base.
+             const asciiConditions = expectedCodes.map((code, i) => {
+                // En SQL Server, ASCII() de caracteres extendidos puede variar según colación,
+                // pero UNICODE() es constante para los caracteres de Navasoft.
+                return `UNICODE(SUBSTRING(Clave, ${i + 1}, 1)) = ${code}`;
+             }).join(' AND ');
+
+             const query = `
+                SELECT Usuario, Nombres + ' ' + Apellidos as FullName 
+                FROM TBL_USUARIO 
+                WHERE Usuario = @usuario 
+                AND (${asciiConditions}) 
+                AND LEN(RTRIM(Clave)) = ${expectedCodes.length}
+                AND Estado = 1
+             `;
+
              const erpResult = await empresaPool.request()
                 .input('usuario', credentials.username)
-                .input('clave', encryptedPass)
-                .query("SELECT Usuario, Nombres + ' ' + Apellidos as FullName FROM TBL_USUARIO WHERE Usuario = @usuario AND Clave = @clave AND Estado = 1");
+                .query(query);
              
              if (erpResult.recordset.length > 0) {
                 const user = erpResult.recordset[0];
@@ -77,10 +85,10 @@ export const authOptions = {
                 };
              }
           } catch (e) {
-             // Silencioso, puede ser que no tenga esta tabla
+             console.error("[Auth] Error en esquema ERP:", e.message);
           }
 
-          // 2.2 Esquema POS (Sede + Empresa con Clave en plano)
+          // 3. Fallback: Esquema POS (Sede en plano)
           try {
              const posResult = await empresaPool.request()
                 .input('usuario', credentials.username)
@@ -106,14 +114,11 @@ export const authOptions = {
                   schema: 'POS'
                 };
              }
-          } catch (e) {
-             // Silencioso
-          }
+          } catch (e) {}
 
-          console.warn(`[Auth] Credenciales inválidas para ${credentials.username} en ${dbName}`);
           return null;
         } catch (err) {
-          console.error("[Auth] Error Crítico de Autenticación:", err.message);
+          console.error("[Auth] Error Crítico:", err.message);
           return null;
         }
       }
@@ -145,13 +150,9 @@ export const authOptions = {
       return session;
     }
   },
-  session: {
-    strategy: "jwt",
-  },
+  session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: '/auth/signin',
-  }
+  pages: { signIn: '/auth/signin' }
 };
 
 const handler = NextAuth(authOptions);
