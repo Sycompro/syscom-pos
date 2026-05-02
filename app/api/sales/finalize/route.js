@@ -165,9 +165,10 @@ export async function POST(request) {
             .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
             .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
             .input('codsub', sql.Char(2), '03')
+            .input('compro_ccc', sql.Char(9), paymentMethod === 3 ? `${(body.codtar || '03').substring(0, 2)}/` : '')
             .query(`
-                INSERT INTO mst01ccc (fecha, cdocu, ndocu, crefe, nrefe, codcli, nomcli, ruccli, codcdv, monto, saldo, fven, mone, tcam, flag, flagi, codven, codpto, codsub)
-                VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, '01', @monto, @saldo, @fven, @mone, @tcam, '0', '0', @codven, @codpto, @codsub)
+                INSERT INTO mst01ccc (fecha, cdocu, ndocu, crefe, nrefe, codcli, nomcli, ruccli, codcdv, monto, saldo, fven, mone, tcam, flag, flagi, codven, codpto, codsub, compro)
+                VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, '01', @monto, @saldo, @fven, @mone, @tcam, '0', '0', @codven, @codpto, @codsub, @compro_ccc)
             `);
 
         await transaction.commit();
