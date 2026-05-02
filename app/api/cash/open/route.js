@@ -27,13 +27,13 @@ export async function POST(request) {
         }
 
         if (schemaType === 'ERP') {
-            const userCode = session.user.id; // codusu
-            const sedeCode = session.user.sedeId; // codpto (Punto de Venta)
+            const userCode = session.user.id?.toString().trim(); // codusu
+            const sedeCode = session.user.sedeId?.toString().trim(); // codpto (Punto de Venta)
 
             // Lógica Esquema ERP (dtl_restpos_apecaj)
             const check = await pool.request()
-                .input('codpto', sql.Char(6), sedeCode)
-                .query("SELECT idapecaj FROM dtl_restpos_apecaj WHERE estado = 0 AND codpto = @codpto");
+                .input('codpto', sql.Char(2), sedeCode)
+                .query("SELECT idapecaj FROM dtl_restpos_apecaj WHERE estado = 0 AND LTRIM(RTRIM(codpto)) = @codpto");
 
             if (check.recordset.length > 0) {
                 return NextResponse.json({ error: 'Ya existe una caja abierta en este punto de venta' }, { status: 400 });
@@ -42,8 +42,8 @@ export async function POST(request) {
             const result = await pool.request()
                 .input('fecape', sql.DateTime, dateStr)
                 .input('hora', sql.Char(10), timeStr)
-                .input('codpto', sql.Char(6), sedeCode)
-                .input('codusu', sql.Char(10), userCode)
+                .input('codpto', sql.Char(2), sedeCode)
+                .input('codusu', sql.Char(3), userCode)
                 .input('apesol', sql.Float, amount || 0)
                 .query(`
                     INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur)

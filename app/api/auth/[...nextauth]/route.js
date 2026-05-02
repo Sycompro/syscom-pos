@@ -164,6 +164,7 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id; // codusu
         token.company = user.company;
         token.username = user.username;
         token.empresaId = user.empresaId;
@@ -176,6 +177,7 @@ export const authOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
+        session.user.id = token.id; // codusu
         session.user.company = token.company;
         session.user.username = token.username;
         session.user.empresaId = token.empresaId;

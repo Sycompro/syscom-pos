@@ -8,6 +8,17 @@ c:\Users\Administrador\Desktop\dato.click\pagina-web\docs\analisis-pos.md
 psventa.exe
 
 
-Empresa: gymob24
-Usuario: prueba01
-Clave: 123456
+GYMprueba
+Usuario: prueba02
+Clave: 127456
+
+
+
+
+numero de celular
+Fecha de Nacimiento
+
+esos datos tambien los necesito en cliente que si esten en sunat o reniec o en el ERP para empresas de GYM o gestion de memebresias 
+
+
+analizalo 
