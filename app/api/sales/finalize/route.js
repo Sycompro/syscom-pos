@@ -46,9 +46,10 @@ export async function POST(request) {
         const ndocu = corRes.recordset[0].nroini.trim();
         const nextNdocu = incrementCorrelative(ndocu);
 
-        // 2. Calcular totales
-        const totalNeto = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-        const totalIGV = totalNeto - (totalNeto / 1.18);
+        // 2. Calcular totales (Navasoft: totn=Total, tota=Afecto, toti=IGV)
+        const totalVenta = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        const totalAfecto = totalVenta / 1.18;
+        const totalIGV = totalVenta - totalAfecto;
 
         // Definir Flags según estándar Navasoft
         const flagValue = '0';
@@ -70,9 +71,9 @@ export async function POST(request) {
             .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
             .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
             .input('ruccli', sql.Char(11), (body.ruccli || '').substring(0, 11))
-            .input('totn', sql.Float, totalNeto)
-            .input('toti', sql.Float, totalIGV)
-            .input('tota', sql.Float, totalNeto) 
+            .input('totn', sql.Float, totalVenta)   // TOTAL
+            .input('toti', sql.Float, totalIGV)     // IGV
+            .input('tota', sql.Float, totalAfecto)  // AFECTO (Base)
             .input('mone', sql.Char(1), currency)
             .input('tcam', sql.Float, exchangeRate)
             .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
