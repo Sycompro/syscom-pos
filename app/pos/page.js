@@ -243,8 +243,6 @@ export default function POSPage() {
             if (ex) return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
             return [...prev, { ...product, quantity: 1 }];
         });
-    };
-
     const updateQuantity = (id, delta) =>
         setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i));
 
@@ -252,6 +250,11 @@ export default function POSPage() {
 
     const finalizeSale = async () => {
         if (!cart.length || !idApeCaj) return;
+        if (!selectedSalesperson) {
+            alert('Por favor, selecciona un vendedor antes de finalizar.');
+            return;
+        }
+        
         setIsFinalizing(true);
         try {
             if (customer.phone || customer.birthdate) {
