@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getConnection } from '@/lib/db';
-import sql from 'mssql';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function POST(request) {
+    const session = await getServerSession(authOptions);
     const body = await request.json();
     const { doc, name, lastname, phone, birthdate } = body;
 
     try {
-        const pool = await getConnection();
+        const pool = await getConnection(session?.user?.company);
         
         // 1. Asegurar que la tabla interna exista
         await pool.request().query(`

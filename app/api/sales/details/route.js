@@ -1,18 +1,13 @@
 import { NextResponse } from 'next/server';
+import { getConnection } from '@/lib/db';
 import sql from 'mssql';
-
-const sqlConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    server: process.env.DB_SERVER,
-    options: {
-        encrypt: false,
-        trustServerCertificate: true
-    }
-};
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET(request) {
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const cdocu = searchParams.get('cdocu');
     const ndocu = searchParams.get('ndocu');
@@ -22,21 +17,26 @@ export async function GET(request) {
     }
 
     try {
-        const pool = await sql.connect(sqlConfig);
+        const pool = await getConnection(session.user.company);
         
         const result = await pool.request()
             .input('cdocu', sql.Char(2), cdocu)
             .input('ndocu', sql.Char(12), ndocu)
             .query(`
-                SELECT d.codi, d.nomb as name, d.cant as quantity, d.prec as price, d.totn as total
-                FROM dtl01fac d
-                WHERE d.cdocu = @cdocu AND d.ndocu = @ndocu
+                SELECT 
+                    RTRIM(codi) as code, 
+                    RTRIM(descr) as name, 
+                    cant as quantity, 
+                    preu as price, 
+                    tota as total
+                FROM dtl01fac
+                WHERE cdocu = @cdocu AND ndocu = @ndocu
             `);
 
         return NextResponse.json(result.recordset);
 
     } catch (err) {
         console.error('Sales details error:', err);
-        return NextResponse.json({ error: 'Error al obtener detalles' }, { status: 500 });
+        return NextResponse.json({ error: 'Error al obtener detalles', details: err.message }, { status: 500 });
     }
 }

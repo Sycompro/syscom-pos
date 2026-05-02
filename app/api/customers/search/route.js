@@ -1,15 +1,15 @@
-import { NextResponse } from 'next/server';
-import { getConnection } from '@/lib/db';
-import sql from 'mssql';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET(request) {
+    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
 
     if (!query) return NextResponse.json({ data: null });
 
     try {
-        const pool = await getConnection();
+        const pool = await getConnection(session?.user?.company);
         let finalData = null;
         let source = 'NONE';
 

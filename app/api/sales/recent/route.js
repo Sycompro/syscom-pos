@@ -1,9 +1,10 @@
-import { getConnection } from '../../../../lib/db';
-import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET() {
   try {
-    const pool = await getConnection();
+    const session = await getServerSession(authOptions);
+    const pool = await getConnection(session?.user?.company);
     
     // Fetching last 10 sales from mst01fac
     const result = await pool.request().query(`
