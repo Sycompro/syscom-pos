@@ -75,9 +75,11 @@ export async function POST(request) {
             .input('codusu', sql.Char(10), session?.user?.id || 'WEB_POS')
             .input('flag', sql.Char(1), flagValue)
             .input('tfact', sql.Char(1), tfactValue)
+            .input('codcdv', sql.Char(2), '01')
+            .input('codvta', sql.Char(2), '01')
             .query(`
-                INSERT INTO mst01fac (fecha, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codtar, codusu, flag, tfact)
-                VALUES (@fecha, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, @flag, @tfact)
+                INSERT INTO mst01fac (fecha, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codtar, codusu, flag, tfact, Codcdv, codvta)
+                VALUES (@fecha, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, @flag, @tfact, @codcdv, @codvta)
             `);
 
         // 4. Insertar Detalle (dtl01fac) y Actualizar Stock
