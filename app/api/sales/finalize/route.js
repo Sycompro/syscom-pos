@@ -50,6 +50,10 @@ export async function POST(request) {
         const totalNeto = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
         const totalIGV = totalNeto - (totalNeto / 1.18);
 
+        // Definir Flags según estándar Navasoft
+        const flagValue = '0';
+        const tfactValue = (docType === '01' || docType === '03') ? '2' : '5';
+
         // 3. Insertar Cabecera (mst01fac)
         await transaction.request()
             .input('fecha', sql.DateTime, new Date())
@@ -69,9 +73,11 @@ export async function POST(request) {
             .input('selpago', sql.Int, paymentMethod || 1)
             .input('codtar', sql.Char(2), body.codtar || '')
             .input('codusu', sql.Char(10), session?.user?.id || 'WEB_POS')
+            .input('flag', sql.Char(1), flagValue)
+            .input('tfact', sql.Char(1), tfactValue)
             .query(`
                 INSERT INTO mst01fac (fecha, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codtar, codusu, flag, tfact)
-                VALUES (@fecha, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, ' ', ' ')
+                VALUES (@fecha, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, @flag, @tfact)
             `);
 
         // 4. Insertar Detalle (dtl01fac) y Actualizar Stock
@@ -92,12 +98,14 @@ export async function POST(request) {
                 .input('preu', sql.Float, item.price)
                 .input('tota', sql.Float, item.price * item.quantity)
                 .input('codalm', sql.Char(2), warehouse || '01')
+                .input('flag', sql.Char(1), flagValue)
+                .input('tfact', sql.Char(1), tfactValue)
                 .query(`
                     INSERT INTO dtl01fac (fecha, cdocu, ndocu, item, codi, descr, cant, preu, tota, Codalm, mone, flag, msto, tfact)
-                    VALUES (@fecha, @cdocu, @ndocu, @item, @codi, @descr, @cant, @preu, @tota, @codalm, 'S', ' ', 'S', ' ')
+                    VALUES (@fecha, @cdocu, @ndocu, @item, @codi, @descr, @cant, @preu, @tota, @codalm, 'S', @flag, 'S', @tfact)
                 `);
 
-            // Actualizar Stock (DOBLE IMPACTO: Almacén + Consolidado)
+            // Actualizar Stock (Almacén + Consolidado)
             await transaction.request()
                 .input('codi', sql.Char(15), item.id)
                 .input('cant', sql.Float, item.quantity)
@@ -125,7 +133,7 @@ export async function POST(request) {
         });
 
     } catch (err) {
-        await transaction.rollback();
+        if (transaction) await transaction.rollback();
         console.error('Transaction error:', err);
         return NextResponse.json({ error: 'Error al procesar la venta', details: err.message }, { status: 500 });
     }
