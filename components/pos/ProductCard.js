@@ -3,6 +3,7 @@ import { Package, Plus } from 'lucide-react';
 
 export default function ProductCard({ product, onAdd }) {
     const inStock = product.stock > 0;
+    
     return (
         <div
             onClick={() => onAdd(product)}
@@ -15,7 +16,7 @@ export default function ProductCard({ product, onAdd }) {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '8px',
-                height: '160px',
+                height: '170px',
                 position: 'relative',
                 transition: 'all 0.2s ease',
                 overflow: 'hidden',
@@ -31,21 +32,6 @@ export default function ProductCard({ product, onAdd }) {
                 e.currentTarget.style.transform = 'translateY(0)';
             }}
         >
-            {/* Stock badge */}
-            <span style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                fontSize: '9px',
-                fontWeight: 800,
-                padding: '2px 8px',
-                borderRadius: '6px',
-                background: inStock ? '#dcfce7' : '#fee2e2',
-                color: inStock ? '#16a34a' : '#dc2626',
-            }}>
-                {inStock ? Math.floor(product.stock) : 'Agotado'}
-            </span>
-
             {/* Icon + Name */}
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                 <div style={{
@@ -82,29 +68,45 @@ export default function ProductCard({ product, onAdd }) {
                 </div>
             </div>
 
-            {/* Price + Add - Fixed to bottom */}
+            {/* Footer Area */}
             <div style={{
                 marginTop: 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
                 borderTop: '1px solid #f1f5f9',
                 paddingTop: '10px',
             }}>
-                <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
-                    S/ {Number(product.price).toFixed(2)}
-                </span>
-                <div style={{
-                    width: '32px',
-                    height: '32px',
-                    background: '#eff6ff',
-                    color: '#3b82f6',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                {/* Stock info */}
+                <div style={{ 
+                    fontSize: '9px', 
+                    fontWeight: 800, 
+                    padding: '2px 8px', 
+                    borderRadius: '6px',
+                    display: 'inline-block',
+                    marginBottom: '6px',
+                    background: inStock ? '#f0fdf4' : '#fef2f2',
+                    color: inStock ? '#16a34a' : '#dc2626',
+                    border: inStock ? '1px solid #dcfce7' : '1px solid #fee2e2'
                 }}>
-                    <Plus size={16} strokeWidth={3} />
+                    {inStock ? `${Math.floor(product.stock)} disponibles` : 'Sin stock'}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a' }}>
+                        <span style={{ fontSize: '11px', color: '#64748b', marginRight: '4px' }}>S/</span>
+                        {Number(product.price).toFixed(2)}
+                    </div>
+                    <div style={{
+                        width: '32px',
+                        height: '32px',
+                        background: '#eff6ff',
+                        color: '#3b82f6',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s',
+                    }}>
+                        <Plus size={16} strokeWidth={3} />
+                    </div>
                 </div>
             </div>
         </div>
