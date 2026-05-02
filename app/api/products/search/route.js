@@ -7,7 +7,9 @@ export async function GET(request) {
     const query = searchParams.get('q');
     const alm = searchParams.get('alm') || '01';
 
-    if (!query || query.length < 3) return NextResponse.json([]);
+    // Si no hay query, cargamos el top 50 de productos para no dejar la pantalla vacía
+    const isInitialLoad = !query || query.length === 0;
+    const searchQuery = isInitialLoad ? '%' : `%${query}%`;
 
     try {
         const pool = await getConnection();
@@ -16,16 +18,16 @@ export async function GET(request) {
         const stockField = `stk${alm.padStart(2, '0')}`;
 
         const result = await pool.request()
-            .input('query', sql.VarChar(100), `%${query}%`)
+            .input('searchQuery', sql.VarChar(100), searchQuery)
             .query(`
-                SELECT TOP 20 
-                    codi as id, 
-                    descr as name, 
-                    pre1 as price, 
+                SELECT TOP 50 
+                    RTRIM(codi) as id, 
+                    RTRIM(descr) as name, 
+                    pvns as price, 
                     ${stockField} as stock 
                 FROM prd0101 
-                WHERE (descr LIKE @query OR codi LIKE @query)
-                AND flag <> '*'
+                WHERE (descr LIKE @searchQuery OR codi LIKE @searchQuery OR codf LIKE @searchQuery)
+                AND estado = 1 -- Solo productos activos
             `);
 
         const products = result.recordset.map(r => ({

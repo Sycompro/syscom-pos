@@ -1,29 +1,51 @@
 import { getConnection } from '../../../lib/db';
 import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import sql from 'mssql';
 
 export async function GET(request) {
   try {
+    const session = await getServerSession(authOptions);
+    const company = session?.user?.company || process.env.DB_NAME_MASTER;
+    const sedeId = session?.user?.sedeId;
+    
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
     
-    const pool = await getConnection();
+    const pool = await getConnection(company);
     
-    // Querying prd0101 for products
-    // We filter by description or code if 'q' is provided
+    // 1. Determinar el almacén (warehouse) del Punto de Venta (Sede)
+    let warehouse = '01'; // Default
+    if (sedeId) {
+        const ptoRes = await pool.request()
+            .input('codpto', sql.Char(6), sedeId)
+            .query("SELECT codtie FROM tbl01pto WHERE codpto = @codpto");
+        
+        if (ptoRes.recordset.length > 0) {
+            // El codtie suele ser '001', '008', etc. Tomamos los últimos 2 dígitos.
+            const codtie = ptoRes.recordset[0].codtie.trim();
+            warehouse = codtie.slice(-2); 
+        }
+    }
+
+    const stockField = `stk${warehouse.padStart(2, '0')}`;
+    
+    // 2. Consulta optimizada
     let sqlQuery = `
       SELECT TOP 50 
-        codf as code, 
-        descr as name, 
-        marc as brand, 
-        umed as unit, 
+        RTRIM(codi) as code, 
+        RTRIM(descr) as name, 
+        RTRIM(marc) as brand, 
+        RTRIM(umed) as unit, 
         pvns as price, 
-        stoc as stock
+        ${stockField} as stock
       FROM prd0101
-      WHERE 1=1
+      WHERE estado = 1
     `;
     
     if (query) {
-      sqlQuery += ` AND (descr LIKE '%${query}%' OR codf LIKE '%${query}%')`;
+      sqlQuery += ` AND (descr LIKE '%${query}%' OR codi LIKE '%${query}%' OR codf LIKE '%${query}%')`;
     }
     
     sqlQuery += ` ORDER BY descr ASC`;

@@ -10,51 +10,90 @@ export async function GET(request) {
 
     try {
         const pool = await getConnection();
-        
-        // Buscar en local primero
-        const result = await pool.request()
+        let finalData = null;
+        let source = 'NONE';
+
+        // 1. Buscar en Navasoft (ERP) - Datos Oficiales
+        const erpResult = await pool.request()
             .input('query', sql.VarChar(20), query)
             .query("SELECT TOP 1 codcli, nomcli, ruccli, nrodni, dircli FROM mst01cli WHERE ruccli = @query OR nrodni = @query");
 
-        if (result.recordset.length > 0) {
-            const cli = result.recordset[0];
-            return NextResponse.json({ 
-                data: {
-                    codcli: cli.codcli.trim(),
-                    nomcli: cli.nomcli.trim(),
-                    ruccli: cli.ruccli.trim() || cli.nrodni.trim(),
-                    address: cli.dircli.trim()
-                }
-            });
+        if (erpResult.recordset.length > 0) {
+            const cli = erpResult.recordset[0];
+            finalData = {
+                codcli: cli.codcli.trim(),
+                nomcli: cli.nomcli.trim(),
+                ruccli: cli.ruccli.trim() || cli.nrodni.trim(),
+                address: cli.dircli.trim(),
+                source: 'ERP'
+            };
+            source = 'ERP';
         }
 
-        // Si no está, buscar en API externa (DNI/RUC)
-        const apiRes = await fetch('https://apiperu.dev/api/dni-ruc', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer 76ca7246c8a8c464fd551b6555e780791a69ff89acb8887558d65b23f05ab81b'
-            },
-            body: JSON.stringify({ dni: query, ruc: query })
+        // 2. Si no está en ERP, buscar en API Externa (SUNAT/RENIEC)
+        if (!finalData) {
+            const apiRes = await fetch('https://apiperu.dev/api/dni-ruc', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer 76ca7246c8a8c464fd551b6555e780791a69ff89acb8887558d65b23f05ab81b'
+                },
+                body: JSON.stringify({ dni: query, ruc: query })
+            });
+
+            const apiData = await apiRes.json();
+            if (apiData.success && apiData.data) {
+                const d = apiData.data;
+                finalData = {
+                    codcli: 'NUEVO_ERP',
+                    nomcli: d.nombre_completo || d.nombre_o_razon_social,
+                    ruccli: d.ruc || d.dni,
+                    address: d.direccion_completa || '',
+                    isNew: true,
+                    source: 'EXTERNAL'
+                };
+                source = 'EXTERNAL';
+            }
+        }
+
+        // 3. SIEMPRE buscar en Railway para completar datos (Celular, F. Nacimiento)
+        try {
+            const internalResult = await pool.request()
+                .input('query', sql.VarChar(20), query)
+                .query("SELECT TOP 1 phone, birthdate, name, lastname FROM tbl_clientes_internos WHERE doc = @query");
+
+            if (internalResult.recordset.length > 0) {
+                const intCli = internalResult.recordset[0];
+                
+                // Si el cliente no existía en ERP ni API, lo creamos desde Railway
+                if (!finalData) {
+                    finalData = {
+                        codcli: 'INTERNO',
+                        nomcli: `${intCli.name} ${intCli.lastname}`,
+                        ruccli: query,
+                        address: '',
+                        source: 'RAILWAY'
+                    };
+                }
+
+                // Inyectamos los datos extras de Railway (Celular y Nacimiento)
+                finalData.phone = intCli.phone || '';
+                finalData.birthdate = intCli.birthdate || '';
+                if (finalData.source === 'ERP') finalData.source = 'ERP + RAILWAY';
+            }
+        } catch (e) {
+            console.log('Internal table check failed/empty');
+        }
+
+        if (finalData) {
+            return NextResponse.json({ data: finalData });
+        }
+
+        return NextResponse.json({ 
+            data: null, 
+            message: 'Datos incorrectos o se trata de un menor de edad o un extranjero.' 
         });
-
-        const apiData = await apiRes.json();
-
-        if (apiData.success && apiData.data) {
-            const data = apiData.data;
-            return NextResponse.json({
-                data: {
-                    codcli: 'NUEVO',
-                    nomcli: data.nombre_completo || data.nombre_o_razon_social,
-                    ruccli: data.ruc || data.dni,
-                    address: data.direccion_completa || '',
-                    isNew: true
-                }
-            });
-        }
-
-        return NextResponse.json({ data: null });
 
     } catch (err) {
         console.error('Search customer error:', err);

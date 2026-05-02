@@ -27,48 +27,7 @@ export const authOptions = {
         }
 
         try {
-          // 1. INTENTO OFICIAL: GIMBRA_SERVER (Esquema POS Centralizado)
           let dbName = null;
-          try {
-              console.log(`[Auth] Intentando esquema oficial POS en GIMBRA_SERVER para: ${credentials.username}`);
-              const gimbraPool = await getConnection('GIMBRA_SERVER');
-              
-              // El código de empresa (01, 05, etc) suele coincidir con EmpresaId
-              const empresaId = parseInt(credentials.code);
-              
-              const posResult = await gimbraPool.request()
-                .input('empresaId', empresaId)
-                .input('usuario', credentials.username)
-                .input('clave', credentials.password)
-                .query(`
-                  SELECT S.SedeId, S.Descripcion AS SedeName, E.RazonSocial, E.Ruc, E.EmpresaId, E.NameBdMovil
-                  FROM Sede AS S
-                  INNER JOIN Empresa AS E ON S.EmpresaId = E.EmpresaId
-                  WHERE (E.EmpresaId = @empresaId OR E.Codigo = @code) 
-                  AND S.Descripcion = @usuario 
-                  AND S.Password = @clave
-                `.replace('@code', `'${credentials.code}'`)); // Fallback a código string si falla el int
-
-              if (posResult.recordset.length > 0) {
-                const seat = posResult.recordset[0];
-                const targetDb = seat.NameBdMovil?.trim() || `BdNava${credentials.code.trim().padStart(2, '0')}`;
-                
-                console.log(`[Auth] ¡ÉXITO POS! Sede ${seat.SedeName} autenticada en GIMBRA_SERVER`);
-                return {
-                  id: String(seat.SedeId),
-                  name: seat.RazonSocial?.trim() || seat.SedeName,
-                  username: credentials.username,
-                  company: targetDb,
-                  empresaId: seat.EmpresaId,
-                  sedeId: seat.SedeId,
-                  sedeName: seat.SedeName?.trim(),
-                  ruc: seat.Ruc?.trim(),
-                  schema: 'POS_OFFICIAL'
-                };
-              }
-          } catch (e) {
-              console.error("[Auth] Error en esquema oficial GIMBRA_SERVER:", e.message);
-          }
 
           // 2. Determinar base de datos para otros esquemas (ERP / Otros POS)
           try {
@@ -100,15 +59,16 @@ export const authOptions = {
              console.log(`[Auth] Intentando esquema POS Terminal (fcu0000) en ${dbName} para: ${credentials.username}`);
              
              const expectedCodes = credentials.password.split('').map(c => c.charCodeAt(0) + 105);
-             const asciiConditions = expectedCodes.map((code, i) => `UNICODE(SUBSTRING(clausu, ${i + 1}, 1)) = ${code}`).join(' AND ');
+             const asciiConditions = expectedCodes.map((code, i) => `ASCII(SUBSTRING(clausu, ${i + 1}, 1)) = ${code}`).join(' AND ');
 
              const posQuery = `
-                SELECT codusu, nomacc, nomusu 
-                FROM fcu0000 
-                WHERE LTRIM(RTRIM(nomacc)) = @usuario 
+                SELECT U.codusu, U.nomacc, U.nomusu, U.codpto, P.nompto 
+                FROM fcu0000 U
+                LEFT JOIN tbl01pto P ON U.codpto = P.codpto
+                WHERE LTRIM(RTRIM(U.nomacc)) = @usuario 
                 AND (${asciiConditions}) 
-                AND LEN(RTRIM(clausu)) = ${expectedCodes.length}
-                AND estado = 1
+                AND LEN(RTRIM(U.clausu)) = ${expectedCodes.length}
+                AND U.estado = 1
              `;
 
              const posResult = await empresaPool.request()
@@ -117,12 +77,14 @@ export const authOptions = {
              
              if (posResult.recordset.length > 0) {
                 const user = posResult.recordset[0];
-                console.log(`[Auth] ¡ÉXITO POS TERMINAL! Usuario ${user.nomacc} autenticado en ${dbName}`);
+                console.log(`[Auth] ¡ÉXITO POS TERMINAL! Usuario ${user.nomacc} autenticado en ${dbName} con Sede: ${user.nompto}`);
                 return {
                   id: user.codusu?.trim() || user.nomacc?.trim(),
                   name: user.nomusu?.trim() || user.nomacc?.trim(),
                   username: user.nomacc?.trim(),
                   company: dbName,
+                  sedeId: user.codpto?.trim(),
+                  sedeName: user.nompto?.trim(),
                   schema: 'POS_TERMINAL'
                 };
              }
@@ -133,7 +95,7 @@ export const authOptions = {
           // 3. Autenticación ERP (TBL_USUARIO) - Usuarios administrativos
           try {
              const expectedCodes = credentials.password.split('').map(c => c.charCodeAt(0) + 105);
-             const asciiConditions = expectedCodes.map((code, i) => `UNICODE(SUBSTRING(Clave, ${i + 1}, 1)) = ${code}`).join(' AND ');
+             const asciiConditions = expectedCodes.map((code, i) => `ASCII(SUBSTRING(Clave, ${i + 1}, 1)) = ${code}`).join(' AND ');
 
              const erpQuery = `
                 SELECT Usuario, Nombres + ' ' + Apellidos as FullName 
@@ -164,29 +126,27 @@ export const authOptions = {
              console.error("[Auth] Error en esquema ERP:", e.message);
           }
 
-          // 3. Fallback: Esquema POS (Sede en plano)
+          // 3. Fallback: Esquema POS (Punto de Venta directo)
           try {
              const posResult = await empresaPool.request()
                 .input('usuario', credentials.username)
                 .input('clave', credentials.password)
                 .query(`
-                  SELECT S.SedeId, S.Direccion AS SedeName, E.RazonSocial, E.Ruc, E.EmpresaId
-                  FROM Sede AS S
-                  INNER JOIN Empresa AS E ON S.EmpresaId = E.EmpresaId
-                  WHERE S.Usuario = @usuario AND S.Clave = @clave
+                  SELECT codpto as SedeId, nompto as SedeName 
+                  FROM tbl01pto 
+                  WHERE codpto = @usuario AND nompto = @clave
                 `);
              
              if (posResult.recordset.length > 0) {
                 const seat = posResult.recordset[0];
                 return {
-                  id: String(seat.SedeId),
-                  name: seat.RazonSocial?.trim() || 'Sede POS',
+                  id: seat.SedeId.trim(),
+                  name: seat.SedeName?.trim() || 'Sede POS',
                   username: credentials.username,
                   company: dbName,
-                  empresaId: seat.EmpresaId,
-                  sedeId: seat.SedeId,
+                  empresaId: cleanCode,
+                  sedeId: seat.SedeId.trim(),
                   sedeName: seat.SedeName?.trim(),
-                  ruc: seat.Ruc?.trim(),
                   schema: 'POS'
                 };
              }

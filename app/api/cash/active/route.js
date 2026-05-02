@@ -15,15 +15,19 @@ export async function GET() {
         
         // 1. Intentar con Esquema ERP (dtl_restpos_apecaj)
         try {
+            const userCode = session.user.id; // codusu
+            const sedeCode = session.user.sedeId; // codpto
+
             const result = await pool.request()
-                .query("SELECT TOP 1 idapecaj as id FROM dtl_restpos_apecaj WHERE estado = 1 ORDER BY fecape DESC");
+                .input('codusu', userCode)
+                .input('codpto', sedeCode)
+                .query("SELECT TOP 1 idapecaj as id FROM dtl_restpos_apecaj WHERE estado = 0 AND codusu = @codusu AND codpto = @codpto ORDER BY idapecaj DESC");
             
             if (result.recordset.length > 0) {
                 return NextResponse.json({ id: result.recordset[0].id });
             }
         } catch (e) {
-            // Si falla, es posible que el esquema sea diferente, intentamos el otro
-            console.log("[API/Cash/Active] Esquema ERP no detectado, probando Esquema POS...");
+            console.log("[API/Cash/Active] Error consultando dtl_restpos_apecaj:", e.message);
         }
 
         // 2. Intentar con Esquema POS (Caja)

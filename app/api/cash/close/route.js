@@ -1,45 +1,28 @@
 import { NextResponse } from 'next/server';
+import { getConnection } from '@/lib/db';
 import sql from 'mssql';
-
-const sqlConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    server: process.env.DB_SERVER,
-    options: {
-        encrypt: false,
-        trustServerCertificate: true
-    }
-};
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function POST(request) {
-    const body = await request.json();
-    const { id } = body;
+    const session = await getServerSession(authOptions);
+    const { idApeCaj } = await request.json();
 
-    if (!id) {
-        return NextResponse.json({ error: 'Falta ID de apertura' }, { status: 400 });
-    }
+    if (!idApeCaj) return NextResponse.json({ error: 'Falta idApeCaj' }, { status: 400 });
 
     try {
-        const pool = await sql.connect(sqlConfig);
-        
-        // 1. Verificar que esté abierta
-        const check = await pool.request()
-            .input('id', sql.Int, id)
-            .query("SELECT estado FROM dtl_restpos_apecaj WHERE idapecaj = @id");
-
-        if (check.recordset.length === 0) throw new Error('Caja no encontrada');
-        if (check.recordset[0].estado === 0) throw new Error('La caja ya está cerrada');
-
-        // 2. Cerrar la caja
+        const pool = await getConnection(session?.user?.company);
         await pool.request()
-            .input('id', sql.Int, id)
-            .query("UPDATE dtl_restpos_apecaj SET estado = 0, feccie = GETDATE() WHERE idapecaj = @id");
+            .input('idApeCaj', sql.Int, idApeCaj)
+            .input('feccie', sql.DateTime, new Date())
+            .query(`
+                UPDATE dtl_restpos_apecaj 
+                SET estado = 1, feccie = @feccie 
+                WHERE idapecaj = @idApeCaj
+            `);
 
-        return NextResponse.json({ success: true, message: 'Caja cerrada correctamente' });
-
+        return NextResponse.json({ success: true });
     } catch (err) {
-        console.error('Cash close error:', err);
-        return NextResponse.json({ error: 'Error al cerrar caja', details: err.message }, { status: 500 });
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

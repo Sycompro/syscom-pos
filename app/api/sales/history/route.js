@@ -1,32 +1,29 @@
 import { NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 import sql from 'mssql';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET(request) {
+    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
-    const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
+    const idApeCaj = searchParams.get('idApeCaj');
+
+    if (!idApeCaj) return NextResponse.json({ error: 'Falta idApeCaj' }, { status: 400 });
 
     try {
-        const pool = await getConnection();
+        const pool = await getConnection(session?.user?.company);
         const result = await pool.request()
-            .input('date', sql.Date, date)
+            .input('idApeCaj', sql.Int, idApeCaj)
             .query(`
-                SELECT 
-                    ndocu as id, 
-                    cdocu, 
-                    fecha, 
-                    nomcli as client, 
-                    tota as total, 
-                    flag,
-                    CASE WHEN flag = '*' THEN 'Anulado' ELSE 'Activo' END as status
+                SELECT ndocu, cdocu, nomcli, tota, fecha 
                 FROM mst01fac 
-                WHERE CAST(fecha as date) = @date
+                WHERE idapecaj = @idApeCaj 
                 ORDER BY fecha DESC
             `);
 
         return NextResponse.json(result.recordset);
     } catch (err) {
-        console.error('History error:', err);
-        return NextResponse.json({ error: 'Error al obtener historial' }, { status: 500 });
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
