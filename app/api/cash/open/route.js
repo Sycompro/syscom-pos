@@ -27,8 +27,16 @@ export async function POST(request) {
         }
 
         if (schemaType === 'ERP') {
-            const userCode = session.user.id?.toString().trim(); // codusu
-            const sedeCode = session.user.sedeId?.toString().trim(); // codpto (Punto de Venta)
+            const userCode = session.user.id?.toString().trim(); // codusu (char 3)
+            const sedeCode = session.user.sedeId?.toString().trim(); // codpto (char 2)
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: true 
+            });
 
             // Lógica Esquema ERP (dtl_restpos_apecaj)
             // Validamos si ESTE USUARIO ya tiene una caja abierta
@@ -42,11 +50,11 @@ export async function POST(request) {
             }
 
             const result = await pool.request()
-                .input('fecape', sql.DateTime, dateStr)
-                .input('hora', sql.Char(10), timeStr)
+                .input('fecape', sql.DateTime, now)
+                .input('hora', sql.VarChar(20), timeStr)
                 .input('codpto', sql.Char(2), sedeCode)
                 .input('codusu', sql.Char(3), userCode)
-                .input('apesol', sql.Float, amount || 0)
+                .input('apesol', sql.Decimal(18, 2), amount || 0)
                 .query(`
                     INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur)
                     VALUES (@fecape, @hora, @codpto, @codusu, 'A', 0, @apesol, 0, 0);
