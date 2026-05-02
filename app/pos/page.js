@@ -317,49 +317,10 @@ export default function POSPage() {
             `}</style>
 
             <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', background: '#f1f5f9', position: 'relative' }}>
-                <div style={sidebarStyle}>
-                    <div style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px' }}>
-                        <div style={logoStyle}><Zap size={24} fill="currentColor" /></div>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
-                            <div style={activeIconStyle}>
-                                <LayoutGrid size={22} />
-                                <span style={{ fontSize: '10px', fontWeight: 800, marginTop: '4px' }}>Todos</span>
-                            </div>
-                            <div style={inactiveIconStyle}>
-                                <ShoppingBag size={22} />
-                                <span style={{ fontSize: '10px', fontWeight: 800, marginTop: '4px' }}>Alim</span>
-                            </div>
-                            <div style={inactiveIconStyle}>
-                                <Zap size={22} />
-                                <span style={{ fontSize: '10px', fontWeight: 800, marginTop: '4px' }}>Bebi</span>
-                            </div>
-                            <div style={inactiveIconStyle}>
-                                <Sparkles size={22} />
-                                <span style={{ fontSize: '10px', fontWeight: 800, marginTop: '4px' }}>Limp</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
-                        <button onClick={() => setShowHistoryModal(true)} style={sidebarBtnStyle}>
-                            <Clock size={22} />
-                            <span style={btnLabelStyle}>Historial</span>
-                        </button>
-                        <div style={sidebarBtnStyle}>
-                            <Settings size={22} />
-                            <span style={btnLabelStyle}>Config</span>
-                        </div>
-                        <button onClick={() => setShowCloseModal(true)} style={sidebarBtnStyle}>
-                            <Lock size={22} />
-                            <span style={btnLabelStyle}>Cerrar Caja</span>
-                        </button>
-                        <button onClick={() => signOut({ callbackUrl: '/auth/signin' })} style={logoutBtnStyle}>
-                            <LogOut size={22} />
-                            <span style={btnLabelStyle}>Salir</span>
-                        </button>
-                    </div>
-                </div>
+                <Sidebar 
+                    onSignOut={() => signOut({ callbackUrl: '/auth/signin' })} 
+                    onOpenCloseCash={() => setShowCloseModal(true)}
+                />
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#f8fafc' }}>
                     {/* BUSCADOR PRINCIPAL Y DOCUMENTO */}

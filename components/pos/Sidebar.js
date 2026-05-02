@@ -1,7 +1,7 @@
 'use client';
-import { LayoutGrid, ShoppingBag, Zap, Sparkles, History, Settings, LogOut } from 'lucide-react';
+import { LayoutGrid, ShoppingBag, Zap, Sparkles, History, Settings, LogOut, Lock } from 'lucide-react';
 
-export default function Sidebar({ categories, selectedCategory, onSelectCategory, onSignOut }) {
+export default function Sidebar({ onSignOut, onOpenCloseCash }) {
     return (
         <aside style={{
             width: '68px',
@@ -22,18 +22,17 @@ export default function Sidebar({ categories, selectedCategory, onSelectCategory
                 <Zap size={18} style={{ color: '#fff', fill: '#fff' }} />
             </div>
 
-            {/* Acciones principales / Menu lateral limpio */}
+            {/* Acciones principales - Menu Limpio */}
             <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                <button title="Dashboard" style={activeIconStyle}><LayoutGrid size={22} /></button>
+                <div style={activeIconStyle}><LayoutGrid size={22} /></div>
             </div>
 
             {/* Bottom icons */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginTop: 'auto' }}>
-                {[History, Settings].map((Icon, i) => (
-                    <button key={i} style={bottomBtnStyle}><Icon size={16} /></button>
-                ))}
-                <button onClick={onSignOut} style={{ ...bottomBtnStyle, color: '#f87171' }}>
-                    <LogOut size={16} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: 'auto' }}>
+                <button onClick={onOpenCloseCash} title="Cerrar Caja" style={bottomBtnStyle}><Lock size={18} /></button>
+                <button title="Ajustes" style={bottomBtnStyle}><Settings size={18} /></button>
+                <button onClick={onSignOut} title="Salir" style={{ ...bottomBtnStyle, color: '#f87171' }}>
+                    <LogOut size={18} />
                 </button>
             </div>
         </aside>
