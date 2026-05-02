@@ -531,8 +531,6 @@ export default function POSPage() {
                     onClear={() => { setCart([]); setShowCartModal(false); }}
                     total={total}
                 />
-            </div>
-
                 {isMobile && !cartVisible && itemCount > 0 && (
                     <button onClick={() => setCartVisible(true)} style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 80, background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '20px', padding: '12px 24px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 25px rgba(59,130,246,0.4)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <ShoppingCart size={20} /><span>S/ {total.toFixed(2)}</span><span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '8px', fontSize: '12px' }}>{itemCount}</span>
