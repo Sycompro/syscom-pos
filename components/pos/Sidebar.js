@@ -26,9 +26,9 @@ export default function Sidebar({ categories, selectedCategory, onSelectCategory
             <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', overflowY: 'auto' }}>
                 {categories.map(cat => {
                     const Icon = cat.icon || LayoutGrid;
-                    const isActive = selectedCategory === cat.name;
+                    const isActive = selectedCategory === cat.id;
                     return (
-                        <button key={cat.id} onClick={() => onSelectCategory(cat.name)} title={cat.name}
+                        <button key={cat.id} onClick={() => onSelectCategory(cat.id)} title={cat.name}
                             style={{
                                 width: '48px', height: '48px', borderRadius: '12px',
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
@@ -39,7 +39,7 @@ export default function Sidebar({ categories, selectedCategory, onSelectCategory
                             }}>
                             <Icon size={16} />
                             <span style={{ fontSize: '7px', fontWeight: 800, letterSpacing: '-0.02em' }}>
-                                {cat.name.length > 5 ? cat.name.slice(0, 4) : cat.name}
+                                {cat.name.length > 6 ? cat.name.slice(0, 5) : cat.name}
                             </span>
                         </button>
                     );

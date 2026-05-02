@@ -47,17 +47,10 @@ export default function POSPage() {
     const [manualDoc, setManualDoc] = useState('');
     const [orderSuccess, setOrderSuccess] = useState(null);
     const [mounted, setMounted] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState('Todos');
-    const [cartVisible, setCartVisible] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
-    const searchRef = useRef(null);
-
-    const categories = [
-        { id: 'all', name: 'Todos', icon: LayoutGrid },
-        { id: 'food', name: 'Alimentos', icon: ShoppingBag },
-        { id: 'drinks', name: 'Bebidas', icon: Zap },
-        { id: 'cleaning', name: 'Limpieza', icon: Sparkles },
-    ];
+    const [categories, setCategories] = useState([
+        { id: 'all', name: 'Todos', icon: LayoutGrid }
+    ]);
+    const [selectedCategory, setSelectedCategory] = useState('all');
 
     useEffect(() => {
         setMounted(true);
@@ -72,9 +65,16 @@ export default function POSPage() {
         Promise.all([
             fetch('/api/cash/active').then(r => r.json()).catch(() => ({})),
             fetch('/api/payment-methods').then(r => r.json()).catch(() => []),
-        ]).then(([cashData, methodsData]) => {
+            fetch('/api/products/categories').then(r => r.json()).catch(() => []),
+        ]).then(([cashData, methodsData, catsData]) => {
             if (cashData?.id) setIdApeCaj(cashData.id);
             if (Array.isArray(methodsData)) setAvailableMethods(methodsData);
+            if (Array.isArray(catsData)) {
+                setCategories([
+                    { id: 'all', name: 'Todos', icon: LayoutGrid },
+                    ...catsData.map(c => ({ id: c.id, name: c.name, icon: Package }))
+                ]);
+            }
         });
 
         return () => window.removeEventListener('resize', checkSize);
@@ -88,7 +88,8 @@ export default function POSPage() {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/products/search?q=${encodeURIComponent(searchTerm)}&alm=${warehouse}`);
+            const url = `/api/products/search?q=${encodeURIComponent(searchTerm)}&alm=${warehouse}&category=${selectedCategory}`;
+            const res = await fetch(url);
             const data = await res.json();
             setProducts(Array.isArray(data) ? data : []);
         } catch { setProducts([]); }
