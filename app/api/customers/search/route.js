@@ -1,3 +1,6 @@
+import { NextResponse } from 'next/server';
+import { getConnection } from '@/lib/db';
+import sql from 'mssql';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
