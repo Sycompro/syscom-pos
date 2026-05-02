@@ -52,11 +52,19 @@ export async function POST(request) {
 
         // Definir Flags según estándar Navasoft
         const flagValue = '0';
-        const tfactValue = (docType === '01' || docType === '03') ? '2' : '5';
+        // 01: Factura -> tfact 1
+        // 03: Boleta  -> tfact 2
+        // 65: Nota    -> tfact 5
+        const tfactValue = (docType === '01') ? '1' : (docType === '03' ? '2' : '5');
+        
+        // Fecha solo (sin hora) para compatibilidad con filtros ERP
+        const todayDate = new Date();
+        todayDate.setHours(0,0,0,0);
 
         // 3. Insertar Cabecera (mst01fac)
         await transaction.request()
-            .input('fecha', sql.DateTime, new Date())
+            .input('fecha', sql.DateTime, todayDate)
+            .input('fven', sql.DateTime, todayDate)
             .input('cdocu', sql.Char(2), docType)
             .input('ndocu', sql.Char(12), ndocu)
             .input('codcli', sql.Char(6), codcli || '000000')
@@ -78,8 +86,8 @@ export async function POST(request) {
             .input('codcdv', sql.Char(2), '01')
             .input('codvta', sql.Char(2), '01')
             .query(`
-                INSERT INTO mst01fac (fecha, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codtar, codusu, flag, tfact, Codcdv, codvta)
-                VALUES (@fecha, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, @flag, @tfact, @codcdv, @codvta)
+                INSERT INTO mst01fac (fecha, fven, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codtar, codusu, flag, tfact, Codcdv, codvta)
+                VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, @flag, @tfact, @codcdv, @codvta)
             `);
 
         // 4. Insertar Detalle (dtl01fac) y Actualizar Stock
@@ -90,7 +98,7 @@ export async function POST(request) {
 
             // Insertar Detalle
             await transaction.request()
-                .input('fecha', sql.DateTime, new Date())
+                .input('fecha', sql.DateTime, todayDate)
                 .input('cdocu', sql.Char(2), docType)
                 .input('ndocu', sql.Char(12), ndocu)
                 .input('item', sql.Int, i + 1)
