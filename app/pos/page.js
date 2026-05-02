@@ -418,24 +418,7 @@ export default function POSPage() {
 
                     {/* BARRA DE CATEGORÍAS */}
                     <div style={{ flexShrink: 0, background: '#f8fafc', padding: '8px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
-                        <button 
-                            onClick={() => setSelectedCategory('Todos')}
-                            style={{
-                                padding: '8px 16px',
-                                borderRadius: '10px',
-                                fontSize: '12px',
-                                fontWeight: 800,
-                                border: 'none',
-                                cursor: 'pointer',
-                                background: selectedCategory === 'Todos' ? '#3b82f6' : '#fff',
-                                color: selectedCategory === 'Todos' ? '#fff' : '#64748b',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            Todos
-                        </button>
-                        {categories.map(cat => (
+                        {[ {id: 'Todos', name: 'Todos'}, ...categories.filter(c => c.id !== 'Todos' && c.name !== 'Todos') ].map(cat => (
                             <button 
                                 key={cat.id} 
                                 onClick={() => setSelectedCategory(cat.id)}
