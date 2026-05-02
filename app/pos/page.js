@@ -51,6 +51,9 @@ export default function POSPage() {
         { id: 'all', name: 'Todos', icon: LayoutGrid }
     ]);
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const [cartVisible, setCartVisible] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    const searchRef = useRef(null);
 
     useEffect(() => {
         setMounted(true);
