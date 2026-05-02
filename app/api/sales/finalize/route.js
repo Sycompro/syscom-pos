@@ -99,22 +99,30 @@ export async function POST(request) {
             const item = items[i];
 
             // Insertar Detalle
+            const itemPriceNeto = item.price / 1.18;
+            const itemTotalNeto = itemPriceNeto * item.quantity;
+            const itemTotalConIGV = item.price * item.quantity;
+
             await transaction.request()
                 .input('fecha', sql.DateTime, todayDate)
                 .input('cdocu', sql.Char(2), docType)
                 .input('ndocu', sql.Char(12), ndocu)
-                .input('item', sql.Int, i + 1)
-                .input('codi', sql.Char(15), item.id)
-                .input('descr', sql.Char(80), item.name || '')
-                .input('cant', sql.Float, item.quantity)
-                .input('preu', sql.Float, item.price)
-                .input('tota', sql.Float, item.price * item.quantity)
+                .input('tfact', sql.Char(1), tfactValue)
+                .input('item', sql.Decimal(18, 4), (i + 1))
+                .input('codi', sql.Char(20), (item.code || '').substring(0, 20))
+                .input('descr', sql.Char(80), (item.name || '').substring(0, 80))
+                .input('cant', sql.Decimal(18, 6), item.quantity)
+                .input('preu', sql.Decimal(18, 6), itemPriceNeto)
+                .input('tota', sql.Decimal(18, 4), itemTotalNeto)
+                .input('totn', sql.Decimal(18, 4), itemTotalConIGV)
                 .input('codalm', sql.Char(2), (warehouse || '01').substring(0, 2))
                 .input('flag', sql.Char(1), flagValue)
-                .input('tfact', sql.Char(1), tfactValue)
+                .input('aigv', sql.Char(1), 'S')
+                .input('mone', sql.Char(1), 'S')
+                .input('msto', sql.Char(1), 'S')
                 .query(`
-                    INSERT INTO dtl01fac (fecha, cdocu, ndocu, item, codi, descr, cant, preu, tota, Codalm, mone, flag, msto, tfact)
-                    VALUES (@fecha, @cdocu, @ndocu, @item, @codi, @descr, @cant, @preu, @tota, @codalm, 'S', @flag, 'S', @tfact)
+                    INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, flag, aigv, mone, moneitm, tcam, msto)
+                    VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @codalm, @flag, @aigv, @mone, @mone, 1, @msto)
                 `);
 
             // Actualizar Stock (Almacén + Consolidado)
@@ -135,6 +143,26 @@ export async function POST(request) {
             .input('codpto', sql.Char(6), sedeCode)
             .input('nextCor', sql.Char(12), nextNdocu)
             .query("UPDATE tbl01cor SET nroini = @nextCor WHERE cdocu = @cdocu AND codpto = @codpto");
+
+        // 6. Insertar en Cuentas por Cobrar (mst01ccc)
+        await transaction.request()
+            .input('fecha', sql.DateTime, todayDate)
+            .input('cdocu', sql.Char(2), docType)
+            .input('ndocu', sql.Char(12), ndocu)
+            .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
+            .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
+            .input('ruccli', sql.Char(11), (body.ruccli || '').substring(0, 11))
+            .input('monto', sql.Float, totalVenta)
+            .input('saldo', sql.Float, totalVenta)
+            .input('fven', sql.DateTime, todayDate)
+            .input('mone', sql.Char(1), 'S')
+            .input('tcam', sql.Float, 1)
+            .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
+            .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
+            .query(`
+                INSERT INTO mst01ccc (fecha, cdocu, ndocu, crefe, nrefe, codcli, nomcli, ruccli, codcdv, monto, saldo, fven, mone, tcam, flag, flagi, codven, codpto)
+                VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, '01', @monto, @saldo, @fven, @mone, @tcam, '0', '0', @codven, @codpto)
+            `);
 
         await transaction.commit();
 
