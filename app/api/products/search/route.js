@@ -27,8 +27,10 @@ export async function GET(request) {
         let whereClause = "(descr LIKE @searchQuery OR codi LIKE @searchQuery OR codf LIKE @searchQuery) AND estado = 1";
         
         if (category && category !== 'Todos' && category !== 'all') {
-            request.input('category', sql.Char(6), category);
-            whereClause += " AND LTRIM(RTRIM(codsub)) = @category";
+            request.input('category', sql.VarChar(10), category);
+            // En esta BD, la relación es: codcat del producto = parte final del codsub de la familia
+            // Y opcionalmente el prefijo del codi coincide con el inicio del codsub
+            whereClause += " AND LTRIM(RTRIM(codcat)) = RIGHT(@category, 2) AND LEFT(codi, 2) = LEFT(@category, 2)";
         }
 
         const result = await request.query(`
