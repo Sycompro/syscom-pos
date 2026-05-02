@@ -443,11 +443,19 @@ export default function POSPage() {
                                         <ShieldCheck size={14} /> Menor
                                     </button>
                                 </div>
+
+                                {/* CATEGORÍA Y CONTADOR (MOVIDO AQUÍ) */}
+                                <div style={{ borderLeft: '1px solid #f1f5f9', paddingLeft: '20px', marginLeft: 'auto', textAlign: 'right' }}>
+                                    <h2 style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                                        {selectedCategory === 'Todos' ? 'Todos' : categories.find(c => c.id === selectedCategory)?.name}
+                                    </h2>
+                                    <p style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, margin: 0 }}>{loading ? '...' : `${products.length} artículos`}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* BARRA DE CATEGORÍAS (NUEVA UBICACIÓN) */}
+                    {/* BARRA DE CATEGORÍAS */}
                     <div style={{ flexShrink: 0, background: '#f8fafc', padding: '8px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
                         <button 
                             onClick={() => setSelectedCategory('Todos')}
@@ -488,14 +496,6 @@ export default function POSPage() {
                         ))}
                     </div>
 
-                    <div style={{ flexShrink: 0, padding: '16px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
-                            <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                                {selectedCategory === 'Todos' ? 'Todos los Productos' : categories.find(c => c.id === selectedCategory)?.name}
-                            </h2>
-                            <p style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500 }}>{loading ? 'Cargando catálogo...' : `${products.length} artículos encontrados`}</p>
-                        </div>
-                    </div>
 
                     <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px 20px' }}>
                         {loading ? <div className="pos-grid">{Array.from({ length: 12 }).map((_, i) => <div key={i} style={{ background: '#fff', borderRadius: '16px', height: '160px', border: '1px solid #e2e8f0', opacity: 0.5 }} />)}</div> : <div className="pos-grid">{products.map(p => <ProductCard key={p.id} product={p} onAdd={prod => { addToCart(prod); if(isMobile) setCartVisible(true); }} />)}</div>}
