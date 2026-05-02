@@ -53,6 +53,9 @@ export default function POSPage() {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [cartVisible, setCartVisible] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [salespeople, setSalespeople] = useState([]);
+    const [selectedSalesperson, setSelectedSalesperson] = useState('');
+    const [printData, setPrintData] = useState(null);
     const searchRef = useRef(null);
 
     useEffect(() => {
@@ -69,9 +72,14 @@ export default function POSPage() {
             fetch('/api/cash/active').then(r => r.json()).catch(() => ({})),
             fetch('/api/payment-methods').then(r => r.json()).catch(() => []),
             fetch('/api/products/categories').then(r => r.json()).catch(() => []),
-        ]).then(([cashData, methodsData, catsData]) => {
+            fetch('/api/salespeople').then(r => r.json()).catch(() => []),
+        ]).then(([cashData, methodsData, catsData, salesData]) => {
             if (cashData?.id) setIdApeCaj(cashData.id);
             if (Array.isArray(methodsData)) setAvailableMethods(methodsData);
+            if (Array.isArray(salesData)) {
+                setSalespeople(salesData);
+                if (salesData.length > 0) setSelectedSalesperson(salesData[0].id);
+            }
             if (Array.isArray(catsData)) {
                 setCategories([
                     { id: 'all', name: 'Todos', icon: LayoutGrid },
@@ -82,6 +90,13 @@ export default function POSPage() {
 
         return () => window.removeEventListener('resize', checkSize);
     }, []);
+
+    const handlePrint = (data) => {
+        setPrintData(data);
+        setTimeout(() => {
+            window.print();
+        }, 300);
+    };
 
     useEffect(() => {
         const t = setTimeout(() => fetchProducts(), 250);
@@ -240,18 +255,32 @@ export default function POSPage() {
                     nomcli: customer.name, 
                     ruccli: customer.ruc, 
                     items: cart,
-                    idApeCaj, paymentMethod, codtar: selectedTar, warehouse
+                    idApeCaj, paymentMethod, codtar: selectedTar, warehouse,
+                    codven: selectedSalesperson
                 })
             });
             const result = await res.json();
             if (result.success) { 
+                const printObj = {
+                    documentNumber: result.documentNumber,
+                    docType,
+                    customer,
+                    items: [...cart],
+                    total,
+                    date: new Date().toLocaleString(),
+                    salesperson: salespeople.find(v => v.id === selectedSalesperson)?.name
+                };
                 setOrderSuccess(result.documentNumber); 
                 setCart([]); 
                 setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' }); 
                 setCustomerSearch(''); 
+                handlePrint(printObj);
             }
             else alert('Error: ' + result.details);
-        } catch { alert('Error al procesar la venta'); }
+        } catch (err) { 
+            console.error(err);
+            alert('Error al procesar la venta'); 
+        }
         finally { setIsFinalizing(false); }
     };
 
@@ -365,8 +394,20 @@ export default function POSPage() {
                                 {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '10px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={14} />}
                             </div>
 
-                            {/* Info Cliente Seleccionado */}
+                            {/* Info Vendedor y Cliente */}
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '16px', borderLeft: '1px solid #f1f5f9', paddingLeft: '20px' }}>
+                                {/* Selector de Vendedor */}
+                                <div style={{ minWidth: '130px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
+                                    <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Vendedor</p>
+                                    <select 
+                                        value={selectedSalesperson} 
+                                        onChange={e => setSelectedSalesperson(e.target.value)}
+                                        style={{ width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 8px', fontSize: '11px', fontWeight: 700, outline: 'none', color: '#1e293b' }}
+                                    >
+                                        {salespeople.map(v => <option key={v.id} value={v.id}>{v.name.trim()}</option>)}
+                                    </select>
+                                </div>
+
                                 <div style={{ minWidth: '150px' }}>
                                     <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -525,7 +566,63 @@ export default function POSPage() {
                     </button>
                 )}
 
-                {orderSuccess && <SuccessModal orderNumber={orderSuccess} onReset={() => setOrderSuccess(null)} onPrint={() => window.print()} />}
+                {/* COMPONENTE DE IMPRESIÓN OCULTO */}
+                {printData && (
+                    <div id="print-ticket">
+                        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: 0 }}>SYSCOMPRO</h2>
+                            <p style={{ fontSize: '10px', margin: '2px 0' }}>AV. LAS AMERICAS 123</p>
+                            <p style={{ fontSize: '10px', margin: '2px 0' }}>RUC: 20123456789</p>
+                        </div>
+                        
+                        <div style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginBottom: '5px' }}>
+                            <p style={{ margin: '2px 0' }}><b>{printData.docType === '01' ? 'FACTURA' : printData.docType === '03' ? 'BOLETA' : 'NOTA DE VENTA'}</b></p>
+                            <p style={{ margin: '2px 0' }}>Nro: {printData.documentNumber}</p>
+                            <p style={{ margin: '2px 0' }}>Fecha: {printData.date}</p>
+                            <p style={{ margin: '2px 0' }}>Vendedor: {printData.salesperson}</p>
+                        </div>
+
+                        <div style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginBottom: '5px' }}>
+                            <p style={{ margin: '2px 0' }}>Cliente: {printData.customer.name}</p>
+                            {printData.customer.ruc && <p style={{ margin: '2px 0' }}>RUC/DNI: {printData.customer.ruc}</p>}
+                        </div>
+
+                        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '5px' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid #000' }}>
+                                    <th style={{ textAlign: 'left', fontSize: '10px' }}>DESCR</th>
+                                    <th style={{ textAlign: 'right', fontSize: '10px' }}>CANT</th>
+                                    <th style={{ textAlign: 'right', fontSize: '10px' }}>TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {printData.items.map((item, idx) => (
+                                    <tr key={idx}>
+                                        <td style={{ fontSize: '10px' }}>{item.name}</td>
+                                        <td style={{ textAlign: 'right', fontSize: '10px' }}>{item.quantity}</td>
+                                        <td style={{ textAlign: 'right', fontSize: '10px' }}>{(item.price * item.quantity).toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        <div style={{ textAlign: 'right', paddingTop: '5px', borderTop: '1px solid #000' }}>
+                            <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0 }}>TOTAL: S/ {printData.total.toFixed(2)}</p>
+                        </div>
+                        
+                        <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                            <p style={{ fontSize: '10px' }}>¡Gracias por su compra!</p>
+                        </div>
+                    </div>
+                )}
+
+                {orderSuccess && (
+                    <SuccessModal 
+                        orderNumber={orderSuccess} 
+                        onReset={() => setOrderSuccess(null)} 
+                        onPrint={() => window.print()} 
+                    />
+                )}
                 
                 <CustomerManualModal 
                     isOpen={showManualModal} 
@@ -538,6 +635,7 @@ export default function POSPage() {
                     isOpen={showHistoryModal} 
                     onClose={() => setShowHistoryModal(false)} 
                     idApeCaj={idApeCaj} 
+                    onPrint={handlePrint}
                 />
 
                 <CloseCashModal 

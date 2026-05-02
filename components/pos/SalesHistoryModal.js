@@ -1,12 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, Receipt, Search, Printer, Calendar } from 'lucide-react';
+import { X, Receipt, Search, Printer, Calendar, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function SalesHistoryModal({ isOpen, onClose, idApeCaj }) {
+export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint }) {
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
+    const [reprinting, setReprinting] = useState(null);
 
     useEffect(() => {
         if (isOpen && idApeCaj) {
@@ -24,6 +25,30 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj }) {
             console.error('Error fetching history:', e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleReprint = async (sale) => {
+        setReprinting(sale.ndocu);
+        try {
+            const res = await fetch(`/api/sales/details?cdocu=${sale.cdocu}&ndocu=${sale.ndocu}`);
+            const data = await res.json();
+            if (data.items) {
+                onPrint({
+                    documentNumber: data.ndocu,
+                    docType: data.cdocu,
+                    customer: { name: data.nomcli, ruc: data.ruccli },
+                    items: data.items,
+                    total: data.tota,
+                    date: new Date(data.fecha).toLocaleString(),
+                    salesperson: data.salesperson
+                });
+            }
+        } catch (e) {
+            console.error('Error reprinting:', e);
+            alert('Error al obtener detalles de la venta');
+        } finally {
+            setReprinting(null);
         }
     };
 
@@ -86,7 +111,14 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj }) {
                                         <td style={tdStyle}>{new Date(sale.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                                         <td style={{ ...tdStyle, fontWeight: 900, color: '#3b82f6' }}>S/ {sale.tota.toFixed(2)}</td>
                                         <td style={{ ...tdStyle, textAlign: 'center' }}>
-                                            <button style={printBtnStyle} title="Reimprimir Ticket"><Printer size={16} /></button>
+                                            <button 
+                                                onClick={() => handleReprint(sale)}
+                                                disabled={reprinting === sale.ndocu}
+                                                style={{ ...printBtnStyle, opacity: reprinting === sale.ndocu ? 0.5 : 1 }} 
+                                                title="Reimprimir Ticket"
+                                            >
+                                                {reprinting === sale.ndocu ? <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={16} /> : <Printer size={16} />}
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

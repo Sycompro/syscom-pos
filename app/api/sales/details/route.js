@@ -6,37 +6,44 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET(request) {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-
     const { searchParams } = new URL(request.url);
     const cdocu = searchParams.get('cdocu');
     const ndocu = searchParams.get('ndocu');
 
-    if (!cdocu || !ndocu) {
-        return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 });
-    }
+    if (!cdocu || !ndocu) return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 });
 
     try {
-        const pool = await getConnection(session.user.company);
+        const pool = await getConnection(session?.user?.company);
         
-        const result = await pool.request()
+        // Obtener Cabecera
+        const headerRes = await pool.request()
             .input('cdocu', sql.Char(2), cdocu)
             .input('ndocu', sql.Char(12), ndocu)
-            .query(`
-                SELECT 
-                    RTRIM(codi) as code, 
-                    RTRIM(descr) as name, 
-                    cant as quantity, 
-                    preu as price, 
-                    tota as total
-                FROM dtl01fac
-                WHERE cdocu = @cdocu AND ndocu = @ndocu
-            `);
+            .query("SELECT ndocu, cdocu, nomcli, ruccli, tota, fecha, codven FROM mst01fac WHERE cdocu = @cdocu AND ndocu = @ndocu");
 
-        return NextResponse.json(result.recordset);
+        if (headerRes.recordset.length === 0) return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 });
 
+        // Obtener Detalle
+        const detailRes = await pool.request()
+            .input('cdocu', sql.Char(2), cdocu)
+            .input('ndocu', sql.Char(12), ndocu)
+            .query("SELECT descr as name, cant as quantity, preu as price FROM dtl01fac WHERE cdocu = @cdocu AND ndocu = @ndocu");
+
+        // Obtener nombre del vendedor
+        let salespersonName = headerRes.recordset[0].codven;
+        if (salespersonName) {
+            const venRes = await pool.request()
+                .input('codven', sql.Char(6), salespersonName)
+                .query("SELECT nomven FROM tbl01ven WHERE codven = @codven");
+            if (venRes.recordset.length > 0) salespersonName = venRes.recordset[0].nomven;
+        }
+
+        return NextResponse.json({
+            ...headerRes.recordset[0],
+            items: detailRes.recordset,
+            salesperson: salespersonName
+        });
     } catch (err) {
-        console.error('Sales details error:', err);
-        return NextResponse.json({ error: 'Error al obtener detalles', details: err.message }, { status: 500 });
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
