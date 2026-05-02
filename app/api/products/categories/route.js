@@ -17,7 +17,7 @@ export async function GET() {
                 LTRIM(RTRIM(nomsub)) as name 
             FROM tbl01sbf 
             WHERE restpos = 'S' OR restpos = '1'
-            ORDER BY nomsub ASC
+            ORDER BY name ASC
         `);
 
         // Si no hay ninguna marcada, traer todas las que tengan productos activos
