@@ -11,7 +11,7 @@ export async function GET() {
         const result = await pool.request().query(`
             SELECT codven as id, nomven as name 
             FROM tbl01ven 
-            WHERE estado = '0' 
+            WHERE estado = '1' 
             ORDER BY nomven ASC
         `);
 
