@@ -450,6 +450,29 @@ export default function POSPage() {
                                     </select>
                                 </div>
 
+                                <div style={{ width: '120px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
+                                    <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Celular</p>
+                                    <div style={{ position: 'relative' }}>
+                                        <Phone size={10} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                        <input 
+                                            type="text" 
+                                            placeholder="999..." 
+                                            value={customer.phone}
+                                            onChange={e => setCustomer({...customer, phone: e.target.value})}
+                                            style={{ width: '100%', padding: '6px 8px 6px 24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '11px', fontWeight: 700, outline: 'none' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ width: '140px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
+                                    <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>F. Nacimiento</p>
+                                    <CustomDatePicker 
+                                        value={customer.birthdate}
+                                        onChange={(val) => setCustomer({...customer, birthdate: val})}
+                                        compact={true}
+                                    />
+                                </div>
+
                                 <div style={{ flex: 1, minWidth: '200px' }}>
                                     <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
