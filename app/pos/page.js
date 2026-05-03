@@ -450,11 +450,26 @@ export default function POSPage() {
                                     </select>
                                 </div>
 
-                                <div style={{ minWidth: '150px' }}>
+                                <div style={{ flex: 1, minWidth: '200px' }}>
                                     <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <p style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
-                                        <button onClick={() => setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' })} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Limpiar</button>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <p style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '250px' }}>{customer.name}</p>
+                                            <button onClick={() => setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' })} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Limpiar</button>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            {customer.ruc && <span style={{ fontSize: '10px', fontWeight: 600, color: '#64748b' }}>ID: {customer.ruc}</span>}
+                                            {customer.phone && (
+                                                <span style={{ fontSize: '10px', fontWeight: 600, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <Phone size={10} /> {customer.phone}
+                                                </span>
+                                            )}
+                                            {customer.birthdate && (
+                                                <span style={{ fontSize: '10px', fontWeight: 600, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <Clock size={10} /> {customer.birthdate}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
