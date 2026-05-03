@@ -215,20 +215,59 @@ export async function POST(request) {
                 `);
         }
 
-        // 7. Actualizar ficha de cliente en Navasoft (si aplica)
+        // 7. Actualizar ficha de cliente en Navasoft (Celular, Fecha Nacimiento y Membresías)
         if (codcli && codcli !== '000000' && codcli !== 'NUEVO_ERP' && codcli !== 'INTERNO') {
             const customerPhone = body.phone || '';
             const customerBirthdate = body.birthdate ? new Date(body.birthdate) : null;
+            
+            // Calcular días de membresía comprados
+            const daysToAdd = items.reduce((acc, item) => acc + ((item.membershipDays || 0) * (item.quantity || 1)), 0);
 
-            await transaction.request()
-                .input('codcli', sql.Char(6), codcli.substring(0, 6))
-                .input('celcli', sql.VarChar(40), customerPhone)
-                .input('fecnac', sql.DateTime, customerBirthdate)
-                .query(`
-                    UPDATE mst01cli 
-                    SET celcli = @celcli, fecnac = @fecnac 
-                    WHERE codcli = @codcli
-                `);
+            if (daysToAdd > 0) {
+                // Obtener fecha de vencimiento actual
+                const currentCliRes = await transaction.request()
+                    .input('codcli', sql.Char(6), codcli.substring(0, 6))
+                    .query("SELECT fecfinpres FROM mst01cli WHERE codcli = @codcli");
+                
+                let currentExp = currentCliRes.recordset[0]?.fecfinpres;
+                let startDate = new Date(); // Por defecto empieza hoy
+                startDate.setHours(0,0,0,0);
+
+                // Si tiene una fecha válida y es futura, empezamos desde ahí
+                let baseDate = new Date();
+                baseDate.setHours(0,0,0,0);
+
+                if (currentExp && currentExp > baseDate) {
+                    baseDate = new Date(currentExp);
+                    baseDate.setHours(0,0,0,0);
+                }
+
+                const newExpDate = new Date(baseDate);
+                newExpDate.setDate(newExpDate.getDate() + daysToAdd);
+
+                await transaction.request()
+                    .input('codcli', sql.Char(6), codcli.substring(0, 6))
+                    .input('celcli', sql.VarChar(40), customerPhone)
+                    .input('fecnac', sql.DateTime, customerBirthdate)
+                    .input('fecinipres', sql.DateTime, startDate)
+                    .input('fecfinpres', sql.DateTime, newExpDate)
+                    .query(`
+                        UPDATE mst01cli 
+                        SET celcli = @celcli, fecnac = @fecnac, fecinipres = @fecinipres, fecfinpres = @fecfinpres
+                        WHERE codcli = @codcli
+                    `);
+            } else {
+                // Actualizar solo celular y nacimiento si no hay membresía
+                await transaction.request()
+                    .input('codcli', sql.Char(6), codcli.substring(0, 6))
+                    .input('celcli', sql.VarChar(40), customerPhone)
+                    .input('fecnac', sql.DateTime, customerBirthdate)
+                    .query(`
+                        UPDATE mst01cli 
+                        SET celcli = @celcli, fecnac = @fecnac 
+                        WHERE codcli = @codcli
+                    `);
+            }
         }
 
         await transaction.commit();

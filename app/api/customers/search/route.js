@@ -30,6 +30,7 @@ export async function GET(request) {
                 address: (cli.dircli || '').trim(),
                 phone: (cli.celcli || cli.telcli || '').trim(),
                 birthdate: cli.fecnac ? new Date(cli.fecnac).toISOString().split('T')[0] : '',
+                expirationDate: cli.fecfinpres && cli.fecfinpres.getFullYear() > 1900 ? cli.fecfinpres.toISOString() : null,
                 source: 'ERP'
             };
             source = 'ERP';

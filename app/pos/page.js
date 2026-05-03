@@ -480,7 +480,7 @@ export default function POSPage() {
                                             <p style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '250px' }}>{customer.name}</p>
                                             <button onClick={() => setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' })} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Limpiar</button>
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                                             {customer.ruc && <span style={{ fontSize: '10px', fontWeight: 600, color: '#64748b' }}>ID: {customer.ruc}</span>}
                                             {customer.phone && (
                                                 <span style={{ fontSize: '10px', fontWeight: 600, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -491,6 +491,31 @@ export default function POSPage() {
                                                 <span style={{ fontSize: '10px', fontWeight: 600, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     <Clock size={10} /> {customer.birthdate}
                                                 </span>
+                                            )}
+                                            
+                                            {/* INFO DE MEMBRESÍA */}
+                                            {customer.birthdate !== undefined && ( // Usamos una validación que siempre pase si el objeto cliente está cargado
+                                                <>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 8px', background: '#f1f5f9', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#475569' }}>VENCE:</span>
+                                                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#1e293b' }}>
+                                                            {customer.expirationDate ? new Date(customer.expirationDate).toLocaleDateString() : 'N/A'}
+                                                        </span>
+                                                        {customer.expirationDate && (
+                                                            <span style={{ 
+                                                                fontSize: '9px', 
+                                                                fontWeight: 900, 
+                                                                padding: '1px 5px', 
+                                                                borderRadius: '3px',
+                                                                marginLeft: '4px',
+                                                                background: (new Date(customer.expirationDate) > new Date()) ? '#dcfce7' : '#fee2e2',
+                                                                color: (new Date(customer.expirationDate) > new Date()) ? '#166534' : '#991b1b'
+                                                            }}>
+                                                                {Math.ceil((new Date(customer.expirationDate) - new Date()) / (1000 * 60 * 60 * 24))} DÍAS
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </>
                                             )}
                                         </div>
                                     </div>

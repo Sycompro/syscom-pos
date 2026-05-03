@@ -39,6 +39,7 @@ export async function GET(request) {
                 RTRIM(codf) as userCode, 
                 RTRIM(descr) as name, 
                 pvns as price, 
+                RTRIM(Usr_003) as membershipDays,
                 CASE 
                     WHEN ${stockField} > 0 THEN ${stockField} 
                     ELSE stoc 
@@ -52,7 +53,8 @@ export async function GET(request) {
             userCode: r.userCode?.trim() || '',
             name: r.name.trim(),
             price: r.price,
-            stock: r.stock
+            stock: r.stock,
+            membershipDays: parseInt(r.membershipDays || '0', 10)
         }));
 
         return NextResponse.json(products);
