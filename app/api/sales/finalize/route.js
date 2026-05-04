@@ -113,7 +113,7 @@ export async function POST(request) {
             nropla = apeRes.recordset[0]?.nropla || '';
         }
 
-        const userCodeFinal = idApeCaj ? '   ' : (session.user.id?.toString().trim() || 'POS').substring(0, 3);
+        const userCodeFinal = (session.user.id?.toString().trim() || 'POS').substring(0, 3);
         const codSubValue = (globalSelPago === 1) ? '01' : '03'; 
         const finalCompro = `${codSubValue}/${nextNdocu.split('-')[1]?.substring(0, 6) || '000000'}`;
 

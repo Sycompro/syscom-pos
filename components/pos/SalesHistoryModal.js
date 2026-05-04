@@ -81,7 +81,7 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
             
             const customerName = whatsappSale.nomcli.trim();
             const businessType = localStorage.getItem('pos_business_type') || 'gym';
-            const companyName = "GIM.BRA S.A.C.";
+            const companyName = session?.user?.companyName || "Nuestra Empresa";
             
             let msg = '';
             if (businessType === 'gym') {

@@ -53,6 +53,20 @@ export const authOptions = {
 
           console.log(`[Auth] Validando en ${dbName} para usuario: ${credentials.username}`);
           const empresaPool = await getConnection(dbName);
+
+          // Obtener nombre de la empresa desde BdNavaSys para la sesión
+          let companyDisplayName = "Empresa POS";
+          try {
+             const sysPool = await getConnection('BdNavaSys');
+             const sysRes = await sysPool.request()
+                .input('code', sql.Char(3), credentials.code.trim().padStart(2, '0'))
+                .query("SELECT nomcia FROM sysnavacia WHERE idcia = @code");
+             if (sysRes.recordset.length > 0) {
+                companyDisplayName = sysRes.recordset[0].nomcia.trim();
+             }
+          } catch (e) {
+             console.warn("[Auth] No se pudo obtener nombre de BdNavaSys:", e.message);
+          }
           
           // 2. Autenticación POS Terminal (fcu0000) - Usuarios de Sedes como mall, balta, jaen
           try {
@@ -83,6 +97,7 @@ export const authOptions = {
                   name: user.nomusu?.trim() || user.nomacc?.trim(),
                   username: user.nomacc?.trim(),
                   company: dbName,
+                  companyName: companyDisplayName,
                   sedeId: user.codpto?.trim(),
                   sedeName: user.nompto?.trim(),
                   schema: 'POS_TERMINAL'
@@ -119,6 +134,7 @@ export const authOptions = {
                   name: user.FullName?.trim() || user.Usuario?.trim(),
                   username: user.Usuario?.trim(),
                   company: dbName,
+                  companyName: companyDisplayName,
                   schema: 'ERP'
                 };
              }
@@ -144,6 +160,7 @@ export const authOptions = {
                   name: seat.SedeName?.trim() || 'Sede POS',
                   username: credentials.username,
                   company: dbName,
+                  companyName: companyDisplayName,
                   empresaId: cleanCode,
                   sedeId: seat.SedeId.trim(),
                   sedeName: seat.SedeName?.trim(),
@@ -172,6 +189,7 @@ export const authOptions = {
         token.sedeName = user.sedeName;
         token.ruc = user.ruc;
         token.schema = user.schema;
+        token.companyName = user.companyName;
       }
       return token;
     },
@@ -179,6 +197,7 @@ export const authOptions = {
       if (session.user) {
         session.user.id = token.id; // codusu
         session.user.company = token.company;
+        session.user.companyName = token.companyName;
         session.user.username = token.username;
         session.user.empresaId = token.empresaId;
         session.user.sedeId = token.sedeId;
