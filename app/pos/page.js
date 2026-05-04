@@ -886,36 +886,70 @@ export default function POSPage() {
                 )}
             </div>
 
-            {/* Overlay de Carga durante Finalización de Venta */}
+            {/* Overlay de Carga durante Finalización de Venta (Rediseñado para ser espacioso y bonito) */}
             <AnimatePresence>
                 {isFinalizing && (
                     <motion.div 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm transition-all"
+                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-md transition-all"
                     >
                         <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="bg-white p-10 rounded-3xl shadow-2xl flex flex-col items-center gap-6 border border-orange-100"
+                            initial={{ scale: 0.8, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            style={{
+                                background: '#fff',
+                                padding: '80px',
+                                borderRadius: '48px',
+                                boxShadow: '0 40px 80px -15px rgba(0,0,0,0.35)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '40px',
+                                maxWidth: '520px',
+                                width: '90%',
+                                border: '1px solid rgba(255,255,255,0.1)'
+                            }}
                         >
-                            <div className="relative">
-                                <Loader2 className="w-16 h-16 text-orange-500 animate-spin" />
+                            <div style={{ position: 'relative' }}>
+                                <div className="w-28 h-28 rounded-full border-[8px] border-orange-50 border-t-orange-500 animate-spin shadow-inner" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <Sparkles className="w-6 h-6 text-orange-300" />
+                                    <Sparkles className="w-10 h-10 text-orange-400" />
                                 </div>
                             </div>
-                            <div className="text-center">
-                                <h3 className="text-2xl font-bold text-gray-800">Procesando Venta</h3>
-                                <p className="text-gray-500 mt-2">Sincronizando con Navasoft ERP...</p>
-                                <div className="mt-4 flex gap-1 justify-center">
+                            
+                            <div style={{ textAlign: 'center' }}>
+                                <h3 style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', marginBottom: '16px', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                                    Procesando Venta
+                                </h3>
+                                <p style={{ fontSize: '20px', color: '#64748b', fontWeight: 500, lineHeight: '1.6' }}>
+                                    Sincronizando información con <br/>
+                                    <span style={{ color: '#f97316', fontWeight: 900, fontSize: '22px' }}>Navasoft ERP</span>
+                                </p>
+                                
+                                <div style={{ marginTop: '40px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
                                     {[0, 1, 2].map((i) => (
                                         <motion.div
                                             key={i}
-                                            animate={{ scale: [1, 1.5, 1] }}
-                                            transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
-                                            className="w-2 h-2 bg-orange-400 rounded-full"
+                                            animate={{ 
+                                                y: [0, -15, 0],
+                                                opacity: [0.3, 1, 0.3],
+                                                scale: [1, 1.2, 1]
+                                            }}
+                                            transition={{ 
+                                                repeat: Infinity, 
+                                                duration: 1.2, 
+                                                delay: i * 0.15,
+                                                ease: "circOut"
+                                            }}
+                                            style={{
+                                                width: '14px',
+                                                height: '14px',
+                                                background: '#f97316',
+                                                borderRadius: '50%',
+                                                boxShadow: '0 0 20px rgba(249,115,22,0.5)'
+                                            }}
                                         />
                                     ))}
                                 </div>
