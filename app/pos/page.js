@@ -35,7 +35,7 @@ export default function POSPage() {
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [activeTab, setActiveTab] = useState('pos'); // 'pos' o 'memberships'
     const [cart, setCart] = useState([]);
-    const [warehouse, setWarehouse] = useState('01');
+    const [warehouse, setWarehouse] = useState(session?.sedeId || '01');
     const [idApeCaj, setIdApeCaj] = useState(null);
     const [isOpeningCash, setIsOpeningCash] = useState(false);
     const [openingAmount, setOpeningAmount] = useState('');
@@ -106,15 +106,17 @@ export default function POSPage() {
             }
         });
 
+        if (session?.sedeId) setWarehouse(session.sedeId);
+
         return () => window.removeEventListener('resize', checkSize);
-    }, []);
+    }, [session]);
 
     useEffect(() => {
         if (activeTab === 'pos') {
             const t = setTimeout(() => fetchProducts(), 250);
             return () => clearTimeout(t);
         }
-    }, [searchTerm, selectedCategory, activeTab]);
+    }, [searchTerm, selectedCategory, activeTab, warehouse]);
 
     // Generar QR para impresión cuando cambian los datos del ticket
     useEffect(() => {
