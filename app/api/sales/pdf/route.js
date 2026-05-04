@@ -75,9 +75,9 @@ export async function GET(request) {
             `);
         
         const storeInfo = storeRes.recordset[0] || {
-            nomtie: 'GIM.BRA S.A.C.',
-            ructie: '20603623747',
-            dirtie: 'AV. JOSE BALTA NRO. 1362 - CHICLAYO'
+            nomtie: '',
+            ructie: '',
+            dirtie: ''
         };
 
         const detailRes = await pool.request()

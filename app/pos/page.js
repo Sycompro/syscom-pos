@@ -121,7 +121,7 @@ export default function POSPage() {
         const generateQR = async () => {
             if (printData && printData.documentNumber) {
                 try {
-                    const rucEmisor = companySettings?.company?.ruc || "20603623747";
+                    const rucEmisor = companySettings?.company?.ruc || "";
                     const [serie, correlativo] = printData.documentNumber.split('-');
                     const tipoDocCli = (printData.customer?.ruc?.length === 11) ? "6" : "1";
                     
@@ -688,12 +688,12 @@ export default function POSPage() {
                 {printData ? (
                     <div>
                         <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{companySettings?.company?.name || 'GIM.BRA S.A.C.'}</div>
+                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{companySettings?.company?.name || ''}</div>
                             <div style={{ margin: '4px 0' }}>
                                 <Image src="/logo-ticket.png" width={120} height={50} alt="Logo" style={{ display: 'block', margin: '0 auto' }} />
                             </div>
-                            <div>R.U.C.: {companySettings?.company?.ruc || '20603623747'}</div>
-                            <div style={{ fontSize: '10px' }}>{companySettings?.company?.address || 'AV. JOSE BALTA NRO. 1362 LAMBAYEQUE - CHICLAYO - CHICLAYO'}</div>
+                            <div>R.U.C.: {companySettings?.company?.ruc || ''}</div>
+                            <div style={{ fontSize: '10px' }}>{companySettings?.company?.address || ''}</div>
                             <div>Telf: {companySettings?.company?.phone || ''}</div>
                         </div>
 
@@ -795,7 +795,7 @@ export default function POSPage() {
                 ) : cashReportData ? (
                     <div>
                         <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{companySettings?.company?.name || 'GIM.BRA S.A.C.'}</div>
+                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{companySettings?.company?.name || ''}</div>
                             <div style={{ fontWeight: 'bold', fontSize: '12px', marginTop: '8px' }}>REPORTE DE ARQUEO / CIERRE</div>
                             <div style={{ fontSize: '11px' }}>ID SESIÓN: {idApeCaj}</div>
                         </div>
