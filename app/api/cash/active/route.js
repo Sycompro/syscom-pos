@@ -35,8 +35,7 @@ export async function GET() {
 
             const result = await pool.request()
                 .input('codusu', userCode)
-                .input('codpto', sedeCode)
-                .query("SELECT TOP 1 idapecaj as id FROM dtl_restpos_apecaj WHERE estado = 0 AND LTRIM(RTRIM(codusu)) = @codusu AND LTRIM(RTRIM(codpto)) = @codpto ORDER BY idapecaj DESC");
+                .query("SELECT TOP 1 idapecaj as id FROM dtl_restpos_apecaj WHERE estado = 0 AND LTRIM(RTRIM(codusu)) = LTRIM(RTRIM(@codusu)) ORDER BY idapecaj DESC");
             
             if (result.recordset.length > 0) {
                 return NextResponse.json({ 
