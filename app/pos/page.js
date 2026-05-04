@@ -424,7 +424,30 @@ export default function POSPage() {
                         >
                             {/* AREA DE VENTAS */}
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden' }}>
-                                {/* BARRA CLIENTE POS COMPLETA (AHORA PRIMERO) */}
+                                
+                                {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
+                                <div style={{ background: '#fff', padding: '10px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                        <div style={{ background: '#eff6ff', padding: '6px 12px', borderRadius: '8px', border: '1px solid #dbeafe' }}>
+                                            <p style={{ fontSize: '10px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
+                                        </div>
+                                        <div>
+                                            <h1 style={{ fontSize: '16px', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                {companySettings?.company?.name || 'Cargando sede...'}
+                                                <span style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8' }}>• R.U.C. {companySettings?.company?.ruc || ''}</span>
+                                            </h1>
+                                            <p style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', margin: 0 }}>
+                                                {companySettings?.company?.address || 'Dirección no configurada'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <p style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Terminal</p>
+                                        <p style={{ fontSize: '12px', fontWeight: 900, color: '#1e293b', margin: 0 }}>{session?.user?.sedeId || '01'}</p>
+                                    </div>
+                                </div>
+
+                                {/* LÍNEA 2: BARRA CLIENTE POS (EXISTENTE) */}
                                 <div style={{ background: '#fff', padding: '12px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '20px' }}>
                                     <div style={{ width: '180px', position: 'relative' }}>
                                         <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={14} />
