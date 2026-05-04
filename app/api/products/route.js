@@ -38,31 +38,54 @@ export async function GET(request) {
     }
 
     const stockField = `stk${warehouse.padStart(2, '0')}`;
-    console.log(`[Products] Sede: ${sedeId} -> Almacén: ${warehouse} -> Campo Stock: ${stockField}`);
+    const prdTable = `prd01${warehouse.padStart(2, '0')}`;
     
-    // 2. Consulta optimizada con lógica de stock inteligente (Sede > Total)
+    console.log(`[Products] Sede: ${sedeId} -> Almacén: ${warehouse} -> Tabla: ${prdTable} -> Campo: ${stockField}`);
+    
+    // 2. Consulta inteligente: 
+    // Si existe una tabla específica por almacén (prd0103, prd0102, etc.), usamos esa.
+    // Si no, usamos prd0101 y buscamos en la columna stkXX.
     let sqlQuery = `
-      SELECT TOP 50 
-        RTRIM(codi) as code, 
-        RTRIM(codf) as userCode, 
-        RTRIM(descr) as name, 
-        RTRIM(marc) as brand, 
-        RTRIM(umed) as unit, 
-        pvns as price, 
-        ISNULL(NULLIF(${stockField}, 0), stoc) as stock
-      FROM prd0101
-      WHERE estado = 1
+      DECLARE @table_exists INT;
+      SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
+
+      IF @table_exists > 0
+        BEGIN
+          -- Caso Multi-Tabla: El stock está en la tabla específica del almacén
+          SELECT TOP 50 
+            RTRIM(codi) as code, 
+            RTRIM(codf) as userCode, 
+            RTRIM(descr) as name, 
+            RTRIM(marc) as brand, 
+            RTRIM(umed) as unit, 
+            pvns as price, 
+            stoc as stock
+          FROM ${prdTable}
+          WHERE estado = 1
+          ${query ? ` AND (descr LIKE '%${query}%' OR codi LIKE '%${query}%' OR codf LIKE '%${query}%')` : ''}
+          ORDER BY descr ASC
+        END
+      ELSE
+        BEGIN
+          -- Caso Estándar: Todo está en prd0101
+          SELECT TOP 50 
+            RTRIM(codi) as code, 
+            RTRIM(codf) as userCode, 
+            RTRIM(descr) as name, 
+            RTRIM(marc) as brand, 
+            RTRIM(umed) as unit, 
+            pvns as price, 
+            ISNULL(NULLIF(${stockField}, 0), stoc) as stock
+          FROM prd0101
+          WHERE estado = 1
+          ${query ? ` AND (descr LIKE '%${query}%' OR codi LIKE '%${query}%' OR codf LIKE '%${query}%')` : ''}
+          ORDER BY descr ASC
+        END
     `;
     
-    if (query) {
-      sqlQuery += ` AND (descr LIKE '%${query}%' OR codi LIKE '%${query}%' OR codf LIKE '%${query}%')`;
-    }
-    
-    sqlQuery += ` ORDER BY descr ASC`;
-    
     const result = await pool.request().query(sqlQuery);
-    
     return NextResponse.json(result.recordset);
+
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
