@@ -885,6 +885,45 @@ export default function POSPage() {
                     <div style={{ textAlign: 'center', padding: '20px' }}>Preparando ticket...</div>
                 )}
             </div>
+
+            {/* Overlay de Carga durante Finalización de Venta */}
+            <AnimatePresence>
+                {isFinalizing && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm transition-all"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="bg-white p-10 rounded-3xl shadow-2xl flex flex-col items-center gap-6 border border-orange-100"
+                        >
+                            <div className="relative">
+                                <Loader2 className="w-16 h-16 text-orange-500 animate-spin" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Sparkles className="w-6 h-6 text-orange-300" />
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <h3 className="text-2xl font-bold text-gray-800">Procesando Venta</h3>
+                                <p className="text-gray-500 mt-2">Sincronizando con Navasoft ERP...</p>
+                                <div className="mt-4 flex gap-1 justify-center">
+                                    {[0, 1, 2].map((i) => (
+                                        <motion.div
+                                            key={i}
+                                            animate={{ scale: [1, 1.5, 1] }}
+                                            transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
+                                            className="w-2 h-2 bg-orange-400 rounded-full"
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
