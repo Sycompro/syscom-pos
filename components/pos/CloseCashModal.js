@@ -34,7 +34,7 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
     };
 
     const handleClose = async () => {
-        if (!confirm('¿Desea finalizar la jornada y realizar el arqueo de caja?')) return;
+        if (!confirm('⚠️ ATENCIÓN: ¿Está seguro que desea CERRAR LA CAJA definitivamente?\n\nEsta acción finalizará su jornada actual y no se puede deshacer.')) return;
         
         setIsClosing(true);
         try {
@@ -191,16 +191,29 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
                                 <div style={finalIconStyle}><Banknote size={40} /></div>
                             </div>
 
-                            <button 
-                                onClick={handleClose} 
-                                disabled={isClosing}
-                                style={{
-                                    ...closeBtnActionStyle,
-                                    background: isClosing ? '#94a3b8' : '#0f172a'
-                                }}
-                            >
-                                {isClosing ? 'Cerrando sesión...' : 'Confirmar Cierre de Caja'}
-                            </button>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <button 
+                                    onClick={onClose} 
+                                    style={{
+                                        ...closeBtnActionStyle,
+                                        background: '#f8fafc',
+                                        color: '#64748b',
+                                        boxShadow: 'none'
+                                    }}
+                                >
+                                    Seguir Vendiendo
+                                </button>
+                                <button 
+                                    onClick={handleClose} 
+                                    disabled={isClosing}
+                                    style={{
+                                        ...closeBtnActionStyle,
+                                        background: isClosing ? '#94a3b8' : '#ef4444'
+                                    }}
+                                >
+                                    {isClosing ? 'Cerrando sesión...' : 'FINALIZAR JORNADA Y CERRAR CAJA'}
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
