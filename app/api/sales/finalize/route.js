@@ -101,10 +101,11 @@ export async function POST(request) {
                     globalCodFdp = '03'; // TARJETA
                 }
             }
-            globalCompro = p.voucher ? p.voucher.substring(0, 6) : '';
         }
-
-        const userCode = session.user.id?.toString().padStart(3, '0').slice(0, 3) || 'POS';
+        
+        const userCodeFinal = idApeCaj ? '   ' : (session.user.id?.toString().trim() || 'POS').substring(0, 3);
+        const codSubValue = (globalSelPago === 1) ? '01' : '03'; 
+        const finalCompro = `${codSubValue}/${ndocu.split('-')[1]?.substring(0, 6) || '000000'}`;
 
         // 5. INSERCIÓN CABECERA (mst01fac)
         await transaction.request()
@@ -126,12 +127,12 @@ export async function POST(request) {
             .input('selpago', sql.Int, globalSelPago)
             .input('codfdp', sql.Char(2), globalCodFdp)
             .input('codtar', sql.Char(2), globalCodTar)
-            .input('compro', sql.Char(6), globalCompro.substring(0, 6))
-            .input('codusu', sql.Char(3), userCode)
+            .input('compro', sql.Char(10), finalCompro.substring(0, 10))
+            .input('codusu', sql.Char(3), userCodeFinal)
             .input('flag', sql.Char(1), '0')
             .input('tfact', sql.Char(1), tfactValue)
             .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
-            .input('codsub', sql.Char(2), (globalSelPago === 1) ? '01' : '03')
+            .input('codsub', sql.Char(2), codSubValue)
             .query(`
                 INSERT INTO mst01fac (fecha, fven, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub)
                 VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, '01', '01', @codven, @codsub)
