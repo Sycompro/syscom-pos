@@ -16,16 +16,12 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
     const category = searchParams.get('category');
-    
     const pool = await getConnection(company);
     
-    // 1. Determinar el almacén (Prioridad: URL > Sesión > Default)
+    // 1. Determinar el almacén de forma INFALIBLE
     const urlAlm = searchParams.get('alm');
-    let warehouse = urlAlm;
-    
-    if (!warehouse || warehouse === 'undefined') {
-        warehouse = await getWarehouseForSede(pool, sedeId);
-    }
+    // Siempre intentamos resolverlo para normalizar (ej: "PUNTO 03" -> "03")
+    const warehouse = await getWarehouseForSede(pool, urlAlm || sedeId);
     
     const stockField = getStockColumnName(warehouse);
     const prdTable = getStockTableName(warehouse);
