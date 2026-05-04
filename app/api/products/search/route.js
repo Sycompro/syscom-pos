@@ -35,15 +35,34 @@ export async function GET(request) {
         filters += ` AND LTRIM(RTRIM(codcat)) = RIGHT('${category}', 2) AND LEFT(codi, 2) = LEFT('${category}', 2)`;
     }
 
-    // 3. Consulta directa a la tabla maestra (Restaurando lógica ganadora)
+    // 3. Consulta INTELIGENTE (Espejo de psventa.exe)
+    // Prioriza la tabla física de la sede si existe, de lo contrario usa la maestra
     let sqlQuery = `
-      SELECT TOP 50 
-        RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
-        RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
-        ${stockField} as stock, RTRIM(Usr_003) as membershipDays
-      FROM prd0101
-      WHERE ${filters}
-      ORDER BY descr ASC
+      DECLARE @table_exists INT;
+      SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
+
+      IF @table_exists > 0
+        BEGIN
+          -- Comportamiento idéntico al ERP original
+          SELECT TOP 50 
+            RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
+            RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
+            stoc as stock, RTRIM(Usr_003) as membershipDays
+          FROM ${prdTable}
+          WHERE ${filters}
+          ORDER BY descr ASC
+        END
+      ELSE
+        BEGIN
+          -- Fallback a la tabla maestra centralizada
+          SELECT TOP 50 
+            RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
+            RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
+            ISNULL(${stockField}, 0) as stock, RTRIM(Usr_003) as membershipDays
+          FROM prd0101
+          WHERE ${filters}
+          ORDER BY descr ASC
+        END
     `;
     
     const result = await pool.request().query(sqlQuery);
