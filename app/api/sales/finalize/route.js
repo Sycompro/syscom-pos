@@ -212,21 +212,17 @@ export async function POST(request) {
                 .input('tfact', sql.Char(1), tfactValue)
                 .input('item', sql.Decimal(18, 4), (i + 1))
                 .input('codi', sql.Char(11), (item.id || '').substring(0, 11))
-                .input('descr', sql.Char(80), (item.name || '').substring(0, 80))
+                .input('nomb', sql.Char(60), (item.name || '').substring(0, 60))
                 .input('cant', sql.Decimal(18, 6), item.quantity)
                 .input('preu', sql.Decimal(18, 6), itemPriceNeto)
                 .input('tota', sql.Decimal(18, 4), itemBreakdown.subtotal)
-                .input('totn', sql.Decimal(18, 4), itemBreakdown.total)
-                .input('codalm', sql.Char(2), warehouse.substring(0, 2))
-                .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
-                .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
-                .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
+                .input('toti', sql.Decimal(18, 4), itemBreakdown.tax)
+                .input('codalm', sql.Char(2), (warehouse || '01').substring(0, 2))
                 .query(`
-                    INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, codcli, codven, codvta, codcdv, flag, aigv, mone, moneitm, tcam, msto)
-                    VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @codalm, @codcli, @codven, '01', '01', '0', 'S', 'S', 'S', @tcam, 'S')
+                    INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, nomb, cant, preu, tota, toti, mone, tcam, codalm, flag, codven)
+                    VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @nomb, @cant, @preu, @tota, @toti, 'S', 1, @codalm, '0', 'V0001')
                 `);
 
-            // ACTUALIZACIÓN DE STOCK CENTRALIZADA
             await transaction.request()
                 .input('codi', sql.Char(11), item.id)
                 .input('cant', sql.Float, item.quantity)
@@ -241,13 +237,12 @@ export async function POST(request) {
                     UPDATE prd0101 SET ${stockField} = ${stockField} - @cant, stoc = stoc - @cant WHERE codi = @codi
                 `);
 
-            // KARDEX DINÁMICO
             const kardexTable = `kdd01${warehouse.padStart(2, '0')}`;
             try {
                 await transaction.request()
                     .input('fecha', sql.VarChar(10), fechaStr)
                     .input('cdocu', sql.Char(2), docType)
-                    .input('ndocu', sql.Char(12), ndocu)
+                    .input('ndocu', sql.Char(12), nextNdocu)
                     .input('codi', sql.Char(11), (item.id || '').substring(0, 11))
                     .input('cant', sql.Decimal(18, 6), item.quantity)
                     .input('preu', sql.Decimal(18, 6), itemPriceNeto)
@@ -259,10 +254,11 @@ export async function POST(request) {
             } catch (e) {}
         }
 
+        // 8. CUENTAS POR COBRAR (mst01ccc)
         await transaction.request()
             .input('fecha', sql.VarChar(10), fechaStr)
             .input('cdocu', sql.Char(2), docType)
-            .input('ndocu', sql.Char(12), ndocu)
+            .input('ndocu', sql.Char(12), nextNdocu)
             .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
             .input('monto', sql.Decimal(18, 4), breakdown.total)
             .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
@@ -274,7 +270,7 @@ export async function POST(request) {
         await transaction.commit();
         return NextResponse.json({ 
             success: true, 
-            ndocu,
+            ndocu: nextNdocu,
             total: breakdown.total,
             base: breakdown.subtotal,
             igv: breakdown.tax
