@@ -91,7 +91,7 @@ export async function GET(request) {
             .input('id', sql.Int, idapecaj)
             .query(`
                 SELECT 
-                    ISNULL(fam.nomfam, 'SIN CATEGORIA') as category,
+                    ISNULL(fam.nomsub, 'SIN CATEGORIA') as category,
                     SUM(d.totn) as total,
                     COUNT(*) as itemsSold
                 FROM dtl01fac d
