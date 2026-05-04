@@ -60,16 +60,18 @@ export async function POST(request) {
             await transaction.begin();
 
             try {
-                const result = await transaction.request()
+            const result = await transaction.request()
                     .input('fecape', sql.DateTime, now)
-                    .input('hora', sql.VarChar(12), timeStr)
                     .input('codpto', sql.Char(2), sedeCode)
                     .input('codusu', sql.Char(3), userCode)
                     .input('apesol', sql.Decimal(18, 2), amount || 0)
                     .input('nropla', sql.Char(12), nropla)
                     .query(`
+                        DECLARE @dbNow DATETIME = GETDATE();
+                        DECLARE @formattedHora VARCHAR(12) = RIGHT(CAST(YEAR(@dbNow) AS VARCHAR), 2) + ' ' + LTRIM(RIGHT(CONVERT(VARCHAR, @dbNow, 100), 7));
+
                         INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur, nropla)
-                        VALUES (@fecape, @hora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, @nropla);
+                        VALUES (@fecape, @formattedHora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, @nropla);
                         SELECT SCOPE_IDENTITY() as id;
                     `);
                 
