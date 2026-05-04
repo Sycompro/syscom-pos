@@ -97,9 +97,9 @@ export async function GET(request) {
                 FROM dtl01fac d
                 INNER JOIN mst01fac m ON d.ndocu = m.ndocu AND d.cdocu = m.cdocu
                 LEFT JOIN prd0101 p ON d.codi = p.codi
-                LEFT JOIN tbl01fam fam ON p.codcat = fam.codfam
+                LEFT JOIN tbl01sbf fam ON LTRIM(RTRIM(fam.codsub)) = LEFT(p.codi, 2) + '-' + LTRIM(RTRIM(p.codcat))
                 WHERE m.idapecaj = @id
-                GROUP BY fam.nomfam
+                GROUP BY fam.nomsub
             `);
 
         // 5. Egresos
