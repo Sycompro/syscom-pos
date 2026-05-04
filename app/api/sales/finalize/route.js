@@ -8,7 +8,9 @@ import { getWarehouseForSede, getStockTableName, getStockColumnName, ERP_CONFIG,
 function incrementCorrelative(current) {
     if (!current || !current.includes('-')) return current;
     const [prefix, number] = current.split('-');
-    const nextNum = (parseInt(number, 10) + 1).toString().padStart(number.length, '0');
+    // Asegurar que el total sea 12: longitud_correlativo = 12 - longitud_prefijo - 1 (del guion)
+    const targetLength = 12 - prefix.length - 1;
+    const nextNum = (parseInt(number, 10) + 1).toString().padStart(targetLength, '0');
     return `${prefix}-${nextNum}`;
 }
 
@@ -112,14 +114,14 @@ export async function POST(request) {
 
         const userCodeFinal = idApeCaj ? '   ' : (session.user.id?.toString().trim() || 'POS').substring(0, 3);
         const codSubValue = (globalSelPago === 1) ? '01' : '03'; 
-        const finalCompro = `${codSubValue}/${ndocu.split('-')[1]?.substring(0, 6) || '000000'}`;
+        const finalCompro = `${codSubValue}/${nextNdocu.split('-')[1]?.substring(0, 6) || '000000'}`;
 
         // 6. INSERCIÓN CABECERA (mst01fac)
         await transaction.request()
             .input('fecha', sql.VarChar(10), fechaStr)
             .input('fven', sql.VarChar(10), fechaStr)
             .input('cdocu', sql.Char(2), docType)
-            .input('ndocu', sql.Char(12), ndocu)
+            .input('ndocu', sql.Char(12), nextNdocu)
             .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
             .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
             .input('ruccli', sql.Char(11), (body.ruccli || '').substring(0, 11))
@@ -145,16 +147,34 @@ export async function POST(request) {
                 VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, '01', '01', @codven, @codsub)
             `);
 
-        // 7. COBRANZA (dtl01cob) - OBLIGATORIO PARA LIQUIDACIÓN
+        // 7. COBRANZA (mst01cob / dtl01cob) - OBLIGATORIO PARA LIQUIDACIÓN
         const paymentList = payments.length > 0 ? payments : [{ id: 'EF', amount: breakdown.total, type: 1 }];
         
+        // A. CABECERA DE COBRANZA
+        await transaction.request()
+            .input('cdocu', sql.Char(2), docType)
+            .input('ndocu', sql.Char(12), nextNdocu)
+            .input('fecha', sql.VarChar(10), fechaStr)
+            .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
+            .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
+            .input('monto', sql.Decimal(18, 4), breakdown.total)
+            .input('nplan', sql.Char(12), nropla.substring(0, 12))
+            .input('idapecaj', sql.Int, idApeCaj)
+            .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
+            .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
+            .query(`
+                INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, nplan, codpto, idapecaj, selpago, fecreg)
+                VALUES (@cdocu, @ndocu, @cdocu, @ndocu, @fecha, 'I', 'VENTA POS WEB', @codcli, @nomcli, @monto, 'S', 1, '0', @codven, @nplan, @codpto, @idapecaj, 1, GETDATE())
+            `);
+
+        // B. DETALLE DE COBRANZA
         for (let i = 0; i < paymentList.length; i++) {
             const p = paymentList[i];
             const cpago = (p.type === 1 || p.id === 'EF') ? 'E' : (p.id?.includes('BANCO') || p.id?.includes('TRANS') ? 'B' : 'T');
             
             await transaction.request()
                 .input('cdocu', sql.Char(2), docType)
-                .input('ndocu', sql.Char(12), ndocu)
+                .input('ndocu', sql.Char(12), nextNdocu)
                 .input('monto', sql.Decimal(18, 4), p.amount)
                 .input('cpago', sql.Char(1), cpago)
                 .input('npago', sql.Char(12), (p.voucher || '').substring(0, 12))
@@ -169,7 +189,7 @@ export async function POST(request) {
             // También en dtl_restpos_cobmixta para el visor de tickets del POS
             await transaction.request()
                 .input('cdocu', sql.Char(2), docType)
-                .input('ndocu', sql.Char(12), ndocu)
+                .input('ndocu', sql.Char(12), nextNdocu)
                 .input('codtar', sql.Char(2), (p.id === 'EF' ? 'NS' : p.id).substring(0, 2))
                 .input('amount', sql.Decimal(18, 4), p.amount)
                 .input('selpago', sql.Int, (p.type === 1 || p.id === 'EF' ? 1 : 3))
@@ -188,7 +208,7 @@ export async function POST(request) {
             await transaction.request()
                 .input('fecha', sql.VarChar(10), fechaStr)
                 .input('cdocu', sql.Char(2), docType)
-                .input('ndocu', sql.Char(12), ndocu)
+                .input('ndocu', sql.Char(12), nextNdocu)
                 .input('tfact', sql.Char(1), tfactValue)
                 .input('item', sql.Decimal(18, 4), (i + 1))
                 .input('codi', sql.Char(11), (item.id || '').substring(0, 11))
