@@ -103,6 +103,7 @@ export async function POST(request) {
                     globalCodFdp = '03'; // TARJETA
                 }
             }
+        }
         // 5. OBTENER NROPLA DE LA SESIÓN
         let nropla = '';
         if (idApeCaj) {
