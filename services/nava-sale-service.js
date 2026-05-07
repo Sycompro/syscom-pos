@@ -52,12 +52,6 @@ class NavaSaleService {
       const nroPlanilla = resApe.recordset[0]?.nropla || '';
       const codCajaDinamico = resApe.recordset[0]?.codcaj_sugerido || '01';
 
-      logger.info(`[DEBUG/Truncado] ndocu: ${nextNdocu} (${nextNdocu.length})`);
-      logger.info(`[DEBUG/Truncado] nomcli: ${nomcli} (${nomcli?.length})`);
-      logger.info(`[DEBUG/Truncado] codven: ${codven} (${codven?.length})`);
-      logger.info(`[DEBUG/Truncado] nplan: ${nroPlanilla} (${nroPlanilla?.length})`);
-      logger.info(`[DEBUG/Truncado] codcaj: ${codCajaDinamico} (${codCajaDinamico?.length})`);
-
       // A. Gestión de Correlativo
       const requestCor = new sql.Request(transaction);
       const resCor = await requestCor
@@ -67,13 +61,19 @@ class NavaSaleService {
 
       if (!resCor.recordset[0]) throw new Error(`Sin correlativo para ${docType}`);
       
-      const currentNroIni = resCor.recordset[0].nroini.trim(); 
-      const [series, numStr] = currentNroIni.split('-');
-      const nextNdocu = `${series}-${(parseInt(numStr, 10) + 1).toString().padStart(8, '0')}`;
-      
-      // Actualizar correlativo
+      const series = resCor.recordset[0].nroini.substring(0, 3);
+      const numStr = resCor.recordset[0].nroini.substring(4);
+      const nextNum = (parseInt(numStr) + 1).toString().padStart(8, '0');
+      const nextNdocu = `${series}-${nextNum}`;
+
+      logger.info(`[DEBUG/Truncado] ndocu: ${nextNdocu} (${nextNdocu.length})`);
+      logger.info(`[DEBUG/Truncado] nomcli: ${nomcli} (${nomcli?.length})`);
+      logger.info(`[DEBUG/Truncado] codven: ${codven} (${codven?.length})`);
+      logger.info(`[DEBUG/Truncado] nplan: ${nroPlanilla} (${nroPlanilla?.length})`);
+      logger.info(`[DEBUG/Truncado] codcaj: ${codCajaDinamico} (${codCajaDinamico?.length})`);
+
       await requestCor
-        .input('nextNdocu', nextNdocu.trim())
+        .input('nextNdocu', nextNdocu)
         .query(`UPDATE tbl01cor SET nroini = @nextNdocu WHERE cdocu = @cdocu AND codpto = @codpto`);
 
       // B. Insertar Cabecera (mst01fac)
