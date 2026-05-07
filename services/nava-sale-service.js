@@ -78,6 +78,8 @@ class NavaSaleService {
 
       // B. Insertar Cabecera (mst01fac)
       const requestMst = new sql.Request(transaction);
+      const safeExchangeRate = (exchangeRate && exchangeRate > 0) ? exchangeRate : 1.0;
+      
       await requestMst
         .input('cdocu', docType.substring(0, 2))
         .input('ndocu', nextNdocu.substring(0, 12))
@@ -86,11 +88,11 @@ class NavaSaleService {
         .input('codcli', (codcli || '000000').substring(0, 6))
         .input('nomcli', (nomcli || 'CLIENTE VARIOS').substring(0, 60))
         .input('ruccli', (ruccli || '').substring(0, 11))
-        .input('totn', sql.Decimal(18, 4), breakdown.total)
-        .input('toti', sql.Decimal(18, 4), breakdown.tax)
-        .input('tota', sql.Decimal(18, 4), breakdown.subtotal)
+        .input('totn', sql.Decimal(18, 4), breakdown.total || 0)
+        .input('toti', sql.Decimal(18, 4), breakdown.tax || 0)
+        .input('tota', sql.Decimal(18, 4), breakdown.subtotal || 0)
         .input('mone', 'S')
-        .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
+        .input('tcam', sql.Decimal(18, 4), safeExchangeRate)
         .input('Codpto', warehouse.substring(0, 2))
         .input('CodAlm', warehouse.substring(0, 2))
         .input('idapecaj', sql.Int, idApeCaj)
@@ -105,7 +107,7 @@ class NavaSaleService {
         .input('codvta', '01')
         .input('codven', (codven || 'V0001').substring(0, 5))
         .input('codsub', '01')
-        .input('cajrecib', sql.Decimal(18, 4), cashReceived || breakdown.total)
+        .input('cajrecib', sql.Decimal(18, 4), cashReceived || breakdown.total || 0)
         .input('cajvuelto', sql.Decimal(18, 4), changeGiven || 0)
         .input('cobmixta', sql.Int, isMixed ? 1 : 0)
         .query(`
@@ -116,6 +118,9 @@ class NavaSaleService {
       // C. Detalles (dtl01fac)
       for (const [idx, item] of items.entries()) {
         logger.info(`[DEBUG/Truncado] Item ${idx}: ID=${item.id}(${item.id.length}), Name=${item.name}(${item.name.length})`);
+        const itemQty = (item.quantity && item.quantity > 0) ? item.quantity : 1;
+        const itemPrice = (item.price && item.price > 0) ? item.price : 0;
+        
         const reqDtl = new sql.Request(transaction);
         await reqDtl
           .input('cdocu', docType.substring(0, 2))
@@ -123,10 +128,10 @@ class NavaSaleService {
           .input('item', sql.Int, idx + 1)
           .input('codi', item.id.substring(0, 11))
           .input('descr', item.name.substring(0, 80))
-          .input('cant', sql.Decimal(18, 4), item.quantity)
-          .input('preu', sql.Decimal(18, 4), item.price)
-          .input('tota', sql.Decimal(18, 4), (item.price * item.quantity) / 1.18)
-          .input('totn', sql.Decimal(18, 4), item.price * item.quantity)
+          .input('cant', sql.Decimal(18, 4), itemQty)
+          .input('preu', sql.Decimal(18, 4), itemPrice)
+          .input('tota', sql.Decimal(18, 4), (itemPrice * itemQty) / 1.18)
+          .input('totn', sql.Decimal(18, 4), itemPrice * itemQty)
           .input('Codalm', warehouse.substring(0, 2))
           .input('flag', ' ')
           .input('fecha', fechaStr.substring(0, 10))
