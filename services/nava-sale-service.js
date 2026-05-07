@@ -52,6 +52,12 @@ class NavaSaleService {
       const nroPlanilla = resApe.recordset[0]?.nropla || '';
       const codCajaDinamico = resApe.recordset[0]?.codcaj_sugerido || '01';
 
+      logger.info(`[DEBUG/Truncado] ndocu: ${nextNdocu} (${nextNdocu.length})`);
+      logger.info(`[DEBUG/Truncado] nomcli: ${nomcli} (${nomcli?.length})`);
+      logger.info(`[DEBUG/Truncado] codven: ${codven} (${codven?.length})`);
+      logger.info(`[DEBUG/Truncado] nplan: ${nroPlanilla} (${nroPlanilla?.length})`);
+      logger.info(`[DEBUG/Truncado] codcaj: ${codCajaDinamico} (${codCajaDinamico?.length})`);
+
       // A. Gestión de Correlativo
       const requestCor = new sql.Request(transaction);
       const resCor = await requestCor
@@ -109,6 +115,7 @@ class NavaSaleService {
 
       // C. Detalles (dtl01fac)
       for (const [idx, item] of items.entries()) {
+        logger.info(`[DEBUG/Truncado] Item ${idx}: ID=${item.id}(${item.id.length}), Name=${item.name}(${item.name.length})`);
         const reqDtl = new sql.Request(transaction);
         await reqDtl
           .input('cdocu', docType.substring(0, 2))
