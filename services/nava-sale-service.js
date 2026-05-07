@@ -69,10 +69,10 @@ class NavaSaleService {
       // B. Insertar Cabecera (mst01fac)
       const requestMst = new sql.Request(transaction);
       await requestMst
-        .input('cdocu', docType)
-        .input('ndocu', nextNdocu)
-        .input('fecha', fechaStr)
-        .input('fven', fechaStr)
+        .input('cdocu', docType.substring(0, 2))
+        .input('ndocu', nextNdocu.substring(0, 12))
+        .input('fecha', fechaStr.substring(0, 10))
+        .input('fven', fechaStr.substring(0, 10))
         .input('codcli', (codcli || '000000').substring(0, 6))
         .input('nomcli', (nomcli || 'CLIENTE VARIOS').substring(0, 60))
         .input('ruccli', (ruccli || '').substring(0, 11))
@@ -85,10 +85,10 @@ class NavaSaleService {
         .input('CodAlm', warehouse.substring(0, 2))
         .input('idapecaj', sql.Int, idApeCaj)
         .input('selpago', sql.Int, globalSelPago)
-        .input('codfdp', globalCodFdp)
-        .input('codtar', globalCodTar)
-        .input('compro', 'WEB-POS')
-        .input('codusu', 'WEB')
+        .input('codfdp', globalCodFdp.substring(0, 2))
+        .input('codtar', globalCodTar.substring(0, 2))
+        .input('compro', 'WEB-POS'.substring(0, 9))
+        .input('codusu', 'WEB'.substring(0, 3))
         .input('flag', ' ')
         .input('tfact', (docType === '65' ? 'N' : 'S'))
         .input('Codcdv', '01')
@@ -107,8 +107,8 @@ class NavaSaleService {
       for (const [idx, item] of items.entries()) {
         const reqDtl = new sql.Request(transaction);
         await reqDtl
-          .input('cdocu', docType)
-          .input('ndocu', nextNdocu)
+          .input('cdocu', docType.substring(0, 2))
+          .input('ndocu', nextNdocu.substring(0, 12))
           .input('item', sql.Int, idx + 1)
           .input('codi', item.id.substring(0, 20))
           .input('descr', item.name.substring(0, 100))
@@ -118,7 +118,7 @@ class NavaSaleService {
           .input('totn', sql.Decimal(18, 4), item.price * item.quantity)
           .input('Codalm', warehouse.substring(0, 2))
           .input('flag', ' ')
-          .input('fecha', fechaStr)
+          .input('fecha', fechaStr.substring(0, 10))
           .input('tfact', (docType === '65' ? 'N' : 'S'))
           .query(`
             INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2)
@@ -127,16 +127,16 @@ class NavaSaleService {
       }
 
       // D. Cobranza (mst01cob)
-      const nroRecibo = `R${nextNdocu.substring(1)}`;
+      const nroRecibo = `R${nextNdocu.substring(1)}`.substring(0, 12);
       const reqMstCob = new sql.Request(transaction);
       await reqMstCob
         .input('cdocu', '38')
         .input('ndocu', nroRecibo)
-        .input('crefe', docType)
-        .input('nrefe', nextNdocu)
-        .input('fecha', fechaStr)
+        .input('crefe', docType.substring(0, 2))
+        .input('nrefe', nextNdocu.substring(0, 12))
+        .input('fecha', fechaStr.substring(0, 10))
         .input('tmov', 'I')
-        .input('glosa', 'VENTA POS WEB')
+        .input('glosa', 'VENTA POS WEB'.substring(0, 60))
         .input('codcli', (codcli || '000000').substring(0, 6))
         .input('nomcli', (nomcli || 'CLIENTE VARIOS').substring(0, 60))
         .input('monto', sql.Decimal(18, 4), breakdown.total)
@@ -146,7 +146,7 @@ class NavaSaleService {
         .input('codven', (codven || 'V0001').substring(0, 5))
         .input('Codpto', warehouse.substring(0, 2))
         .input('idapecaj', sql.Int, idApeCaj)
-        .input('cpago', isMixed ? 'M' : ((payments[0].id === 'EF' || payments[0].type === 1) ? 'E' : 'T'))
+        .input('cpago', (isMixed ? 'M' : ((payments[0].id === 'EF' || payments[0].type === 1) ? 'E' : 'T')).substring(0, 1))
         .input('selpago', sql.Int, globalSelPago)
         .input('nplan', nroPlanilla.substring(0, 12))
         .input('codcaj', warehouse.substring(0, 2))
@@ -165,8 +165,8 @@ class NavaSaleService {
           .input('cdocu', '38')
           .input('ndocu', nroRecibo)
           .input('npago', sql.Int, idx + 1)
-          .input('crefe', docType)
-          .input('nrefe', nextNdocu)
+          .input('crefe', docType.substring(0, 2))
+          .input('nrefe', nextNdocu.substring(0, 12))
           .input('monto', sql.Decimal(18, 4), p.amount)
           .input('cpago', (p.id === 'EF' || p.type === 1) ? 'E' : 'T')
           .input('codbco', codbco.substring(0, 2))
