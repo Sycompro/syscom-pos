@@ -30,21 +30,18 @@ export async function POST(request) {
             const userCode = session.user.id?.toString().padStart(3, '0').slice(0, 3); // Max 3
             const sedeCode = session.user.sedeId?.toString().padStart(2, '0').slice(0, 2); // Max 2
 
-            const now = new Date();
-            const yearSuffix = now.getFullYear().toString().slice(-2);
-            const rawTime = now.toLocaleTimeString('en-US', { 
+            const timeStr = now.toLocaleTimeString('en-US', { 
                 hour: '2-digit', 
                 minute: '2-digit', 
                 hour12: true 
             });
-            const timeStr = `${yearSuffix} ${rawTime}`.slice(0, 12); // Asegurar max 12 (Ej: "26 01:30 PM")
 
             // Generar correlativo para nropla
             const countRes = await pool.request()
                 .input('codpto', sql.Char(2), sedeCode)
                 .query("SELECT COUNT(*) as total FROM dtl_restpos_apecaj WHERE LTRIM(RTRIM(codpto)) = @codpto");
             const nextVal = (countRes.recordset[0].total + 1).toString().padStart(8, '0');
-            const nropla = `1${sedeCode}-${nextVal}`.slice(0, 12); // Asegurar max 12
+            const nropla = `${sedeCode}-${nextVal}`.slice(0, 12);
 
             // Lógica Esquema ERP (dtl_restpos_apecaj)
             const check = await pool.request()
@@ -67,8 +64,7 @@ export async function POST(request) {
                     .input('apesol', sql.Decimal(18, 2), amount || 0)
                     .input('nropla', sql.Char(12), nropla)
                     .query(`
-                        DECLARE @dbNow DATETIME = GETDATE();
-                        DECLARE @formattedHora VARCHAR(12) = RIGHT(CAST(YEAR(@dbNow) AS VARCHAR), 2) + ' ' + LTRIM(RIGHT(CONVERT(VARCHAR, @dbNow, 100), 7));
+                        DECLARE @formattedHora VARCHAR(12) = LTRIM(RIGHT(CONVERT(VARCHAR, GETDATE(), 100), 7));
 
                         INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur, nropla)
                         VALUES (@fecape, @formattedHora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, @nropla);
@@ -87,7 +83,7 @@ export async function POST(request) {
                         SET estado = 0, 
                             apecaj = @idapecaj, 
                             apecajsol = @apesol,
-                            apecajusu = '   ',
+                            apecajusu = @codusu,
                             apecajhra = GETDATE()
                         WHERE codpto = @codpto
                     `);

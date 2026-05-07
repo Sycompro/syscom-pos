@@ -27,29 +27,10 @@ export const authOptions = {
         }
 
         try {
-          let dbName = null;
-
-          // 2. Determinar base de datos para otros esquemas (ERP / Otros POS)
-          try {
-              const masterPool = await getConnection('BdNava01');
-              const empresaResult = await masterPool.request()
-                .input('code', credentials.code)
-                .query("SELECT Base FROM confemp01 WHERE Codigo = @code AND Estado = 1");
-
-              if (empresaResult.recordset.length > 0) {
-                dbName = empresaResult.recordset[0].Base.trim();
-                console.log(`[Auth] Base de datos encontrada en confemp01: ${dbName}`);
-              } else {
-                console.warn(`[Auth] No se encontró la empresa con código [${credentials.code}] en confemp01`);
-              }
-          } catch (e) {
-              console.warn("[Auth] Error consultando confemp01:", e.message);
-          }
-
-          if (!dbName) {
-            const cleanCode = credentials.code.trim().padStart(2, '0');
-            dbName = `BdNava${cleanCode}`;
-          }
+          // Determinar base de datos según el código de empresa (Convención BdNavaXX)
+          const cleanCode = credentials.code.trim().padStart(2, '0');
+          let dbName = `BdNava${cleanCode}`;
+          console.log(`[Auth] Base de datos de trabajo determinada: ${dbName}`);
 
           console.log(`[Auth] Validando en ${dbName} para usuario: ${credentials.username}`);
           const empresaPool = await getConnection(dbName);
@@ -59,8 +40,8 @@ export const authOptions = {
           try {
              const sysPool = await getConnection('BdNavaSys');
              const sysRes = await sysPool.request()
-                .input('code', sql.Char(3), credentials.code.trim().padStart(2, '0'))
-                .query("SELECT nomcia FROM sysnavacia WHERE idcia = @code");
+                .input('code', sql.Char(3), cleanCode)
+                .query("SELECT nomcia FROM sysnavacia WHERE codcia = @code");
              if (sysRes.recordset.length > 0) {
                 companyDisplayName = sysRes.recordset[0].nomcia.trim();
              }
@@ -92,6 +73,11 @@ export const authOptions = {
              if (posResult.recordset.length > 0) {
                 const user = posResult.recordset[0];
                 console.log(`[Auth] ¡ÉXITO POS TERMINAL! Usuario ${user.nomacc} autenticado en ${dbName} con Sede: ${user.nompto}`);
+                
+                // --- CAPTURAR PAGOS ---
+                const tarRes = await empresaPool.request().query("SELECT codtar, nomtar FROM tbl01tar");
+                const paymentMethods = tarRes.recordset.map(m => ({ id: m.codtar.trim(), name: m.nomtar.trim() }));
+
                 return {
                   id: user.codusu?.trim() || user.nomacc?.trim(),
                   name: user.nomusu?.trim() || user.nomacc?.trim(),
@@ -100,6 +86,7 @@ export const authOptions = {
                   companyName: companyDisplayName,
                   sedeId: user.codpto?.trim(),
                   sedeName: user.nompto?.trim(),
+                  paymentMethods,
                   schema: 'POS_TERMINAL'
                 };
              }
@@ -129,12 +116,18 @@ export const authOptions = {
              if (erpResult.recordset.length > 0) {
                 const user = erpResult.recordset[0];
                 console.log(`[Auth] ¡ÉXITO ERP! Usuario ${user.Usuario} autenticado en ${dbName}`);
+                
+                // --- CAPTURAR PAGOS ---
+                const tarRes = await empresaPool.request().query("SELECT codtar, nomtar FROM tbl01tar");
+                const paymentMethods = tarRes.recordset.map(m => ({ id: m.codtar.trim(), name: m.nomtar.trim() }));
+
                 return {
                   id: user.Usuario?.trim(),
                   name: user.FullName?.trim() || user.Usuario?.trim(),
                   username: user.Usuario?.trim(),
                   company: dbName,
                   companyName: companyDisplayName,
+                  paymentMethods,
                   schema: 'ERP'
                 };
              }
@@ -190,6 +183,7 @@ export const authOptions = {
         token.ruc = user.ruc;
         token.schema = user.schema;
         token.companyName = user.companyName;
+        token.paymentMethods = user.paymentMethods;
       }
       return token;
     },
@@ -204,6 +198,7 @@ export const authOptions = {
         session.user.sedeName = token.sedeName;
         session.user.ruc = token.ruc;
         session.user.schema = token.schema;
+        session.user.paymentMethods = token.paymentMethods;
       }
       return session;
     }

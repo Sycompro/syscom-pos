@@ -1,0 +1,114 @@
+const fs = require('fs');
+const path = require('path');
+
+const schemaContent = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Mst01fac {
+  cdocu    String   @db.Char(2)
+  ndocu    String   @id @db.Char(12)
+  fecha    String   @db.VarChar(10)
+  fven     String   @db.VarChar(10)
+  codcli   String   @db.Char(6)
+  nomcli   String   @db.Char(60)
+  ruccli   String   @db.Char(11)
+  totn     Decimal  @db.Decimal(18, 4)
+  toti     Decimal  @db.Decimal(18, 4)
+  tota     Decimal  @db.Decimal(18, 4)
+  mone     String   @db.Char(1)
+  tcam     Decimal  @db.Decimal(18, 4)
+  codpto   String   @db.Char(2)
+  CodAlm   String   @db.Char(2)
+  idapecaj Int
+  selpago  Int
+  codfdp   String   @db.Char(2)
+  codtar   String   @db.Char(2)
+  compro   String   @db.Char(10)
+  codusu   String   @db.Char(3)
+  flag     String   @db.Char(1)
+  tfact    String   @db.Char(1)
+  Codcdv   String   @db.Char(2)
+  codvta   String   @db.Char(2)
+  codven   String   @db.Char(5)
+  codsub   String   @db.Char(2)
+
+  @@map("mst01fac")
+}
+
+model Dtl01fac {
+  cdocu    String   @db.Char(2)
+  ndocu    String   @db.Char(12)
+  item     Int
+  codart   String   @db.VarChar(20)
+  descr    String   @db.VarChar(100)
+  cant     Decimal  @db.Decimal(18, 4)
+  precio   Decimal  @db.Decimal(18, 4)
+  tota     Decimal  @db.Decimal(18, 4)
+  totn     Decimal  @db.Decimal(18, 4)
+  CodAlm   String   @db.Char(2)
+  fcreg    DateTime @default(now())
+  flag     String   @db.Char(1)
+  dcto     Decimal  @db.Decimal(18, 4)
+  dscto    Decimal  @db.Decimal(18, 4)
+
+  @@id([ndocu, item])
+  @@map("dtl01fac")
+}
+
+model Mst01cob {
+  cdocu    String   @db.Char(2)
+  ndocu    String   @id @db.Char(12)
+  crefe    String   @db.Char(2)
+  nrefe    String   @db.Char(12)
+  fecha    String   @db.VarChar(10)
+  tmov     String   @db.Char(1)
+  glosa    String   @db.Char(60)
+  codcli   String   @db.Char(6)
+  nomcli   String   @db.Char(60)
+  monto    Decimal  @db.Decimal(18, 4)
+  mone     String   @db.Char(1)
+  tcam     Decimal  @db.Decimal(18, 4)
+  flag     String   @db.Char(1)
+  codven   String   @db.Char(5)
+  codpto   String   @db.Char(2)
+  idapecaj Int
+  cpago    String   @db.Char(1)
+  selpago  Int
+  fecreg   DateTime @default(now())
+
+  @@map("mst01cob")
+}
+
+model Dtl01cob {
+  cdocu    String   @db.Char(2)
+  ndocu    String   @db.Char(12)
+  item     Int      @default(1)
+  crefe    String   @db.Char(2)
+  nrefe    String   @db.Char(12)
+  monto    Decimal  @db.Decimal(18, 4)
+  cpago    String   @db.Char(1)
+  codbco   String   @db.Char(2)
+  mone     String   @db.Char(1)
+  tcam     Decimal  @db.Decimal(18, 4)
+  codven   String   @db.Char(5)
+  valori   Decimal  @db.Decimal(18, 4)
+  monori   String   @db.Char(1)
+  mtopad   Decimal  @db.Decimal(18, 4)
+  mtopas   Decimal  @db.Decimal(18, 4)
+  codn     String   @db.Char(1)
+  impdonac Decimal  @db.Decimal(18, 4)
+
+  @@id([ndocu, item])
+  @@map("dtl01cob")
+}
+`;
+
+fs.writeFileSync(path.join(process.cwd(), 'schema.prisma'), schemaContent);
+console.log('schema.prisma generado exitosamente');

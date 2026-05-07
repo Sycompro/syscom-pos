@@ -1,17 +1,47 @@
-'use client';
-import { X, Banknote, Save, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { X, Banknote, Save, Loader2, User, Search } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, codpto }) {
     const [concepto, setConcepto] = useState('');
     const [monto, setMonto] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isAdelanto, setIsAdelanto] = useState(false);
+    
+    // Estados para adelanto de sueldo
+    const [empSearch, setEmpSearch] = useState('');
+    const [employees, setEmployees] = useState([]);
+    const [selectedEmp, setSelectedEmp] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
+
+    useEffect(() => {
+        if (isAdelanto && empSearch.length > 2) {
+            const delayDebounce = setTimeout(async () => {
+                setIsSearching(true);
+                try {
+                    const res = await fetch(`/api/employees?q=${empSearch}`);
+                    const data = await res.json();
+                    setEmployees(Array.isArray(data) ? data : []);
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setIsSearching(false);
+                }
+            }, 300);
+            return () => clearTimeout(delayDebounce);
+        } else {
+            setEmployees([]);
+        }
+    }, [empSearch, isAdelanto]);
 
     if (!isOpen) return null;
 
     const handleSave = async () => {
-        if (!concepto || !monto || parseFloat(monto) <= 0) {
-            return alert('Ingrese un concepto y monto válido');
+        const finalConcepto = isAdelanto ? `ADELANTO DE SUELDO - ${selectedEmp?.nombres} ${selectedEmp?.ap_paterno}` : concepto;
+        const finalMonto = parseFloat(monto);
+
+        if (isAdelanto && !selectedEmp) return alert('Debe seleccionar un empleado');
+        if (!finalConcepto || !finalMonto || finalMonto <= 0) {
+            return alert('Ingrese datos válidos');
         }
 
         setLoading(true);
@@ -20,17 +50,18 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    concepto, 
-                    monto: parseFloat(monto), 
+                    concepto: finalConcepto, 
+                    monto: finalMonto, 
                     idapecaj,
-                    codpto 
+                    codpto,
+                    codmotivo: isAdelanto ? '07' : '06',
+                    nroctacte: selectedEmp?.codigo_emp || ''
                 })
             });
             const data = await res.json();
             if (data.success) {
-                alert('Gasto registrado correctamente');
-                setConcepto('');
-                setMonto('');
+                alert('Registro guardado correctamente');
+                resetForm();
                 onSaved();
                 onClose();
             } else {
@@ -43,28 +74,85 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
         }
     };
 
+    const resetForm = () => {
+        setConcepto('');
+        setMonto('');
+        setIsAdelanto(false);
+        setEmpSearch('');
+        setSelectedEmp(null);
+    };
+
     return (
         <div style={overlayStyle}>
             <div style={modalStyle}>
                 <div style={headerStyle}>
                     <div style={titleGroupStyle}>
                         <div style={iconBoxStyle}><Banknote size={20} /></div>
-                        <h2 style={titleStyle}>Registrar Gasto de Caja</h2>
+                        <h2 style={titleStyle}>Movimiento de Caja</h2>
                     </div>
                     <button onClick={onClose} style={closeBtnStyle}><X size={20} /></button>
                 </div>
 
                 <div style={bodyStyle}>
-                    <div style={inputGroupStyle}>
-                        <label style={labelStyle}>Concepto / Descripción</label>
-                        <input 
-                            type="text" 
-                            placeholder="Ej: Pago de seguridad, Limpieza..." 
-                            value={concepto}
-                            onChange={e => setConcepto(e.target.value)}
-                            style={inputStyle}
-                        />
+                    {/* Toggle Tipo de Gasto */}
+                    <div style={toggleContainerStyle}>
+                        <button 
+                            onClick={() => setIsAdelanto(false)}
+                            style={{ ...toggleBtnStyle, background: !isAdelanto ? '#3b82f6' : 'transparent', color: !isAdelanto ? '#fff' : '#64748b' }}
+                        >
+                            Gasto General
+                        </button>
+                        <button 
+                            onClick={() => setIsAdelanto(true)}
+                            style={{ ...toggleBtnStyle, background: isAdelanto ? '#3b82f6' : 'transparent', color: isAdelanto ? '#fff' : '#64748b' }}
+                        >
+                            Adelanto Sueldo
+                        </button>
                     </div>
+
+                    {!isAdelanto ? (
+                        <div style={inputGroupStyle}>
+                            <label style={labelStyle}>Concepto / Descripción</label>
+                            <input 
+                                type="text" 
+                                placeholder="Ej: Pago de seguridad, Limpieza..." 
+                                value={concepto}
+                                onChange={e => setConcepto(e.target.value)}
+                                style={inputStyle}
+                            />
+                        </div>
+                    ) : (
+                        <div style={inputGroupStyle}>
+                            <label style={labelStyle}>Buscar Empleado</label>
+                            <div style={{ position: 'relative' }}>
+                                <Search size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: '#94a3b8' }} />
+                                <input 
+                                    type="text" 
+                                    placeholder="Nombre o DNI..." 
+                                    value={selectedEmp ? `${selectedEmp.nombres} ${selectedEmp.ap_paterno}` : empSearch}
+                                    onChange={e => { setEmpSearch(e.target.value); setSelectedEmp(null); }}
+                                    style={{ ...inputStyle, paddingLeft: '36px' }}
+                                />
+                                {isSearching && <Loader2 size={16} className="animate-spin" style={{ position: 'absolute', right: '12px', top: '14px', color: '#3b82f6' }} />}
+                                
+                                {employees.length > 0 && !selectedEmp && (
+                                    <div style={resultsContainerStyle}>
+                                        {employees.map(emp => (
+                                            <div 
+                                                key={emp.codigo_emp} 
+                                                onClick={() => setSelectedEmp(emp)}
+                                                style={resultItemStyle}
+                                            >
+                                                <User size={14} />
+                                                <span>{emp.nombres} {emp.ap_paterno}</span>
+                                                <small style={{ color: '#94a3b8' }}>({emp.dni})</small>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     <div style={inputGroupStyle}>
                         <label style={labelStyle}>Monto (S/)</label>
@@ -73,7 +161,7 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
                             placeholder="0.00" 
                             value={monto}
                             onChange={e => setMonto(e.target.value)}
-                            style={{ ...inputStyle, fontSize: '20px', fontWeight: 'bold' }}
+                            style={{ ...inputStyle, fontSize: '24px', fontWeight: 900, color: '#1e293b', textAlign: 'center' }}
                         />
                     </div>
 
@@ -82,10 +170,10 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
                         disabled={loading}
                         style={{
                             ...saveBtnStyle,
-                            background: loading ? '#e2e8f0' : '#0f172a'
+                            background: loading ? '#e2e8f0' : (isAdelanto ? '#10b981' : '#0f172a')
                         }}
                     >
-                        {loading ? <Loader2 className="animate-spin" /> : <><Save size={18} /> Guardar Gasto</>}
+                        {loading ? <Loader2 className="animate-spin" /> : <><Save size={18} /> {isAdelanto ? 'Registrar Adelanto' : 'Guardar Gasto'}</>}
                     </button>
                 </div>
             </div>
@@ -94,14 +182,18 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
 }
 
 const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' };
-const modalStyle = { background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '400px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' };
+const modalStyle = { background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '420px', overflow: 'visible', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' };
 const headerStyle = { padding: '24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
 const titleGroupStyle = { display: 'flex', alignItems: 'center', gap: '12px' };
 const iconBoxStyle = { width: '40px', height: '40px', background: '#f8fafc', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' };
 const titleStyle = { fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: 0 };
 const closeBtnStyle = { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' };
 const bodyStyle = { padding: '24px' };
-const inputGroupStyle = { marginBottom: '20px' };
-const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 700, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' };
-const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '14px', transition: 'all 0.2s' };
-const saveBtnStyle = { width: '100%', color: '#fff', border: 'none', borderRadius: '14px', padding: '16px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' };
+const inputGroupStyle = { marginBottom: '20px', position: 'relative' };
+const labelStyle = { display: 'block', fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' };
+const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: '2px solid #f1f5f9', outline: 'none', fontSize: '14px', transition: 'all 0.2s' };
+const saveBtnStyle = { width: '100%', color: '#fff', border: 'none', borderRadius: '16px', padding: '18px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' };
+const toggleContainerStyle = { display: 'flex', background: '#f1f5f9', borderRadius: '12px', padding: '4px', marginBottom: '20px' };
+const toggleBtnStyle = { flex: 1, border: 'none', padding: '10px', borderRadius: '10px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' };
+const resultsContainerStyle = { position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', zIndex: 10, marginTop: '4px', maxHeight: '200px', overflowY: 'auto' };
+const resultItemStyle = { padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer', borderBottom: '1px solid #f8fafc', hover: { background: '#f8fafc' } };

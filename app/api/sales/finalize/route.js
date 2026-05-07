@@ -1,285 +1,42 @@
 import { NextResponse } from 'next/server';
-import { getConnection } from '@/lib/db';
-import sql from 'mssql';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getWarehouseForSede, getStockTableName, getStockColumnName, ERP_CONFIG, calculateTaxBreakdown } from '@/lib/erp-utils';
+import { authOptions } from "../../auth/[...nextauth]/route";
+import logger from "@/lib/logger";
+import { saleSchema } from "@/lib/validations/sale";
+import NavaSaleService from "@/services/nava-sale-service";
 
-function incrementCorrelative(current) {
-    if (!current || !current.includes('-')) return current;
-    const [prefix, number] = current.split('-');
-    // Asegurar que el total sea 12: longitud_correlativo = 12 - longitud_prefijo - 1 (del guion)
-    const targetLength = 12 - prefix.length - 1;
-    const nextNum = (parseInt(number, 10) + 1).toString().padStart(targetLength, '0');
-    return `${prefix}-${nextNum}`;
-}
-
-export async function POST(request) {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-
-    const body = await request.json();
-    const {
-        docType,
-        codcli,
-        items,
-        idApeCaj,
-        currency = 'S',
-        exchangeRate = 1
-    } = body;
-
-    const pool = await getConnection(session.user.company);
-    
-    // 1. RESOLUCIÓN DE ALMACÉN CENTRALIZADA
-    const sedeCode = session.user.sedeId || ERP_CONFIG.DEFAULT_SEDE;
-    const warehouse = await getWarehouseForSede(pool, sedeCode);
-    const stockField = getStockColumnName(warehouse);
-    const prdTable = getStockTableName(warehouse);
-
-    const transaction = new sql.Transaction(pool);
-
+export async function POST(req) {
     try {
-        await transaction.begin();
-
-        // 2. CORRELATIVOS
-        const corRes = await transaction.request()
-            .input('cdocu', sql.Char(2), docType)
-            .input('codpto', sql.Char(6), sedeCode)
-            .query("SELECT nroini FROM tbl01cor WHERE cdocu = @cdocu AND codpto = @codpto");
-
-        if (corRes.recordset.length === 0) {
-            throw new Error(`Correlativo no encontrado para cdocu:${docType} codpto:${sedeCode}`);
-        }
-
-        const ndocu = corRes.recordset[0].nroini.trim();
-        const nextNdocu = incrementCorrelative(ndocu);
-
-        await transaction.request()
-            .input('nextNdocu', sql.Char(12), nextNdocu)
-            .input('cdocu', sql.Char(2), docType)
-            .input('codpto', sql.Char(6), sedeCode)
-            .query("UPDATE tbl01cor SET nroini = @nextNdocu WHERE cdocu = @cdocu AND codpto = @codpto");
-
-        // 3. CÁLCULO DE TOTALES CENTRALIZADO
-        const totalVenta = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-        const isNota = (docType === '65');
-        const breakdown = calculateTaxBreakdown(totalVenta, !isNota);
+        const session = await getServerSession(authOptions);
         
-        const tfactValue = (docType === '01') ? '1' : (docType === '03' ? '2' : '5');
-        const fechaStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-
-        // 4. LÓGICA DE PAGOS
-        const payments = body.payments || [];
-        const isMixed = payments.length > 1;
-        const isSingleNonCash = payments.length === 1 && payments[0].type !== 1;
-        
-        let globalSelPago = 1;
-        let globalCodFdp = '01';
-        let globalCodTar = '  ';
-        let globalCompro = '';
-
-        if (isMixed) {
-            globalSelPago = 4;
-            globalCodFdp = '01'; // Default to cash for header
-            globalCodTar = '  ';
-        } else if (payments.length === 1) {
-            const p = payments[0];
-            globalSelPago = p.type;
-            const pid = (p.id || '').toUpperCase();
-            
-            // Lógica Dinámica: El ID (pid) ya viene del ERP (disponible en disponibleMethods)
-            if (pid === 'EF' || p.type === 1) {
-                globalCodFdp = '01'; // EFECTIVO
-                globalCodTar = '  ';
-            } else {
-                // Si no es efectivo, es Tarjeta o Banco
-                globalCodTar = pid.substring(0, 2);
-                
-                // Clasificación inteligente del grupo de pago (codfdp)
-                const name = (p.name || '').toUpperCase();
-                if (name.includes('TRANS') || name.includes('BANCO')) {
-                    globalCodFdp = '04'; // BANCO
-                } else {
-                    globalCodFdp = '03'; // TARJETA
-                }
-            }
-        }
-        // 5. OBTENER NROPLA DE LA SESIÓN
-        let nropla = '';
-        if (idApeCaj) {
-            const apeRes = await transaction.request()
-                .input('id', sql.Int, idApeCaj)
-                .query('SELECT nropla FROM dtl_restpos_apecaj WHERE idapecaj = @id');
-            nropla = apeRes.recordset[0]?.nropla || '';
+        if (!session?.user?.company) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
-        const userCodeFinal = (session.user.id?.toString().trim() || 'POS').substring(0, 3);
-        const codSubValue = (globalSelPago === 1) ? '01' : '03'; 
-        const finalCompro = `${codSubValue}/${nextNdocu.split('-')[1]?.substring(0, 6) || '000000'}`;
+        const body = await req.json();
+        logger.info(`[API/Finalize] Recibida solicitud de venta para ${session.user.company}`, { body });
 
-        // 6. INSERCIÓN CABECERA (mst01fac)
-        await transaction.request()
-            .input('fecha', sql.VarChar(10), fechaStr)
-            .input('fven', sql.VarChar(10), fechaStr)
-            .input('cdocu', sql.Char(2), docType)
-            .input('ndocu', sql.Char(12), nextNdocu)
-            .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
-            .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
-            .input('ruccli', sql.Char(11), (body.ruccli || '').substring(0, 11))
-            .input('totn', sql.Decimal(18, 4), breakdown.total)
-            .input('toti', sql.Decimal(18, 4), breakdown.tax)
-            .input('tota', sql.Decimal(18, 4), breakdown.subtotal)
-            .input('mone', sql.Char(1), currency || 'S')
-            .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
-            .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
-            .input('codalm', sql.Char(2), (warehouse || '01').substring(0, 2))
-            .input('idapecaj', sql.Int, idApeCaj)
-            .input('selpago', sql.Int, globalSelPago)
-            .input('codfdp', sql.Char(2), globalCodFdp)
-            .input('codtar', sql.Char(2), globalCodTar)
-            .input('compro', sql.Char(10), finalCompro.substring(0, 10))
-            .input('codusu', sql.Char(3), userCodeFinal)
-            .input('flag', sql.Char(1), '0')
-            .input('tfact', sql.Char(1), tfactValue)
-            .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
-            .input('codsub', sql.Char(2), codSubValue)
-            .query(`
-                INSERT INTO mst01fac (fecha, fven, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub)
-                VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, '01', '01', @codven, @codsub)
-            `);
-
-        // 7. COBRANZA (mst01cob / dtl01cob) - OBLIGATORIO PARA LIQUIDACIÓN
-        const paymentList = payments.length > 0 ? payments : [{ id: 'EF', amount: breakdown.total, type: 1 }];
-        
-        // A. CABECERA DE COBRANZA
-        await transaction.request()
-            .input('cdocu', sql.Char(2), docType)
-            .input('ndocu', sql.Char(12), nextNdocu)
-            .input('fecha', sql.VarChar(10), fechaStr)
-            .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
-            .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
-            .input('monto', sql.Decimal(18, 4), breakdown.total)
-            .input('nplan', sql.Char(12), nropla.substring(0, 12))
-            .input('idapecaj', sql.Int, idApeCaj)
-            .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
-            .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
-            .query(`
-                INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, nplan, codpto, idapecaj, selpago, fecreg)
-                VALUES (@cdocu, @ndocu, @cdocu, @ndocu, @fecha, 'I', 'VENTA POS WEB', @codcli, @nomcli, @monto, 'S', 1, '0', @codven, @nplan, @codpto, @idapecaj, 1, GETDATE())
-            `);
-
-        // B. DETALLE DE COBRANZA
-        for (let i = 0; i < paymentList.length; i++) {
-            const p = paymentList[i];
-            const cpago = (p.type === 1 || p.id === 'EF') ? 'E' : (p.id?.includes('BANCO') || p.id?.includes('TRANS') ? 'B' : 'T');
-            
-            await transaction.request()
-                .input('cdocu', sql.Char(2), docType)
-                .input('ndocu', sql.Char(12), nextNdocu)
-                .input('monto', sql.Decimal(18, 4), p.amount)
-                .input('cpago', sql.Char(1), cpago)
-                .input('npago', sql.Char(12), (p.voucher || '').substring(0, 12))
-                .input('nplan', sql.Char(12), nropla.substring(0, 12))
-                .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
-                .input('item', sql.Int, i + 1)
-                .query(`
-                    INSERT INTO dtl01cob (cdocu, ndocu, monto, cpago, npago, mone, tcam, nplan, codven, valori, monori, mtopad, mtopas, codn, impdonac)
-                    VALUES (@cdocu, @ndocu, @monto, @cpago, @npago, 'S', 1, @nplan, @codven, 0, 'S', 0, 0, ' ', 0)
-                `);
-
-            // También en dtl_restpos_cobmixta para el visor de tickets del POS
-            await transaction.request()
-                .input('cdocu', sql.Char(2), docType)
-                .input('ndocu', sql.Char(12), nextNdocu)
-                .input('codtar', sql.Char(2), (p.id === 'EF' ? 'NS' : p.id).substring(0, 2))
-                .input('amount', sql.Decimal(18, 4), p.amount)
-                .input('selpago', sql.Int, (p.type === 1 || p.id === 'EF' ? 1 : 3))
-                .query(`
-                    INSERT INTO dtl_restpos_cobmixta (cdocu, ndocu, codtar, recib, totn, selpago, impper, cajrecib, monrecib, cajvuelto, monvuelto)
-                    VALUES (@cdocu, @ndocu, @codtar, @amount, @amount, @selpago, 0, @amount, 'S', 0, 'S')
-                `);
+        // 1. Validar datos con Zod
+        const validation = saleSchema.safeParse(body);
+        if (!validation.success) {
+            const errors = validation.error.format();
+            logger.warn(`[API/Finalize] Validación fallida:`, errors);
+            return NextResponse.json({ 
+                error: 'Datos de venta inválidos', 
+                details: errors 
+            }, { status: 400 });
         }
 
-        // 7. DETALLE Y STOCK DINÁMICO
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const itemBreakdown = calculateTaxBreakdown(item.price * item.quantity, !isNota);
-            const itemPriceNeto = itemBreakdown.subtotal / item.quantity;
+        // 2. Ejecutar servicio de venta
+        const result = await NavaSaleService.finalize(validation.data, session.user.company);
 
-            await transaction.request()
-                .input('fecha', sql.VarChar(10), fechaStr)
-                .input('cdocu', sql.Char(2), docType)
-                .input('ndocu', sql.Char(12), nextNdocu)
-                .input('tfact', sql.Char(1), tfactValue)
-                .input('item', sql.Decimal(18, 4), (i + 1))
-                .input('codi', sql.Char(11), (item.id || '').substring(0, 11))
-                .input('nomb', sql.Char(60), (item.name || '').substring(0, 60))
-                .input('cant', sql.Decimal(18, 6), item.quantity)
-                .input('preu', sql.Decimal(18, 6), itemPriceNeto)
-                .input('tota', sql.Decimal(18, 4), itemBreakdown.subtotal)
-                .input('toti', sql.Decimal(18, 4), itemBreakdown.tax)
-                .input('codalm', sql.Char(2), (warehouse || '01').substring(0, 2))
-                .query(`
-                    INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, nomb, cant, preu, tota, toti, mone, tcam, codalm, flag, codven)
-                    VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @nomb, @cant, @preu, @tota, @toti, 'S', 1, @codalm, '0', 'V0001')
-                `);
-
-            await transaction.request()
-                .input('codi', sql.Char(11), item.id)
-                .input('cant', sql.Float, item.quantity)
-                .query(`
-                    DECLARE @table_exists INT;
-                    SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
-                    IF @table_exists > 0
-                    BEGIN
-                        DECLARE @sql NVARCHAR(MAX) = N'UPDATE ${prdTable} SET stoc = stoc - @cant WHERE codi = @codi';
-                        EXEC sp_executesql @sql, N'@cant FLOAT, @codi CHAR(11)', @cant, @codi;
-                    END
-                    UPDATE prd0101 SET ${stockField} = ${stockField} - @cant, stoc = stoc - @cant WHERE codi = @codi
-                `);
-
-            const kardexTable = `kdd01${warehouse.padStart(2, '0')}`;
-            try {
-                await transaction.request()
-                    .input('fecha', sql.VarChar(10), fechaStr)
-                    .input('cdocu', sql.Char(2), docType)
-                    .input('ndocu', sql.Char(12), nextNdocu)
-                    .input('codi', sql.Char(11), (item.id || '').substring(0, 11))
-                    .input('cant', sql.Decimal(18, 6), item.quantity)
-                    .input('preu', sql.Decimal(18, 6), itemPriceNeto)
-                    .input('tota', sql.Decimal(18, 4), itemBreakdown.subtotal)
-                    .query(`
-                        INSERT INTO ${kardexTable} (fecha, cdocu, ndocu, codn, nomb, tmov, codi, cant, preu, tota, tcam, mone, codven, CodPto, aigv)
-                        VALUES (@fecha, @cdocu, @ndocu, '00', 'CLIENTE', 'S', @codi, @cant, @preu, @tota, 1, 'S', 'V0001', '01', 'S')
-                    `);
-            } catch (e) {}
-        }
-
-        // 8. CUENTAS POR COBRAR (mst01ccc)
-        await transaction.request()
-            .input('fecha', sql.VarChar(10), fechaStr)
-            .input('cdocu', sql.Char(2), docType)
-            .input('ndocu', sql.Char(12), nextNdocu)
-            .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
-            .input('monto', sql.Decimal(18, 4), breakdown.total)
-            .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
-            .query(`
-                INSERT INTO mst01ccc (fecha, cdocu, ndocu, crefe, nrefe, codcli, nomcli, ruccli, codcdv, monto, saldo, fven, mone, tcam, flag, flagi, codven, codpto, codsub, compro, codscc)
-                VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, 'CLIENTE', '', '01', @monto, @monto, @fecha, 'S', @tcam, '0', '0', 'V0001', '01', '01', '', '00')
-            `);
-
-        await transaction.commit();
-        return NextResponse.json({ 
-            success: true, 
-            ndocu: nextNdocu,
-            total: breakdown.total,
-            base: breakdown.subtotal,
-            igv: breakdown.tax
-        });
+        return NextResponse.json(result);
 
     } catch (err) {
-        if (transaction) await transaction.rollback();
-        console.error('[Finalize Error]:', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        logger.error(`[API/Finalize] Error crítico: ${err.message}`, { stack: err.stack });
+        return NextResponse.json({ 
+            error: 'Error interno al procesar la venta',
+            details: err.message 
+        }, { status: 500 });
     }
 }

@@ -6,6 +6,7 @@ export default function PaymentSection({ total, availableMethods, payments, setP
     const [showMixed, setShowMixed] = useState(false);
     const [tempAmount, setTempAmount] = useState('');
     const [selectedMethod, setSelectedMethod] = useState(null);
+    const [cashReceived, setCashReceived] = useState('');
 
     const subtotal = total / 1.18;
     const igv = total - subtotal;
@@ -13,6 +14,10 @@ export default function PaymentSection({ total, availableMethods, payments, setP
 
     const paidAmount = payments.reduce((acc, p) => acc + p.amount, 0);
     const remaining = total - paidAmount;
+
+    // Cálculo del vuelto (solo si el pago es EFECTIVO y el monto recibido es mayor)
+    const isCashOnly = !showMixed && payments.length === 1 && payments[0].id === 'EF';
+    const change = isCashOnly && parseFloat(cashReceived) > total ? parseFloat(cashReceived) - total : 0;
 
     const addPayment = () => {
         const amt = parseFloat(tempAmount) || remaining;
@@ -35,7 +40,6 @@ export default function PaymentSection({ total, availableMethods, payments, setP
         setPayments(payments.filter((_, i) => i !== index));
     };
 
-    // Flujo simple (compatibilidad con lógica anterior)
     const handleSimpleMethod = (m) => {
         setPayments([{
             id: m.id,
@@ -43,6 +47,14 @@ export default function PaymentSection({ total, availableMethods, payments, setP
             name: m.name,
             amount: total
         }]);
+        if (m.id !== 'EF') setCashReceived('');
+    };
+
+    const handleFinalizeWithChange = () => {
+        onFinalize({
+            cashReceived: parseFloat(cashReceived) || total,
+            changeGiven: change
+        });
     };
 
     return (
@@ -51,7 +63,7 @@ export default function PaymentSection({ total, availableMethods, payments, setP
             <div style={headerActionStyle}>
                 <p style={labelStyle}>Método de pago</p>
                 <button 
-                    onClick={() => { setShowMixed(!showMixed); setPayments([]); }}
+                    onClick={() => { setShowMixed(!showMixed); setPayments([]); setCashReceived(''); }}
                     style={{ ...modeBtnStyle, color: showMixed ? '#3b82f6' : '#94a3b8' }}
                 >
                     <Split size={14} /> {showMixed ? 'Volver a Simple' : 'Pago Dividido'}
@@ -80,6 +92,29 @@ export default function PaymentSection({ total, availableMethods, payments, setP
                     );
                 })}
             </div>
+
+            {/* Input de Efectivo Recibido (Modo Simple) */}
+            {isCashOnly && (
+                <div style={mixedPanelStyle}>
+                    <p style={{ ...labelStyle, marginBottom: '8px', color: '#64748b' }}>Efectivo Recibido</p>
+                    <div style={inputGroupStyle}>
+                        <Banknote size={18} style={{ color: '#10b981', alignSelf: 'center' }} />
+                        <input 
+                            type="number" 
+                            placeholder={`Monto (ej. ${total + 10})`}
+                            value={cashReceived}
+                            onChange={e => setCashReceived(e.target.value)}
+                            style={{ ...inputStyle, fontSize: '18px', fontWeight: 800, color: '#10b981' }}
+                        />
+                    </div>
+                    {change > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', padding: '8px', background: '#ecfdf5', borderRadius: '8px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857' }}>Vuelto a entregar:</span>
+                            <span style={{ fontSize: '14px', fontWeight: 900, color: '#047857' }}>S/ {change.toFixed(2)}</span>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Panel de Cobro Mixto */}
             {showMixed && (
@@ -136,7 +171,7 @@ export default function PaymentSection({ total, availableMethods, payments, setP
             {/* Botón Finalizar */}
             <button
                 disabled={cartEmpty || loading || (showMixed && Math.abs(remaining) > 0.01) || (!showMixed && payments.length === 0)}
-                onClick={onFinalize}
+                onClick={handleFinalizeWithChange}
                 style={{
                     ...finalizeBtnStyle,
                     background: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? '#e2e8f0' : '#3b82f6',
@@ -144,7 +179,7 @@ export default function PaymentSection({ total, availableMethods, payments, setP
                     cursor: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? 'not-allowed' : 'pointer',
                 }}
             >
-                {loading ? 'Procesando...' : <>Finalizar Venta <ArrowRight size={18} /></>}
+                {loading ? <Loader2 className="animate-spin" size={20} /> : <>Finalizar Venta <ArrowRight size={18} /></>}
             </button>
         </div>
     );

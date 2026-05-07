@@ -246,10 +246,11 @@ export default function POSPage() {
         setShowCartModal(true);
     };
 
-    const handleFinalizeSale = async () => {
+    const handleFinalizeSale = async (paymentInfo = {}) => {
         if (!cart.length || !idApeCaj) return;
         setIsFinalizing(true);
         try {
+            const { cashReceived, changeGiven } = paymentInfo;
             const res = await fetch('/api/sales/finalize', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -269,7 +270,9 @@ export default function POSPage() {
                     }],
                     warehouse,
                     codven: selectedSalesperson,
-                    exchangeRate
+                    exchangeRate,
+                    cashReceived: cashReceived || total,
+                    changeGiven: changeGiven || 0
                 })
             });
             const result = await res.json();

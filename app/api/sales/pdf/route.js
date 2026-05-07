@@ -64,20 +64,35 @@ export async function GET(request) {
         if (!headerRes.recordset[0]) return new NextResponse('Not found', { status: 404 });
         const sale = headerRes.recordset[0];
 
-        // Obtener info de la tienda/sucursal
+        // 1.5 Obtener Info Legal de la Empresa desde la Maestra (BdNavaSys)
+        let companyInfo = { nomcia: 'MI EMPRESA', ruccia: '', dircia: '' };
+        try {
+            const masterPool = await getConnection('BdNavaSys');
+            const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
+            const sysRes = await masterPool.request()
+                .input('code', sql.Char(3), dbCode)
+                .query("SELECT nomcia, ruccia, dircia FROM sysnavacia WHERE codcia LIKE @code + '%'");
+            if (sysRes.recordset.length > 0) companyInfo = sysRes.recordset[0];
+        } catch (e) {
+            console.warn("[PDF] Error consultando BdNavaSys:", e.message);
+        }
+
         const storeRes = await pool.request()
             .input('codpto', sql.Char(6), sale.codpto)
             .query(`
-                SELECT TOP 1 t.nomtie, t.dirtie, t.ructie 
+                SELECT TOP 1 t.nomtie, t.dirtie
                 FROM tbl_tienda t
                 JOIN tbl01pto p ON t.codtie = p.codtie
                 WHERE p.codpto = @codpto
             `);
         
-        const storeInfo = storeRes.recordset[0] || {
-            nomtie: '',
-            ructie: '',
-            dirtie: ''
+        const storeInfo = storeRes.recordset[0] || {};
+        
+        // Priorizar datos de la maestra para la cabecera legal
+        const headerInfo = {
+            name: companyInfo.nomcia?.trim() || storeInfo.nomtie?.trim() || 'EMPRESA',
+            ruc: companyInfo.ruccia?.trim() || '',
+            address: storeInfo.dirtie?.trim() || companyInfo.dircia?.trim() || ''
         };
 
         const detailRes = await pool.request()
@@ -88,7 +103,7 @@ export async function GET(request) {
         const items = detailRes.recordset;
 
         // 2. Generar QR
-        const rucEmisor = storeInfo.ructie.trim();
+        const rucEmisor = headerInfo.ruc;
         const [serie, correlativo] = sale.ndocu.split('-');
         const tipoDocCli = (sale.ruccli?.length === 11) ? "6" : "1";
         const qrString = `${rucEmisor}|${sale.cdocu}|${serie}|${correlativo}|${Number(sale.igv).toFixed(2)}|${Number(sale.total).toFixed(2)}|${new Date(sale.fecha).toISOString().split('T')[0]}|${tipoDocCli}|${sale.ruccli || '00000000'}|${sale.efacthash || ''}|`;
@@ -101,12 +116,12 @@ export async function GET(request) {
         // --- CABECERA DINÁMICA ---
         doc.setFontSize(9);
         doc.setFont(undefined, 'bold');
-        doc.text(storeInfo.nomtie.trim(), 40, 10, { align: 'center' });
+        doc.text(headerInfo.name, 40, 10, { align: 'center' });
         doc.setFontSize(8);
         doc.setFont(undefined, 'normal');
-        doc.text(`R.U.C.: ${storeInfo.ructie.trim()}`, 40, 15, { align: 'center' });
+        doc.text(`R.U.C.: ${headerInfo.ruc}`, 40, 15, { align: 'center' });
         
-        const splitAddr = doc.splitTextToSize(storeInfo.dirtie.trim(), 70);
+        const splitAddr = doc.splitTextToSize(headerInfo.address, 70);
         doc.text(splitAddr, 40, 19, { align: 'center' });
         
         let currentY = 19 + (splitAddr.length * 4);

@@ -18,16 +18,24 @@ export async function GET() {
         // 1. Intentar con Esquema ERP (tbl01tar)
         try {
             const result = await pool.request()
-                .query("SELECT codtar as id, nomtar as name FROM tbl01tar WHERE flag = 1");
+                .query("SELECT codtar as id, nomtar as name FROM tbl01tar"); // Quitamos flag=1 para ver todos
             
             if (result.recordset.length > 0) {
+                console.log(`[API/PaymentMethods] Se encontraron ${result.recordset.length} métodos en tbl01tar`);
                 methods = [
                     ...methods,
-                    ...result.recordset.map(r => ({ 
-                        id: (r.id || '').toString().trim(), 
-                        name: (r.name || '').toString().trim(), 
-                        type: 3 
-                    }))
+                    ...result.recordset.map(r => {
+                        const name = (r.name || '').toString().trim().toUpperCase();
+                        let type = 3; // Smartphone por defecto (Yape/Plin)
+                        if (name.includes('TARJETA') || name.includes('VISA') || name.includes('MASTER')) type = 2;
+                        if (name.includes('EFECTIVO')) type = 1;
+
+                        return { 
+                            id: (r.id || '').toString().trim(), 
+                            name: (r.name || '').toString().trim(), 
+                            type: type 
+                        };
+                    })
                 ];
                 return NextResponse.json(methods);
             }

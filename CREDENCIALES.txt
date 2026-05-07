@@ -9,12 +9,7 @@ psventa.exe
 
 
 
-GIM.BRA S.A.C.
-R.U.C.: 20603623747
-AV. JOSE BALTA NRO. 1362 LAMBAYEQUE -
-CHICLAYO - CHICLAYO
-
-
+Memoria de la INVESTIGACION: erp-pos-sync-rules
 
 Punto 03
 
