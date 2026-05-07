@@ -40,13 +40,17 @@ class NavaSaleService {
 
       await transaction.begin();
 
-      // 0. Obtener Número de Planilla desde la apertura de caja
+      // 0. Obtener Número de Planilla y Código de Caja dinámico
       const requestApe = new sql.Request(transaction);
       const resApe = await requestApe
         .input('idapecaj', sql.Int, idApeCaj)
-        .query(`SELECT nropla FROM dtl_restpos_apecaj WHERE idapecaj = @idapecaj`);
+        .query(`
+          SELECT a.nropla, (SELECT TOP 1 codcaj FROM tbl_cajamayor WHERE codpto = a.codpto OR codcaj = '01') as codcaj_sugerido
+          FROM dtl_restpos_apecaj a WHERE a.idapecaj = @idapecaj
+        `);
       
       const nroPlanilla = resApe.recordset[0]?.nropla || '';
+      const codCajaDinamico = resApe.recordset[0]?.codcaj_sugerido || '01';
 
       // A. Gestión de Correlativo
       const requestCor = new sql.Request(transaction);
@@ -149,7 +153,7 @@ class NavaSaleService {
         .input('cpago', (isMixed ? 'M' : ((payments[0].id === 'EF' || payments[0].type === 1) ? 'E' : 'T')).substring(0, 1))
         .input('selpago', sql.Int, globalSelPago)
         .input('nplan', nroPlanilla.substring(0, 12))
-        .input('codcaj', '01')
+        .input('codcaj', codCajaDinamico.substring(0, 2))
         .query(`
           INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, Codpto, idapecaj, cpago, selpago, nplan, codcaj)
           VALUES (@cdocu, @ndocu, @crefe, @nrefe, @fecha, @tmov, @glosa, @codcli, @nomcli, @monto, @mone, @tcam, @flag, @codven, @Codpto, @idapecaj, @cpago, @selpago, @nplan, @codcaj)
