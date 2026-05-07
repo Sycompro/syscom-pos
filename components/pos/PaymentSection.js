@@ -1,5 +1,5 @@
 'use client';
-import { Banknote, CreditCard, Smartphone, ArrowRight, Plus, Trash2, Split } from 'lucide-react';
+import { Banknote, CreditCard, Smartphone, ArrowRight, Plus, Trash2, Split, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function PaymentSection({ total, availableMethods, payments, setPayments, onFinalize, loading, cartEmpty }) {
