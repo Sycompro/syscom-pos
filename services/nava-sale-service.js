@@ -137,9 +137,13 @@ class NavaSaleService {
           .input('flag', ' ')
           .input('fecha', fechaStr.substring(0, 10))
           .input('tfact', (docType === '65' ? 'N' : 'S').substring(0, 1))
+          .input('tcam', sql.Decimal(18, 4), 1.0)
+          .input('mone', 'S')
+          .input('umed', 'UND')
+          .input('aigv', 'S')
           .query(`
-            INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2)
-            VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0)
+            INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2, tcam, mone, umed, aigv)
+            VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0, @tcam, @mone, @umed, @aigv)
           `);
       }
 
