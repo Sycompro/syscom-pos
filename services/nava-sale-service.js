@@ -61,9 +61,12 @@ class NavaSaleService {
 
       if (!resCor.recordset[0]) throw new Error(`Sin correlativo para ${docType}`);
       
-      const series = resCor.recordset[0].nroini.substring(0, 3);
-      const numStr = resCor.recordset[0].nroini.substring(4);
-      const nextNum = (parseInt(numStr) + 1).toString().padStart(8, '0');
+      const currentNroIni = resCor.recordset[0].nroini.trim(); 
+      // Lógica robusta: separar por el primer guión y limpiar la parte numérica
+      const parts = currentNroIni.split('-');
+      const series = parts[0].substring(0, 3);
+      const numPart = (parts.length > 1 ? parts[1] : parts[0]).replace(/[^0-9]/g, '');
+      const nextNum = (parseInt(numPart, 10) + 1).toString().padStart(8, '0');
       const nextNdocu = `${series}-${nextNum}`;
 
       logger.info(`[DEBUG/Truncado] ndocu: ${nextNdocu} (${nextNdocu.length})`);
