@@ -110,9 +110,11 @@ class NavaSaleService {
           .input('totn', sql.Decimal(18, 4), item.price * item.quantity)
           .input('Codalm', sql.Char(2), warehouse.substring(0, 2))
           .input('flag', sql.Char(1), ' ')
+          .input('fecha', sql.VarChar(10), fechaStr)
+          .input('tfact', sql.Char(1), (docType === '65' ? 'N' : 'S'))
           .query(`
-            INSERT INTO dtl01fac (cdocu, ndocu, item, codi, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2)
-            VALUES (@cdocu, @ndocu, @item, @codi, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0)
+            INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2)
+            VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0)
           `);
       }
 
@@ -177,8 +179,14 @@ class NavaSaleService {
       return { success: true, ndocu: nextNdocu, total: breakdown.total };
 
     } catch (err) {
-      if (transaction) await transaction.rollback();
-      logger.error(`[SaleService/MSSQL] Error: ${err.message}`);
+      logger.error(`[SaleService/MSSQL] ERROR ORIGINAL DETECTADO: ${err.message}`);
+      if (transaction) {
+          try {
+              await transaction.rollback();
+          } catch (rollbackErr) {
+              logger.warn(`[SaleService/MSSQL] Error en rollback (posiblemente ya abortado): ${rollbackErr.message}`);
+          }
+      }
       throw err;
     }
   }
