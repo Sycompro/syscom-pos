@@ -196,8 +196,6 @@ class NavaSaleService {
     } catch (err) {
       logger.error(`[SaleService/Prisma] Error: ${err.message}`);
       throw err;
-    } finally {
-      await prisma.$disconnect();
     }
   }
 }

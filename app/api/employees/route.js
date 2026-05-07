@@ -32,7 +32,5 @@ export async function GET(request) {
   } catch (error) {
     logger.error(`[EmployeesAPI] Error: ${error.message}`);
     return NextResponse.json({ error: error.message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
