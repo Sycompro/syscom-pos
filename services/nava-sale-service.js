@@ -78,7 +78,8 @@ class NavaSaleService {
 
       // B. Insertar Cabecera (mst01fac)
       const requestMst = new sql.Request(transaction);
-      const safeExchangeRate = (exchangeRate && exchangeRate > 0) ? exchangeRate : 1.0;
+      // En Soles, el tcam suele ser 1.0 para evitar divisiones extrañas en triggers
+      const safeExchangeRate = 1.0; 
       
       await requestMst
         .input('cdocu', docType.substring(0, 2))
@@ -88,9 +89,9 @@ class NavaSaleService {
         .input('codcli', (codcli || '000000').substring(0, 6))
         .input('nomcli', (nomcli || 'CLIENTE VARIOS').substring(0, 60))
         .input('ruccli', (ruccli || '').substring(0, 11))
-        .input('totn', sql.Decimal(18, 4), breakdown.total || 0)
-        .input('toti', sql.Decimal(18, 4), breakdown.tax || 0)
-        .input('tota', sql.Decimal(18, 4), breakdown.subtotal || 0)
+        .input('totn', sql.Decimal(18, 2), Number(breakdown.total.toFixed(2)))
+        .input('toti', sql.Decimal(18, 2), Number(breakdown.tax.toFixed(2)))
+        .input('tota', sql.Decimal(18, 2), Number(breakdown.subtotal.toFixed(2)))
         .input('mone', 'S')
         .input('tcam', sql.Decimal(18, 4), safeExchangeRate)
         .input('Codpto', warehouse.substring(0, 2))
@@ -107,8 +108,8 @@ class NavaSaleService {
         .input('codvta', '01')
         .input('codven', (codven || 'V0001').substring(0, 5))
         .input('codsub', '01')
-        .input('cajrecib', sql.Decimal(18, 4), cashReceived || breakdown.total || 0)
-        .input('cajvuelto', sql.Decimal(18, 4), changeGiven || 0)
+        .input('cajrecib', sql.Decimal(18, 2), Number((cashReceived || breakdown.total).toFixed(2)))
+        .input('cajvuelto', sql.Decimal(18, 2), Number((changeGiven || 0).toFixed(2)))
         .input('cobmixta', sql.Int, isMixed ? 1 : 0)
         .query(`
           INSERT INTO mst01fac (cdocu, ndocu, fecha, fven, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, Codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub, cajrecib, cajvuelto, cobmixta)
@@ -129,9 +130,9 @@ class NavaSaleService {
           .input('codi', item.id.substring(0, 11))
           .input('descr', item.name.substring(0, 80))
           .input('cant', sql.Decimal(18, 4), itemQty)
-          .input('preu', sql.Decimal(18, 4), itemPrice)
-          .input('tota', sql.Decimal(18, 4), (itemPrice * itemQty) / 1.18)
-          .input('totn', sql.Decimal(18, 4), itemPrice * itemQty)
+          .input('preu', sql.Decimal(18, 2), Number(itemPrice.toFixed(2)))
+          .input('tota', sql.Decimal(18, 2), Number(((itemPrice * itemQty) / 1.18).toFixed(2)))
+          .input('totn', sql.Decimal(18, 2), Number((itemPrice * itemQty).toFixed(2)))
           .input('Codalm', warehouse.substring(0, 2))
           .input('flag', ' ')
           .input('fecha', fechaStr.substring(0, 10))
