@@ -149,7 +149,7 @@ class NavaSaleService {
         .input('cpago', (isMixed ? 'M' : ((payments[0].id === 'EF' || payments[0].type === 1) ? 'E' : 'T')).substring(0, 1))
         .input('selpago', sql.Int, globalSelPago)
         .input('nplan', nroPlanilla.substring(0, 12))
-        .input('codcaj', warehouse.substring(0, 2))
+        .input('codcaj', '01')
         .query(`
           INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, Codpto, idapecaj, cpago, selpago, nplan, codcaj)
           VALUES (@cdocu, @ndocu, @crefe, @nrefe, @fecha, @tmov, @glosa, @codcli, @nomcli, @monto, @mone, @tcam, @flag, @codven, @Codpto, @idapecaj, @cpago, @selpago, @nplan, @codcaj)
