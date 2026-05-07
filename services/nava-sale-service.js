@@ -40,6 +40,14 @@ class NavaSaleService {
 
       await transaction.begin();
 
+      // 0. Obtener Número de Planilla desde la apertura de caja
+      const requestApe = new sql.Request(transaction);
+      const resApe = await requestApe
+        .input('idapecaj', sql.Int, idApeCaj)
+        .query(`SELECT nropla FROM dtl_restpos_apecaj WHERE idapecaj = @idapecaj`);
+      
+      const nroPlanilla = resApe.recordset[0]?.nropla || '';
+
       // A. Gestión de Correlativo
       const requestCor = new sql.Request(transaction);
       const resCor = await requestCor
@@ -140,9 +148,11 @@ class NavaSaleService {
         .input('idapecaj', sql.Int, idApeCaj)
         .input('cpago', sql.Char(1), isMixed ? 'M' : ((payments[0].id === 'EF' || payments[0].type === 1) ? 'E' : 'T'))
         .input('selpago', sql.Int, globalSelPago)
+        .input('nplan', sql.Char(12), nroPlanilla.substring(0, 12))
+        .input('codcaj', sql.Char(2), warehouse.substring(0, 2))
         .query(`
-          INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, Codpto, idapecaj, cpago, selpago)
-          VALUES (@cdocu, @ndocu, @crefe, @nrefe, @fecha, @tmov, @glosa, @codcli, @nomcli, @monto, @mone, @tcam, @flag, @codven, @Codpto, @idapecaj, @cpago, @selpago)
+          INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, Codpto, idapecaj, cpago, selpago, nplan, codcaj)
+          VALUES (@cdocu, @ndocu, @crefe, @nrefe, @fecha, @tmov, @glosa, @codcli, @nomcli, @monto, @mone, @tcam, @flag, @codven, @Codpto, @idapecaj, @cpago, @selpago, @nplan, @codcaj)
         `);
 
       // E. Detalle de Cobro (dtl01cob)
@@ -169,9 +179,10 @@ class NavaSaleService {
           .input('mtopas', sql.Decimal(18, 4), p.amount)
           .input('codn', sql.Char(1), ' ')
           .input('impdonac', sql.Decimal(18, 4), 0)
+          .input('nplan', sql.Char(12), nroPlanilla.substring(0, 12))
           .query(`
-            INSERT INTO dtl01cob (cdocu, ndocu, npago, crefe, nrefe, monto, cpago, codbco, mone, tcam, codven, valori, monori, mtopad, mtopas, codn, impdonac)
-            VALUES (@cdocu, @ndocu, @npago, @crefe, @nrefe, @monto, @cpago, @codbco, @mone, @tcam, @codven, @valori, @monori, @mtopad, @mtopas, @codn, @impdonac)
+            INSERT INTO dtl01cob (cdocu, ndocu, npago, crefe, nrefe, monto, cpago, codbco, mone, tcam, codven, valori, monori, mtopad, mtopas, codn, impdonac, nplan)
+            VALUES (@cdocu, @ndocu, @npago, @crefe, @nrefe, @monto, @cpago, @codbco, @mone, @tcam, @codven, @valori, @monori, @mtopad, @mtopas, @codn, @impdonac, @nplan)
           `);
       }
 
