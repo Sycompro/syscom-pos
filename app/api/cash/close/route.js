@@ -53,18 +53,20 @@ export async function POST(request) {
                 .input('feccie', sql.DateTime, now)
                 .query('UPDATE dtl_restpos_apecaj SET estado = 1, feccie = @feccie WHERE idapecaj = @id');
 
-            // 4. Limpiar tabla maestra tbl01pto
+            // 4. Limpiar tabla maestra tbl01pto (Liberar punto para el ERP)
             if (sedeCode) {
                 await transaction.request()
-                    .input('codpto', sql.Char(2), sedeCode)
+                    .input('codpto', sql.Char(10), sedeCode)
                     .query(`
                         UPDATE tbl01pto 
                         SET estado = 1, 
                             apecaj = 0,
                             apecajsol = 0,
                             apecajdol = 0,
-                            apecajeur = 0
-                        WHERE codpto = @codpto
+                            apecajeur = 0,
+                            apecajusu = '   ',
+                            apecajtur = '  '
+                        WHERE LTRIM(RTRIM(codpto)) = LTRIM(RTRIM(@codpto))
                     `);
             }
 

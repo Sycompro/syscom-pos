@@ -77,18 +77,20 @@ export async function POST(request) {
                     .input('apesol', sql.Decimal(18, 2), amount || 0)
                     .input('nropla', sql.Char(12), nropla)
                     .query(`
-                        DECLARE @formattedHora VARCHAR(12) = LTRIM(RIGHT(CONVERT(VARCHAR, GETDATE(), 100), 7));
+                        DECLARE @formattedHora VARCHAR(12) = RIGHT(CAST(YEAR(GETDATE()) AS VARCHAR), 2) + ' ' + LTRIM(RIGHT(CONVERT(VARCHAR, GETDATE(), 100), 7));
+                        -- Asegurar que no haya dobles espacios
+                        SET @formattedHora = REPLACE(@formattedHora, '  ', ' ');
 
                         INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur, nropla)
-                        VALUES (@fecape, @formattedHora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, @nropla);
+                        VALUES (@fecape, @formattedHora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, '            ');
                         SELECT SCOPE_IDENTITY() as id;
                     `);
                 
                 const newId = result.recordset[0].id;
 
-                // 3. ACTUALIZAR TABLA MAESTRA tbl01pto
+                // 3. ACTUALIZAR TABLA MAESTRA tbl01pto (Para visibilidad en monitores ERP)
                 await transaction.request()
-                    .input('codpto', sql.Char(2), sedeCode)
+                    .input('codpto', sql.Char(10), sedeCode) // Usamos Char mayor para cubrir cualquier padding
                     .input('idapecaj', sql.Int, newId)
                     .input('apesol', sql.Decimal(18, 2), amount || 0)
                     .input('codusu', sql.Char(3), userCode.substring(0, 3))
@@ -98,8 +100,9 @@ export async function POST(request) {
                             apecaj = @idapecaj, 
                             apecajsol = @apesol,
                             apecajusu = @codusu,
+                            apecajtur = '01',
                             apecajhra = GETDATE()
-                        WHERE codpto = @codpto
+                        WHERE LTRIM(RTRIM(codpto)) = LTRIM(RTRIM(@codpto))
                     `);
 
                 await transaction.commit();
