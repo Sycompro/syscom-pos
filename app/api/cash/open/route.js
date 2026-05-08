@@ -27,26 +27,31 @@ export async function POST(request) {
         }
 
         if (schemaType === 'ERP') {
-            const userCode = session.user.id?.toString().padStart(3, '0').slice(0, 3); // Max 3
-            const sedeCode = session.user.sedeId?.toString().padStart(2, '0').slice(0, 2); // Max 2
+            const userCode = session.user.id?.trim() || 'WEB';
+            const sedeCode = session.user.sedeId?.trim() || '01';
 
-            const timeStr = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: true 
-            });
+            // --- GENERAR CORRELATIVO OFICIAL DE PLANILLA (Doc 77) ---
+            const resCor = await pool.request()
+                .input('cdocu', '77')
+                .input('codpto', sedeCode)
+                .query("SELECT nroini FROM tbl01cor WHERE cdocu = @cdocu AND codpto = @codpto");
+            
+            if (!resCor.recordset[0]) {
+                return NextResponse.json({ error: `No se encontró correlativo de planilla (Doc 77) para la sede ${sedeCode}` }, { status: 400 });
+            }
 
-            // Generar correlativo para nropla
-            const countRes = await pool.request()
-                .input('codpto', sql.Char(2), sedeCode)
-                .query("SELECT COUNT(*) as total FROM dtl_restpos_apecaj WHERE LTRIM(RTRIM(codpto)) = @codpto");
-            const nextVal = (countRes.recordset[0].total + 1).toString().padStart(8, '0');
-            const nropla = `${sedeCode}-${nextVal}`.slice(0, 12);
+            const currentNroIni = resCor.recordset[0].nroini.trim();
+            const parts = currentNroIni.split('-');
+            const series = parts[0];
+            const numPartOriginal = parts.length > 1 ? parts[1] : parts[0];
+            const numPartClean = numPartOriginal.replace(/[^0-9]/g, '');
+            const nextNum = (parseInt(numPartClean, 10) + 1).toString().padStart(numPartClean.length, '0');
+            const nropla = `${series}-${nextNum}`;
 
-            // Lógica Esquema ERP (dtl_restpos_apecaj)
+            // Validar si ya hay una caja abierta
             const check = await pool.request()
                 .input('codpto', sql.Char(2), sedeCode)
-                .input('codusu', sql.Char(3), userCode)
+                .input('codusu', sql.Char(3), userCode.substring(0, 3))
                 .query("SELECT idapecaj FROM dtl_restpos_apecaj WHERE estado = 0 AND LTRIM(RTRIM(codpto)) = @codpto AND LTRIM(RTRIM(codusu)) = @codusu");
 
             if (check.recordset.length > 0) {
@@ -57,10 +62,18 @@ export async function POST(request) {
             await transaction.begin();
 
             try {
-            const result = await transaction.request()
+                // 1. ACTUALIZAR CORRELATIVO DE PLANILLA EN EL ERP
+                await transaction.request()
+                    .input('cdocu', '77')
+                    .input('codpto', sedeCode)
+                    .input('nextNro', nropla)
+                    .query("UPDATE tbl01cor SET nroini = @nextNro WHERE cdocu = @cdocu AND codpto = @codpto");
+
+                // 2. INSERTAR APERTURA DE CAJA
+                const result = await transaction.request()
                     .input('fecape', sql.DateTime, now)
                     .input('codpto', sql.Char(2), sedeCode)
-                    .input('codusu', sql.Char(3), userCode)
+                    .input('codusu', sql.Char(3), userCode.substring(0, 3))
                     .input('apesol', sql.Decimal(18, 2), amount || 0)
                     .input('nropla', sql.Char(12), nropla)
                     .query(`
@@ -73,11 +86,12 @@ export async function POST(request) {
                 
                 const newId = result.recordset[0].id;
 
-                // ACTUALIZAR TABLA MAESTRA tbl01pto
+                // 3. ACTUALIZAR TABLA MAESTRA tbl01pto
                 await transaction.request()
                     .input('codpto', sql.Char(2), sedeCode)
                     .input('idapecaj', sql.Int, newId)
                     .input('apesol', sql.Decimal(18, 2), amount || 0)
+                    .input('codusu', sql.Char(3), userCode.substring(0, 3))
                     .query(`
                         UPDATE tbl01pto 
                         SET estado = 0, 
