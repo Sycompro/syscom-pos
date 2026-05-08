@@ -40,23 +40,29 @@ class NavaSaleService {
 
       await transaction.begin();
 
-      // 0. Obtener Número de Planilla y Código de Caja dinámico
+      // 0. Obtener Identidad Real desde el ERP (Sesión Activa)
       const requestApe = new sql.Request(transaction);
       const resApe = await requestApe
         .input('idapecaj', sql.Int, idApeCaj)
         .query(`
-          SELECT a.nropla, (SELECT TOP 1 codcaj FROM tbl_cajamayor WHERE codpto = a.codpto OR codcaj = '01') as codcaj_sugerido
+          SELECT a.nropla, a.codpto, a.codusu, 
+          (SELECT TOP 1 codcaj FROM tbl_cajamayor WHERE codpto = a.codpto OR codcaj = '01') as codcaj_sugerido
           FROM dtl_restpos_apecaj a WHERE a.idapecaj = @idapecaj
         `);
       
-      const nroPlanilla = resApe.recordset[0]?.nropla || '';
-      const codCajaDinamico = resApe.recordset[0]?.codcaj_sugerido || '01';
+      if (!resApe.recordset[0]) throw new Error(`No se encontró una sesión activa en el ERP para el ID ${idApeCaj}`);
+      
+      const erpData = resApe.recordset[0];
+      const erpPto = erpData.codpto.trim();
+      const erpUsu = erpData.codusu.trim();
+      const erpNroPla = erpData.nropla.trim();
+      const erpCodCaj = erpData.codcaj_sugerido || '01';
 
-      // A. Gestión de Correlativo
+      // A. Gestión de Correlativo (Usando el Pto de Venta del ERP)
       const requestCor = new sql.Request(transaction);
       const resCor = await requestCor
         .input('cdocu', docType)
-        .input('codpto', warehouse.substring(0, 2))
+        .input('codpto', erpPto)
         .query(`SELECT nroini FROM tbl01cor WHERE cdocu = @cdocu AND codpto = @codpto`);
 
       if (!resCor.recordset[0]) throw new Error(`Sin correlativo para ${docType}`);
@@ -69,11 +75,8 @@ class NavaSaleService {
       const nextNum = (parseInt(numPart, 10) + 1).toString().padStart(8, '0');
       const nextNdocu = `${series}-${nextNum}`;
 
-      logger.info(`[DEBUG/Truncado] ndocu: ${nextNdocu} (${nextNdocu.length})`);
-      logger.info(`[DEBUG/Truncado] nomcli: ${nomcli} (${nomcli?.length})`);
-      logger.info(`[DEBUG/Truncado] codven: ${codven} (${codven?.length})`);
-      logger.info(`[DEBUG/Truncado] nplan: ${nroPlanilla} (${nroPlanilla?.length})`);
-      logger.info(`[DEBUG/Truncado] codcaj: ${codCajaDinamico} (${codCajaDinamico?.length})`);
+      logger.info(`[DEBUG/Sincro] ndocu: ${nextNdocu} | pto: ${erpPto} | usu: ${erpUsu}`);
+      logger.info(`[DEBUG/Sincro] planilla: ${erpNroPla} | caja: ${erpCodCaj}`);
 
       await requestCor
         .input('nextNdocu', nextNdocu)
@@ -97,14 +100,14 @@ class NavaSaleService {
         .input('tota', sql.Decimal(18, 2), Number(breakdown.subtotal.toFixed(2)))
         .input('mone', 'S')
         .input('tcam', sql.Decimal(18, 4), safeExchangeRate)
-        .input('Codpto', warehouse.substring(0, 2))
+        .input('Codpto', erpPto)
         .input('CodAlm', warehouse.substring(0, 2))
         .input('idapecaj', sql.Int, idApeCaj)
         .input('selpago', sql.Int, globalSelPago)
         .input('codfdp', globalCodFdp.substring(0, 2))
         .input('codtar', globalCodTar.substring(0, 2))
         .input('compro', 'WEB-POS'.substring(0, 9))
-        .input('codusu', 'WEB'.substring(0, 3))
+        .input('codusu', erpUsu)
         .input('flag', ' ')
         .input('tfact', (docType === '65' ? 'N' : 'S').substring(0, 1))
         .input('Codcdv', '01')
@@ -114,9 +117,10 @@ class NavaSaleService {
         .input('cajrecib', sql.Decimal(18, 2), Number((cashReceived || breakdown.total).toFixed(2)))
         .input('cajvuelto', sql.Decimal(18, 2), Number((changeGiven || 0).toFixed(2)))
         .input('cobmixta', sql.Int, isMixed ? 1 : 0)
+        .input('nplan', erpNroPla)
         .query(`
-          INSERT INTO mst01fac (cdocu, ndocu, fecha, fven, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, Codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub, cajrecib, cajvuelto, cobmixta)
-          VALUES (@cdocu, @ndocu, @fecha, @fven, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @Codpto, @CodAlm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, @Codcdv, @codvta, @codven, @codsub, @cajrecib, @cajvuelto, @cobmixta)
+          INSERT INTO mst01fac (cdocu, ndocu, fecha, fven, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, Codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub, cajrecib, cajvuelto, cobmixta, nplan)
+          VALUES (@cdocu, @ndocu, @fecha, @fven, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @Codpto, @CodAlm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, @Codcdv, @codvta, @codven, @codsub, @cajrecib, @cajvuelto, @cobmixta, @nplan)
         `);
 
       // C. Detalles (dtl01fac)
@@ -168,15 +172,16 @@ class NavaSaleService {
         .input('tcam', sql.Decimal(18, 4), 1)
         .input('flag', '0')
         .input('codven', (codven || 'V0001').substring(0, 5))
-        .input('Codpto', warehouse.substring(0, 2))
+        .input('Codpto', erpPto)
         .input('idapecaj', sql.Int, idApeCaj)
         .input('cpago', (isMixed ? 'M' : ((payments[0].id === 'EF' || payments[0].type === 1) ? 'E' : 'T')).substring(0, 1))
         .input('selpago', sql.Int, globalSelPago)
-        .input('nplan', nroPlanilla.substring(0, 12))
-        .input('codcaj', codCajaDinamico.substring(0, 2))
+        .input('nplan', erpNroPla)
+        .input('codcaj', erpCodCaj)
+        .input('codusu', erpUsu)
         .query(`
-          INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, Codpto, idapecaj, cpago, selpago, nplan, codcaj)
-          VALUES (@cdocu, @ndocu, @crefe, @nrefe, @fecha, @tmov, @glosa, @codcli, @nomcli, @monto, @mone, @tcam, @flag, @codven, @Codpto, @idapecaj, @cpago, @selpago, @nplan, @codcaj)
+          INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, Codpto, idapecaj, cpago, selpago, nplan, codcaj, codusu)
+          VALUES (@cdocu, @ndocu, @crefe, @nrefe, @fecha, @tmov, @glosa, @codcli, @nomcli, @monto, @mone, @tcam, @flag, @codven, @Codpto, @idapecaj, @cpago, @selpago, @nplan, @codcaj, @codusu)
         `);
 
       // E. Detalle de Cobro (dtl01cob)
@@ -203,7 +208,7 @@ class NavaSaleService {
           .input('mtopas', sql.Decimal(18, 4), p.amount)
           .input('codn', '      ')
           .input('impdonac', sql.Decimal(18, 4), 0)
-          .input('nplan', nroPlanilla.substring(0, 12))
+          .input('nplan', erpNroPla)
           .query(`
             INSERT INTO dtl01cob (cdocu, ndocu, npago, crefe, nrefe, monto, cpago, codbco, mone, tcam, codven, valori, monori, mtopad, mtopas, codn, impdonac, nplan)
             VALUES (@cdocu, @ndocu, @npago, @crefe, @nrefe, @monto, @cpago, @codbco, @mone, @tcam, @codven, @valori, @monori, @mtopad, @mtopas, @codn, @impdonac, @nplan)
