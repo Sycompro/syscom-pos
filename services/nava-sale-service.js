@@ -160,68 +160,71 @@ class NavaSaleService {
           .input('flag', '0')
           .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
           .input('mone', 'S')
-          .input('umed', 'UND')
+          .input('moneitm', item.userCode === 'DS00' ? ' ' : 'S')
+          .input('umed', item.userCode === 'DS00' ? '   ' : 'UND')
           .input('aigv', isTaxable ? 'S' : 'N')
           .input('msto', item.userCode === 'DS00' ? ' ' : 'S') // No mover stock para descuentos
           .query(`
-            INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, codcli, item, codi, codf, marc, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2, tcam, mone, umed, aigv, msto)
-            VALUES (@fecha, @cdocu, @ndocu, @tfact, @codcli, @item, @codi, @codf, @marc, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0, @tcam, @mone, @umed, @aigv, @msto)
+            INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, codcli, item, codi, codf, marc, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2, tcam, mone, umed, aigv, msto, moneitm)
+            VALUES (@fecha, @cdocu, @ndocu, @tfact, @codcli, @item, @codi, @codf, @marc, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0, @tcam, @mone, @umed, @aigv, @msto, @moneitm)
           `);
 
         // 6.1 Inserción en KARDEX (kdd01XX) - CRÍTICO PARA DESCUENTO DE STOCK
-        const kddTable = `kdd01${(warehouse || '01').substring(0, 2).padStart(2, '0')}`;
-        const reqKdd = new sql.Request(transaction);
-        await reqKdd
-          .input('fecha', sql.Date, fechaStr)
-          .input('cdocu', docType.substring(0, 2))
-          .input('ndocu', nextNdocu.substring(0, 12))
-          .input('codn', sql.Char(6), finalCodCli.substring(0, 6))
-          .input('nomb', (nomcli || 'VENTA CONTADO').substring(0, 50))
-          .input('refe', nextNdocu.substring(0, 12))
-          .input('tmov', 'S') // S = Salida
-          .input('codi', item.id.substring(0, 11))
-          .input('cant', sql.Decimal(18, 4), itemQty)
-          .input('preu', sql.Decimal(18, 2), Number(itemPrice.toFixed(2)))
-          .input('tota', sql.Decimal(18, 2), Number(itemTotal.toFixed(2)))
-          .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
-          .input('mone', 'S')
-          .input('cost', sql.Decimal(18, 2), Number(itemPrice.toFixed(2))) // Usar precio como costo referencial
-          .input('codglo', '01')
-          .input('nomglo', 'MERCADERIA')
-          .input('aigv', isTaxable ? 'S' : 'N')
-          .input('cfac', docType.substring(0, 2))
-          .input('nfac', nextNdocu.substring(0, 12))
-          .input('codven', (codven || 'V0001').substring(0, 5))
-          .input('codpto', (pointOfSale || '01').substring(0, 2))
-          .query(`
-            INSERT INTO ${kddTable} (fecha, cdocu, ndocu, codn, nomb, refe, tmov, codi, cant, preu, dsct, tota, tcam, mone, cost, codglo, nomglo, aigv, cfac, nfac, codven, CodPto, CodTur, uvta, pigv, pcfle, pcemb)
-            VALUES (@fecha, @cdocu, @ndocu, @codn, @nomb, @refe, @tmov, @codi, @cant, @preu, 0, @tota, @tcam, @mone, @cost, @codglo, @nomglo, @aigv, @cfac, @nfac, @codven, @codpto, '01', 1, 0, 0, 0)
-          `);
+        if (item.userCode !== 'DS00') {
+          const kddTable = `kdd01${(warehouse || '01').substring(0, 2).padStart(2, '0')}`;
+          const reqKdd = new sql.Request(transaction);
+          await reqKdd
+            .input('fecha', sql.Date, fechaStr)
+            .input('cdocu', docType.substring(0, 2))
+            .input('ndocu', nextNdocu.substring(0, 12))
+            .input('codn', sql.Char(6), finalCodCli.substring(0, 6))
+            .input('nomb', (nomcli || 'VENTA CONTADO').substring(0, 50))
+            .input('refe', nextNdocu.substring(0, 12))
+            .input('tmov', 'S') // S = Salida
+            .input('codi', item.id.substring(0, 11))
+            .input('cant', sql.Decimal(18, 4), itemQty)
+            .input('preu', sql.Decimal(18, 2), Number(itemPrice.toFixed(2)))
+            .input('tota', sql.Decimal(18, 2), Number(itemTotal.toFixed(2)))
+            .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
+            .input('mone', 'S')
+            .input('cost', sql.Decimal(18, 2), Number(itemPrice.toFixed(2))) // Usar precio como costo referencial
+            .input('codglo', '01')
+            .input('nomglo', 'MERCADERIA')
+            .input('aigv', isTaxable ? 'S' : 'N')
+            .input('cfac', docType.substring(0, 2))
+            .input('nfac', nextNdocu.substring(0, 12))
+            .input('codven', (codven || 'V0001').substring(0, 5))
+            .input('codpto', (pointOfSale || '01').substring(0, 2))
+            .query(`
+              INSERT INTO ${kddTable} (fecha, cdocu, ndocu, codn, nomb, refe, tmov, codi, cant, preu, dsct, tota, tcam, mone, cost, codglo, nomglo, aigv, cfac, nfac, codven, CodPto, CodTur, uvta, pigv, pcfle, pcemb)
+              VALUES (@fecha, @cdocu, @ndocu, @codn, @nomb, @refe, @tmov, @codi, @cant, @preu, 0, @tota, @tcam, @mone, @cost, @codglo, @nomglo, @aigv, @cfac, @nfac, @codven, @codpto, '01', 1, 0, 0, 0)
+            `);
 
-        // 6.2 DESCUENTO MANUAL DE STOCK - Replicando comportamiento de psventa.exe
-        const reqUpdateStock = new sql.Request(transaction);
-        await reqUpdateStock
-          .input('codi', item.id.substring(0, 11))
-          .input('cant', sql.Decimal(18, 4), itemQty)
-          .input('fecha', sql.Date, fechaStr)
-          .query(`
-            -- 1. Actualizar Maestra Global
-            UPDATE prd0101 
-            SET stoc = stoc - @cant, 
-                ufve = @fecha
-            WHERE codi = @codi;
+          // 6.2 DESCUENTO MANUAL DE STOCK - Replicando comportamiento de psventa.exe
+          const reqUpdateStock = new sql.Request(transaction);
+          await reqUpdateStock
+            .input('codi', item.id.substring(0, 11))
+            .input('cant', sql.Decimal(18, 4), itemQty)
+            .input('fecha', sql.Date, fechaStr)
+            .query(`
+              -- 1. Actualizar Maestra Global
+              UPDATE prd0101 
+              SET stoc = stoc - @cant, 
+                  ufve = @fecha
+              WHERE codi = @codi;
 
-            -- 2. Actualizar Tabla de Almacén Específica (si existe)
-            DECLARE @table_exists INT;
-            DECLARE @prdTable NVARCHAR(50) = 'prd01' + RIGHT('00' + CAST(ISNULL(NULLIF('${warehouse}', ''), '01') AS VARCHAR), 2);
-            SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @prdTable;
+              -- 2. Actualizar Tabla de Almacén Específica (si existe)
+              DECLARE @table_exists INT;
+              DECLARE @prdTable NVARCHAR(50) = 'prd01' + RIGHT('00' + CAST(ISNULL(NULLIF('${warehouse}', ''), '01') AS VARCHAR), 2);
+              SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @prdTable;
 
-            IF @table_exists > 0
-            BEGIN
-                DECLARE @sql NVARCHAR(MAX) = 'UPDATE ' + QUOTENAME(@prdTable) + ' SET stoc = stoc - @c WHERE codi = @id';
-                EXEC sp_executesql @sql, N'@c DECIMAL(18,4), @id CHAR(11)', @c = @cant, @id = @codi;
-            END
-          `);
+              IF @table_exists > 0
+              BEGIN
+                  DECLARE @sql NVARCHAR(MAX) = 'UPDATE ' + QUOTENAME(@prdTable) + ' SET stoc = stoc - @c WHERE codi = @id';
+                  EXEC sp_executesql @sql, N'@c DECIMAL(18,4), @id CHAR(11)', @c = @cant, @id = @codi;
+              END
+            `);
+        }
       }
 
       // 6.5 Inserción en Cuentas por Cobrar (mst01ccc / dtl01ccc) - VITAL PARA EL MONITOR
