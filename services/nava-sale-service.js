@@ -162,7 +162,7 @@ class NavaSaleService {
           .input('mone', 'S')
           .input('umed', 'UND')
           .input('aigv', isTaxable ? 'S' : 'N')
-          .input('msto', 'S') // Activar descuento de stock
+          .input('msto', item.userCode === 'DS00' ? ' ' : 'S') // No mover stock para descuentos
           .query(`
             INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, codcli, item, codi, codf, marc, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2, tcam, mone, umed, aigv, msto)
             VALUES (@fecha, @cdocu, @ndocu, @tfact, @codcli, @item, @codi, @codf, @marc, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0, @tcam, @mone, @umed, @aigv, @msto)
