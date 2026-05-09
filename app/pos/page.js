@@ -204,15 +204,46 @@ export default function POSPage() {
     };
 
     const addToCart = (product) => {
+        // Excepción para el ítem de descuento DS00
+        if (product.userCode === 'DS00') {
+            setCart(prev => {
+                const ex = prev.find(i => i.id === product.id);
+                if (ex) return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+                return [...prev, { ...product, quantity: 1 }];
+            });
+            return;
+        }
+
+        if (product.stock <= 0) {
+            showAlert('Sin Stock', `El producto ${product.name} no tiene stock disponible (Actual: ${product.stock}).`, 'warning');
+            return;
+        }
+
         setCart(prev => {
             const ex = prev.find(i => i.id === product.id);
-            if (ex) return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+            if (ex) {
+                if (ex.quantity >= product.stock) {
+                    showAlert('Límite de Stock', `No puedes agregar más de ${product.stock} unidades de este producto.`, 'warning');
+                    return prev;
+                }
+                return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+            }
             return [...prev, { ...product, quantity: 1 }];
         });
     };
 
     const updateQuantity = (id, delta) =>
-        setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.max(0.01, i.quantity + delta) } : i));
+        setCart(prev => prev.map(i => {
+            if (i.id === id) {
+                const newQty = i.quantity + delta;
+                if (delta > 0 && i.userCode !== 'DS00' && newQty > i.stock) {
+                    showAlert('Límite de Stock', `Solo hay ${i.stock} unidades disponibles.`, 'warning');
+                    return i;
+                }
+                return { ...i, quantity: Math.max(0.01, newQty) };
+            }
+            return i;
+        }));
 
     const updatePrice = (id, newPrice) =>
         setCart(prev => prev.map(i => i.id === id ? { ...i, price: Math.max(0, newPrice) } : i));
