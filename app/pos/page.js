@@ -217,28 +217,60 @@ export default function POSPage() {
     const updatePrice = (id, newPrice) =>
         setCart(prev => prev.map(i => i.id === id ? { ...i, price: Math.max(0, newPrice) } : i));
 
-    const applyGlobalDiscount = () => {
-        setModal({
-            show: true,
-            title: 'Descuento Global (S/)',
-            message: `Ingrese el monto total a descontar de la venta (Total actual: S/ ${total.toFixed(2)}):`,
-            type: 'prompt',
-            value: '0',
-            onConfirm: (val) => {
-                const discountAmount = parseFloat(val);
-                if (!isNaN(discountAmount) && discountAmount > 0 && discountAmount < total) {
-                    const factor = (total - discountAmount) / total;
-                    setCart(prev => prev.map(i => ({
-                        ...i,
-                        price: parseFloat((i.price * factor).toFixed(4))
-                    })));
-                    showAlert('Descuento Aplicado', `Se ha aplicado un descuento de S/ ${discountAmount.toFixed(2)} al ticket.`, 'success');
-                } else if (discountAmount >= total) {
-                    showAlert('Monto Inválido', 'El descuento no puede ser mayor o igual al total de la venta.', 'warning');
-                }
-                setModal(prev => ({ ...prev, show: false }));
+    const applyGlobalDiscount = async () => {
+        try {
+            const res = await fetch('/api/products/discount-check');
+            const data = await res.json();
+
+            if (!data.exists) {
+                showAlert('DS00 No Encontrado', 'El ítem de descuento (DS00) no existe en el ERP. Por favor créalo para poder aplicar descuentos.', 'warning');
+                return;
             }
-        });
+
+            const discountProd = data.product;
+
+            setModal({
+                show: true,
+                title: 'Descuento Global (S/)',
+                message: `Ingrese el monto total a descontar de la venta (Total actual: S/ ${total.toFixed(2)}):`,
+                type: 'prompt',
+                value: '0',
+                onConfirm: (val) => {
+                    const discountAmount = parseFloat(val);
+                    if (!isNaN(discountAmount) && discountAmount > 0 && discountAmount < total) {
+                        setCart(prev => {
+                            // Buscar si ya existe un ítem de descuento
+                            const existingIndex = prev.findIndex(i => i.userCode === 'DS00');
+                            
+                            if (existingIndex > -1) {
+                                // Actualizar el descuento existente
+                                const newCart = [...prev];
+                                newCart[existingIndex] = {
+                                    ...newCart[existingIndex],
+                                    price: -discountAmount
+                                };
+                                return newCart;
+                            } else {
+                                // Agregar nuevo ítem de descuento
+                                return [...prev, {
+                                    ...discountProd,
+                                    price: -discountAmount,
+                                    quantity: 1,
+                                    name: '** DESCUENTO **'
+                                }];
+                            }
+                        });
+                        showAlert('Descuento Aplicado', `Se ha aplicado un descuento de S/ ${discountAmount.toFixed(2)} al ticket.`, 'success');
+                    } else if (discountAmount >= total) {
+                        showAlert('Monto Inválido', 'El descuento no puede ser mayor o igual al total de la venta.', 'warning');
+                    }
+                    setModal(prev => ({ ...prev, show: false }));
+                }
+            });
+        } catch (err) {
+            console.error('Error in applyGlobalDiscount:', err);
+            showAlert('Error', 'No se pudo verificar el ítem de descuento en el servidor.', 'error');
+        }
     };
 
     const showAlert = (title, message, type = 'info', showButtons = true) => {
