@@ -372,6 +372,16 @@ export default function POSPage() {
 
     const handleFinalizeSale = async (paymentInfo = {}) => {
         if (!cart.length || !idApeCaj) return;
+
+        // Validación Fiscal: Factura requiere RUC
+        if (docType === '01') {
+            const ruc = customer.ruc?.trim() || '';
+            if (customer.code === '000000' || ruc.length !== 11) {
+                showAlert('RUC Obligatorio', 'Para emitir una Factura es necesario un cliente con RUC válido (11 dígitos). No se permite "Clientes Varios" ni DNI.', 'warning');
+                return;
+            }
+        }
+
         setIsFinalizing(true);
         try {
             const { cashReceived, changeGiven, isMixed } = paymentInfo;
