@@ -36,34 +36,47 @@ export async function GET(request) {
     }
 
     // 3. Consulta INTELIGENTE (Espejo de psventa.exe)
-    // Prioriza la tabla física de la sede si existe, de lo contrario usa la maestra
-    let sqlQuery = `
-      DECLARE @table_exists INT;
-      SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
+    console.log(`[DEBUG/Products] Sede: ${sedeId}, Warehouse: ${warehouse}, Table: ${prdTable}, Col: ${stockField}`);
 
-      IF @table_exists > 0
-        BEGIN
-          -- Comportamiento idéntico al ERP original
-          SELECT TOP 50 
-            RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
-            RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
-            stoc as stock, RTRIM(Usr_003) as membershipDays
-          FROM ${prdTable}
-          WHERE ${filters}
-          ORDER BY descr ASC
-        END
-      ELSE
-        BEGIN
-          -- Fallback a la tabla maestra centralizada
-          SELECT TOP 50 
-            RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
-            RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
-            ISNULL(${stockField}, 0) as stock, RTRIM(Usr_003) as membershipDays
-          FROM prd0101
-          WHERE ${filters}
-          ORDER BY descr ASC
-        END
-    `;
+    let sqlQuery = "";
+    if (warehouse === '01') {
+        // En Almacén 01, la verdad siempre es prd0101.stoc
+        sqlQuery = `
+            SELECT TOP 50 
+                RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
+                RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
+                stoc as stock, RTRIM(Usr_003) as membershipDays
+            FROM prd0101
+            WHERE ${filters}
+            ORDER BY descr ASC
+        `;
+    } else {
+        sqlQuery = `
+            DECLARE @table_exists INT;
+            SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
+
+            IF @table_exists > 0
+                BEGIN
+                    SELECT TOP 50 
+                        RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
+                        RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
+                        stoc as stock, RTRIM(Usr_003) as membershipDays
+                    FROM ${prdTable}
+                    WHERE ${filters}
+                    ORDER BY descr ASC
+                END
+            ELSE
+                BEGIN
+                    SELECT TOP 50 
+                        RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
+                        RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
+                        ISNULL(${stockField}, 0) as stock, RTRIM(Usr_003) as membershipDays
+                    FROM prd0101
+                    WHERE ${filters}
+                    ORDER BY descr ASC
+                END
+        `;
+    }
     
     const result = await pool.request().query(sqlQuery);
     

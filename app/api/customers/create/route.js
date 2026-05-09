@@ -32,7 +32,16 @@ export async function POST(request) {
                 .input('nextCode', sql.Char(6), nextCode)
                 .query("UPDATE psn0100 SET codcli = @nextCode");
 
-            // 2. Insertar nuevo cliente en mst01cli
+            // 2. Obtener defaults dinámicos (Sin suponer IDs)
+            const defaultsRes = await transaction.request().query(`
+                SELECT 
+                    (SELECT TOP 1 codven FROM tbl01ven WHERE estado = 1) as defVen,
+                    (SELECT TOP 1 codcdv FROM tbl01cdv) as defCdv
+            `);
+            const erpDefVen = defaultsRes.recordset[0]?.defVen || '00000';
+            const erpDefCdv = defaultsRes.recordset[0]?.defCdv || '00';
+
+            // 3. Insertar nuevo cliente en mst01cli
             const isRuc = (ruccli || '').trim().length === 11;
             const tipdoc = isRuc ? '6' : '1';
 
@@ -45,8 +54,8 @@ export async function POST(request) {
                 .input('email', sql.VarChar(60), (email || '').substring(0, 60))
                 .input('dircli', sql.Char(80), (direccion || '').substring(0, 80).toUpperCase())
                 .input('tipdoc', sql.Char(1), tipdoc)
-                .input('codven', sql.Char(5), 'V0318') // Default de producción psn0100
-                .input('codcdv', sql.Char(2), '01') 
+                .input('codven', sql.Char(5), erpDefVen)
+                .input('codcdv', sql.Char(2), erpDefCdv) 
                 .input('estado', sql.Bit, 1)
                 .query(`
                     INSERT INTO mst01cli (codcli, nomcli, ruccli, nrodni, telcli, email, dircli, tipdoc, codven, codcdv, estado, fecing, fecreg)

@@ -26,8 +26,8 @@ export async function GET() {
                     ...methods,
                     ...result.recordset.map(r => {
                         const name = (r.name || '').toString().trim().toUpperCase();
-                        let type = 3; // Smartphone por defecto (Yape/Plin)
-                        if (name.includes('TARJETA') || name.includes('VISA') || name.includes('MASTER')) type = 2;
+                        // Por defecto, todo lo que viene de tbl01tar es una Tarjeta (3) en Navasoft
+                        let type = 3; 
                         if (name.includes('EFECTIVO')) type = 1;
 
                         return { 

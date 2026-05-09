@@ -13,8 +13,8 @@ Memoria de la INVESTIGACION: erp-pos-sync-rules
 
 Punto 03
 
-Usuario: Prueba 03
-Clave: 124656
+Usuario: Prueba 05
+Clave: 134756
 
 
 
@@ -29,6 +29,7 @@ Usuario: americas
 Clave: 254165
 
 
+Documentación Obsidian
 
 
 
@@ -41,9 +42,12 @@ Clave: 254165
 
 
 
+Usuario: Prueba 04
+Clave: 124756
 
 
-
+Usuario: Prueba 03
+Clave: 124656
 
 
 GYMprueba

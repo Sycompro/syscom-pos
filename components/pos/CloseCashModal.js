@@ -1,9 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
     X, Lock, Calculator, Banknote, CreditCard, 
-    Save, AlertCircle, TrendingDown, ArrowRight, 
-    FileText, ShoppingBag, Hash, Receipt
+    Save, AlertCircle, Printer, FileText, 
+    ShoppingBag, Hash, Receipt, User, Store, Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -11,6 +11,7 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isClosing, setIsClosing] = useState(false);
+    const reportRef = useRef();
 
     useEffect(() => {
         if (isOpen && idApeCaj) {
@@ -33,48 +34,58 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
         }
     };
 
+    const handlePrint = () => {
+        const content = reportRef.current.innerHTML;
+        const win = window.open('', '_blank');
+        win.document.write(`
+            <html>
+                <head>
+                    <title>Reporte de Cierre - Sesión #${idApeCaj}</title>
+                    <style>
+                        body { font-family: 'Courier New', Courier, monospace; font-size: 12px; padding: 20px; width: 300px; }
+                        .text-center { text-align: center; }
+                        .bold { font-weight: bold; }
+                        .divider { border-top: 1px dashed #000; margin: 10px 0; }
+                        .flex { display: flex; justify-content: space-between; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { text-align: left; }
+                        .section-title { font-weight: bold; text-transform: uppercase; margin-top: 15px; }
+                    </style>
+                </head>
+                <body>${content}</body>
+            </html>
+        `);
+        win.document.close();
+        win.print();
+    };
+
     const handleClose = async () => {
-        if (!confirm('⚠️ ATENCIÓN: ¿Está seguro que desea CERRAR LA CAJA definitivamente?\n\nEsta acción finalizará su jornada actual y no se puede deshacer.')) return;
+        if (!confirm('⚠️ CONFIRMACIÓN DE CIERRE: ¿Desea finalizar la jornada actual?\n\nSe generará el arqueo definitivo en Navasoft.')) return;
         
         setIsClosing(true);
         try {
-            // Mapear el resumen dinámico para el guardado
             const totals = [];
+            // Efectivo
+            const cashVal = summary.payments.find(p => p.method === 'EFECTIVO')?.total || 0;
+            totals.push({ selpago: 1, codtar: '', totnsis: cashVal, totnfis: cashVal });
 
-            // 1. Efectivo
-            const cashRow = summary.salesBreakdown.find(s => s.method === 'EFECTIVO');
-            if (cashRow) {
-                totals.push({ selpago: 1, codtar: '', totnsis: cashRow.total, totnfis: cashRow.total });
-            }
-
-            // 2. Digitales (Dinámicos desde la DB)
-            const digitalPayments = summary.salesBreakdown.filter(s => s.method !== 'EFECTIVO');
-            digitalPayments.forEach(p => {
-                totals.push({
-                    selpago: 3, // Generalmente tarjeta para arqueo
-                    codtar: p.codtar,
-                    totnsis: p.total,
-                    totnfis: p.total
-                });
+            // Otros medios
+            summary.payments.filter(p => p.method !== 'EFECTIVO').forEach(p => {
+                totals.push({ selpago: 3, codtar: '01', totnsis: p.total, totnfis: p.total });
             });
 
             const res = await fetch('/api/cash/close', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    idapecaj: idApeCaj,
-                    totals
-                })
+                body: JSON.stringify({ idapecaj: idApeCaj, totals })
             });
             
             const data = await res.json();
             if (data.success) {
                 onConfirm(summary);
-            } else {
-                alert('Error al cerrar: ' + data.error);
             }
         } catch (e) {
-            alert('Error de conexión al cerrar caja');
+            alert('Error al cerrar caja');
         } finally {
             setIsClosing(false);
         }
@@ -82,169 +93,157 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
 
     if (!isOpen) return null;
 
+    const expectedCash = (summary?.opening || 0) + (summary?.payments.find(p => p.method === 'EFECTIVO')?.total || 0) - (summary?.expenses || 0);
+
     return (
         <div style={overlayStyle}>
-            <motion.div 
-                initial={{ y: 50, opacity: 0 }} 
-                animate={{ y: 0, opacity: 1 }} 
-                style={modalStyle}
-            >
-                {/* HEADER */}
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={modalStyle}>
+                
+                {/* HEADER DINÁMICO */}
                 <div style={headerStyle}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={iconBoxStyle}><Lock size={20} /></div>
+                        <div style={iconBoxStyle}><FileText size={20} /></div>
                         <div>
-                            <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>Cierre de Jornada</h2>
-                            <p style={{ fontSize: '12px', color: '#64748b', margin: 0, fontWeight: 500 }}>ID Sesión: #{idApeCaj} • {summary?.user || '...'}</p>
+                            <h2 style={{ fontSize: '18px', fontWeight: 900, margin: 0 }}>Reporte de Ventas (Z)</h2>
+                            <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Arqueo Final de Sesión</p>
                         </div>
                     </div>
-                    <button onClick={onClose} style={closeBtnStyle}><X size={20} /></button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={handlePrint} style={printBtnStyle}><Printer size={18} /></button>
+                        <button onClick={onClose} style={closeBtnStyle}><X size={20} /></button>
+                    </div>
                 </div>
 
                 <div style={scrollAreaStyle}>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '60px' }}>
-                            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                                <Calculator size={40} style={{ color: '#3b82f6', opacity: 0.5 }} />
-                            </motion.div>
-                            <p style={{ fontWeight: 700, color: '#64748b', marginTop: '16px' }}>Consolidando transacciones...</p>
-                        </div>
+                        <div style={loadingAreaStyle}><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Calculator size={30} /></motion.div></div>
                     ) : summary && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px' }}>
+                        <div ref={reportRef} style={reportContentStyle}>
                             
-                            {/* MINI DASHBOARD */}
-                            <div style={summaryGridStyle}>
-                                <div style={summaryCardStyle}>
-                                    <p style={labelStyle}>Apertura</p>
-                                    <p style={valueStyle}>S/ {summary.opening.toFixed(2)}</p>
+                            {/* ENCABEZADO EMPRESA */}
+                            <div className="text-center" style={{ marginBottom: '20px' }}>
+                                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 900 }}>{summary.header.company}</h3>
+                                <p style={{ margin: 0, fontSize: '12px' }}>RUC: {summary.header.ruc}</p>
+                                <p style={{ margin: 0, fontSize: '11px' }}>{summary.header.address}</p>
+                                <div style={{ borderTop: '1px dashed #000', margin: '12px 0' }} />
+                                <p style={{ margin: 0, fontWeight: 900 }}>REPORTE DE VENTAS (Z)</p>
+                                <p style={{ margin: 0 }}>CAJA: {summary.header.pointOfSale}</p>
+                            </div>
+
+                            {/* SECCIÓN 1: DOCUMENTOS EMITIDOS */}
+                            <div style={sectionStyle}>
+                                <p style={sectionTitleStyle}>DOCS. EMITIDOS</p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, fontSize: '11px', marginBottom: '4px' }}>
+                                    <span>Tipo</span>
+                                    <span>Cant.</span>
+                                    <span>Rango</span>
+                                    <span>Total</span>
                                 </div>
-                                <div style={{ ...summaryCardStyle, background: '#f0fdf4', border: 'none' }}>
-                                    <p style={{ ...labelStyle, color: '#10b981' }}>Ventas</p>
-                                    <p style={{ ...valueStyle, color: '#065f46' }}>S/ {summary.totalSales.toFixed(2)}</p>
-                                </div>
-                                <div style={{ ...summaryCardStyle, background: '#fef2f2', border: 'none' }}>
-                                    <p style={{ ...labelStyle, color: '#ef4444' }}>Gastos</p>
-                                    <p style={{ ...valueStyle, color: '#991b1b' }}>S/ {summary.expenses.toFixed(2)}</p>
+                                {summary.documents.map((d, i) => (
+                                    <div key={i} style={itemRowStyle}>
+                                        <span style={{ width: '80px' }}>{d.docName.substring(0, 10)}</span>
+                                        <span style={{ width: '30px', textAlign: 'center' }}>{d.quantity}</span>
+                                        <span style={{ flex: 1, textAlign: 'center', fontSize: '10px' }}>{d.rangeStart.split('-')[1]}-{d.rangeEnd.split('-')[1]}</span>
+                                        <span style={{ width: '60px', textAlign: 'right' }}>{d.total.toFixed(2)}</span>
+                                    </div>
+                                ))}
+                                <div style={itemRowStyle}>
+                                    <span>Anulados</span>
+                                    <span>{summary.nullified.quantity}</span>
+                                    <span style={{ flex: 1 }}></span>
+                                    <span>{summary.nullified.total.toFixed(2)}</span>
                                 </div>
                             </div>
 
-                            {/* DOCUMENTOS EMITIDOS */}
-                            <div style={sectionBoxStyle}>
-                                <div style={sectionHeaderStyle}>
-                                    <FileText size={16} />
-                                    <span>Documentos Emitidos</span>
+                            {/* SECCIÓN 2: LIQUIDACIÓN VENTA */}
+                            <div style={sectionStyle}>
+                                <p style={sectionTitleStyle}>LIQUIDACION VTA</p>
+                                {summary.liquidation.map((l, i) => (
+                                    <div key={i} style={itemRowStyle}>
+                                        <span>Vta. {l.condicion}</span>
+                                        <span style={{ fontWeight: 900 }}>S/ {l.total.toFixed(2)}</span>
+                                    </div>
+                                ))}
+                                <div style={{ ...itemRowStyle, borderTop: '1px solid #000', marginTop: '4px', paddingTop: '4px', fontWeight: 900 }}>
+                                    <span>TOTAL VENTA</span>
+                                    <span>S/ {summary.totalSales.toFixed(2)}</span>
                                 </div>
-                                {summary.docBreakdown.map((d, idx) => (
-                                    <div key={idx} style={rowStyle}>
-                                        <div>
-                                            <p style={rowTitleStyle}>{d.docName}</p>
-                                            <p style={rowSubStyle}>{d.rangeStart} al {d.rangeEnd}</p>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <p style={rowValueStyle}>{d.quantity} docs</p>
-                                            <p style={{ ...rowSubStyle, fontWeight: 700 }}>S/ {d.total.toFixed(2)}</p>
-                                        </div>
+                            </div>
+
+                            {/* SECCIÓN 3: POR COBRANZA (MEDIOS DE PAGO) */}
+                            <div style={sectionStyle}>
+                                <p style={sectionTitleStyle}>POR COBRANZA</p>
+                                {summary.payments.map((p, i) => (
+                                    <div key={i} style={itemRowStyle}>
+                                        <span>{p.method.trim()}</span>
+                                        <span>S/ {p.total.toFixed(2)}</span>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* DESGLOSE DE PAGOS (DINÁMICO) */}
-                            <div style={sectionBoxStyle}>
-                                <div style={sectionHeaderStyle}>
-                                    <CreditCard size={16} />
-                                    <span>Liquidación de Caja</span>
+                            {/* SECCIÓN 4: ARQUEO DE CAJA */}
+                            <div style={sectionStyle}>
+                                <p style={sectionTitleStyle}>ARQUEO EFECTIVO</p>
+                                <div style={itemRowStyle}><span>Apertura</span><span>S/ {summary.opening.toFixed(2)}</span></div>
+                                <div style={itemRowStyle}><span>Ventas Efectivo</span><span>S/ {(summary.payments.find(p => p.method === 'EFECTIVO')?.total || 0).toFixed(2)}</span></div>
+                                <div style={itemRowStyle}><span>Egresos/Gastos</span><span>S/ {summary.expenses.toFixed(2)}</span></div>
+                                <div style={{ ...itemRowStyle, background: '#f8fafc', padding: '8px', borderRadius: '8px', marginTop: '8px' }}>
+                                    <span style={{ fontWeight: 900 }}>EFECTIVO EN CAJA</span>
+                                    <span style={{ fontWeight: 900, color: '#2563eb' }}>S/ {expectedCash.toFixed(2)}</span>
                                 </div>
-                                {summary.salesBreakdown.map((s, idx) => (
-                                    <div key={idx} style={rowStyle}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            {s.method === 'EFECTIVO' ? <Banknote size={14} /> : <Smartphone size={14} />}
-                                            <span style={rowTitleStyle}>{s.method.trim()}</span>
-                                        </div>
-                                        <span style={rowValueStyle}>S/ {s.total.toFixed(2)}</span>
+                            </div>
+
+                            {/* SECCIÓN 5: VENTA POR LÍNEAS */}
+                            <div style={sectionStyle}>
+                                <p style={sectionTitleStyle}>VENTA POR LINEA</p>
+                                {summary.lines.map((l, i) => (
+                                    <div key={i} style={itemRowStyle}>
+                                        <span style={{ fontSize: '10px' }}>{l.category.substring(0, 20)}</span>
+                                        <span>{l.percentage.toFixed(1)}%</span>
+                                        <span style={{ fontWeight: 700 }}>{l.total.toFixed(2)}</span>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* VENTA POR LÍNEAS */}
-                            <div style={sectionBoxStyle}>
-                                <div style={sectionHeaderStyle}>
-                                    <ShoppingBag size={16} />
-                                    <span>Venta por Categoría</span>
-                                </div>
-                                {summary.lineBreakdown.map((l, idx) => (
-                                    <div key={idx} style={rowStyle}>
-                                        <span style={rowTitleStyle}>{l.category.trim()}</span>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <span style={rowValueStyle}>S/ {l.total.toFixed(2)}</span>
-                                            <p style={{ ...rowSubStyle, fontSize: '9px' }}>{l.itemsSold} items</p>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div style={{ textAlign: 'center', marginTop: '30px', borderTop: '1px dashed #cbd5e1', paddingTop: '20px' }}>
+                                <p style={{ fontSize: '10px', color: '#94a3b8', margin: 0 }}>Reporte generado por WEB POS</p>
+                                <p style={{ fontSize: '10px', color: '#94a3b8', margin: 0 }}>{new Date().toLocaleString()}</p>
                             </div>
 
-                            {/* TOTAL ESPERADO (FOOTER MODAL) */}
-                            <div style={totalBoxStyle}>
-                                <div>
-                                    <p style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: '4px' }}>Efectivo en Caja</p>
-                                    <p style={{ fontSize: '32px', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>S/ {summary.expectedFinal.toFixed(2)}</p>
-                                </div>
-                                <div style={finalIconStyle}><Banknote size={40} /></div>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <button 
-                                    onClick={onClose} 
-                                    style={{
-                                        ...closeBtnActionStyle,
-                                        background: '#f8fafc',
-                                        color: '#64748b',
-                                        boxShadow: 'none'
-                                    }}
-                                >
-                                    Seguir Vendiendo
-                                </button>
-                                <button 
-                                    onClick={handleClose} 
-                                    disabled={isClosing}
-                                    style={{
-                                        ...closeBtnActionStyle,
-                                        background: isClosing ? '#94a3b8' : '#ef4444'
-                                    }}
-                                >
-                                    {isClosing ? 'Cerrando sesión...' : 'FINALIZAR JORNADA Y CERRAR CAJA'}
-                                </button>
-                            </div>
                         </div>
                     )}
+                </div>
+
+                {/* FOOTER ACCIONES */}
+                <div style={footerStyle}>
+                    <button onClick={onClose} style={cancelBtnStyle}>Cerrar Vista</button>
+                    <button 
+                        onClick={handleClose} 
+                        disabled={isClosing}
+                        style={{ ...confirmBtnStyle, background: isClosing ? '#94a3b8' : '#ef4444' }}
+                    >
+                        {isClosing ? 'Cerrando...' : 'FINALIZAR Y CERRAR CAJA'}
+                    </button>
                 </div>
             </motion.div>
         </div>
     );
 }
 
-// Estilos
-const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' };
-const modalStyle = { background: '#fff', borderRadius: '32px', width: '100%', maxWidth: '480px', maxHeight: '90vh', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', overflow: 'hidden', display: 'flex', flexDirection: 'column' };
-const scrollAreaStyle = { overflowY: 'auto', flex: 1 };
-const headerStyle = { padding: '24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', position: 'sticky', top: 0, zIndex: 10 };
-const iconBoxStyle = { width: '40px', height: '40px', background: '#fef2f2', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' };
-const closeBtnStyle = { background: '#f1f5f9', border: 'none', color: '#94a3b8', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' };
+const modalStyle = { background: '#fff', borderRadius: '28px', width: '100%', maxWidth: '440px', maxHeight: '90vh', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', overflow: 'hidden', display: 'flex', flexDirection: 'column' };
+const scrollAreaStyle = { overflowY: 'auto', flex: 1, padding: '20px' };
+const headerStyle = { padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+const iconBoxStyle = { width: '40px', height: '40px', background: '#eff6ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' };
+const closeBtnStyle = { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' };
+const printBtnStyle = { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '8px', color: '#64748b', cursor: 'pointer' };
 
-const summaryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' };
-const summaryCardStyle = { padding: '16px 12px', background: '#f8fafc', borderRadius: '18px', textAlign: 'center' };
-const labelStyle = { fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' };
-const valueStyle = { fontSize: '16px', fontWeight: 900, color: '#0f172a', margin: 0 };
+const reportContentStyle = { padding: '10px', color: '#000', fontFamily: 'monospace' };
+const sectionStyle = { marginBottom: '24px' };
+const sectionTitleStyle = { fontSize: '11px', fontWeight: 900, color: '#000', borderBottom: '1px solid #000', marginBottom: '8px', paddingBottom: '2px' };
+const itemRowStyle = { display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' };
 
-const sectionBoxStyle = { background: '#fff', borderRadius: '24px', padding: '20px', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' };
-const sectionHeaderStyle = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px', opacity: 0.7 };
-const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f8fafc' };
-const rowTitleStyle = { fontSize: '13px', fontWeight: 700, color: '#1e293b', margin: 0 };
-const rowSubStyle = { fontSize: '11px', color: '#94a3b8', margin: 0 };
-const rowValueStyle = { fontSize: '14px', fontWeight: 800, color: '#0f172a', margin: 0 };
-
-const totalBoxStyle = { background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', padding: '32px', borderRadius: '28px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 40px rgba(37,99,235,0.3)' };
-const finalIconStyle = { opacity: 0.2, transform: 'rotate(-10deg)' };
-const closeBtnActionStyle = { width: '100%', color: '#fff', border: 'none', borderRadius: '20px', padding: '20px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' };
-
-// Componentes adicionales de Lucide que no estaban importados
-function Smartphone({ size }) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg> }
+const footerStyle = { padding: '20px 24px', background: '#f8fafc', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '12px' };
+const cancelBtnStyle = { flex: 1, background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '12px', fontWeight: 700, cursor: 'pointer' };
+const confirmBtnStyle = { flex: 2, color: '#fff', border: 'none', borderRadius: '14px', padding: '12px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(239,68,68,0.3)' };
+const loadingAreaStyle = { display: 'flex', justifyContent: 'center', padding: '60px', color: '#3b82f6' };

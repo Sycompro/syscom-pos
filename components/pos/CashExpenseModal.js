@@ -5,13 +5,38 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
     const [concepto, setConcepto] = useState('');
     const [monto, setMonto] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isAdelanto, setIsAdelanto] = useState(false);
+    
+    const [reasons, setReasons] = useState([]);
+    const [selectedReasonId, setSelectedReasonId] = useState('');
     
     // Estados para adelanto de sueldo
     const [empSearch, setEmpSearch] = useState('');
     const [employees, setEmployees] = useState([]);
     const [selectedEmp, setSelectedEmp] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchReasons();
+        }
+    }, [isOpen]);
+
+    const fetchReasons = async () => {
+        try {
+            const res = await fetch('/api/cash/expenses/reasons');
+            const data = await res.json();
+            setReasons(data);
+            if (data.length > 0) {
+                const defaultReason = data.find(r => r.name.toUpperCase().includes('DIVERSO')) || data[0];
+                setSelectedReasonId(defaultReason.id);
+            }
+        } catch (e) {
+            console.error('Error fetching reasons:', e);
+        }
+    };
+
+    const currentReason = reasons.find(r => r.id === selectedReasonId);
+    const isAdelanto = currentReason?.name.toUpperCase().includes('ADELANTO');
 
     useEffect(() => {
         if (isAdelanto && empSearch.length > 2) {
@@ -54,7 +79,7 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
                     monto: finalMonto, 
                     idapecaj,
                     codpto,
-                    codmotivo: isAdelanto ? '07' : '06',
+                    codmotivo: selectedReasonId,
                     nroctacte: selectedEmp?.codigo_emp || ''
                 })
             });
@@ -77,7 +102,6 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
     const resetForm = () => {
         setConcepto('');
         setMonto('');
-        setIsAdelanto(false);
         setEmpSearch('');
         setSelectedEmp(null);
     };
@@ -94,20 +118,18 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
                 </div>
 
                 <div style={bodyStyle}>
-                    {/* Toggle Tipo de Gasto */}
-                    <div style={toggleContainerStyle}>
-                        <button 
-                            onClick={() => setIsAdelanto(false)}
-                            style={{ ...toggleBtnStyle, background: !isAdelanto ? '#3b82f6' : 'transparent', color: !isAdelanto ? '#fff' : '#64748b' }}
+                    {/* Selector de Motivo Dinámico */}
+                    <div style={inputGroupStyle}>
+                        <label style={labelStyle}>Motivo del Movimiento</label>
+                        <select 
+                            value={selectedReasonId}
+                            onChange={e => setSelectedReasonId(e.target.value)}
+                            style={inputStyle}
                         >
-                            Gasto General
-                        </button>
-                        <button 
-                            onClick={() => setIsAdelanto(true)}
-                            style={{ ...toggleBtnStyle, background: isAdelanto ? '#3b82f6' : 'transparent', color: isAdelanto ? '#fff' : '#64748b' }}
-                        >
-                            Adelanto Sueldo
-                        </button>
+                            {reasons.map(r => (
+                                <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                        </select>
                     </div>
 
                     {!isAdelanto ? (

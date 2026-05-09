@@ -7,7 +7,7 @@ import {
     Search, ShoppingCart, User, Plus, Minus, X, Check, 
     ChevronRight, Loader2, UserPlus, ShieldCheck, Trash2, 
     LayoutGrid, Clock, Settings, LogOut, ShoppingBag, Zap, Sparkles, Package,
-    Lock, Phone, Users, ArrowRight
+    Lock, Phone, Users, ArrowRight, Receipt, Percent, Calculator
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -15,9 +15,11 @@ import Image from 'next/image';
 import Sidebar from '@/components/pos/Sidebar';
 import ProductCard from '@/components/pos/ProductCard';
 import CartItem from '@/components/pos/CartItem';
+import QuickModal from '@/components/pos/QuickModal';
 import PaymentSection from '@/components/pos/PaymentSection';
 import SuccessModal from '@/components/pos/SuccessModal';
 import CustomerManualModal from '@/components/pos/CustomerManualModal';
+import CustomerErpModal from '@/components/pos/CustomerErpModal';
 import CustomDatePicker from '@/components/pos/CustomDatePicker';
 import CartDetailsModal from '@/components/pos/CartDetailsModal';
 import SalesHistoryModal from '@/components/pos/SalesHistoryModal';
@@ -37,6 +39,7 @@ export default function POSPage() {
     const [cart, setCart] = useState([]);
     const [warehouse, setWarehouse] = useState(session?.sedeId || '01');
     const [idApeCaj, setIdApeCaj] = useState(null);
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', value: '', showButtons: true, onConfirm: () => {} });
     const [isOpeningCash, setIsOpeningCash] = useState(false);
     const [openingAmount, setOpeningAmount] = useState('');
     const [docType, setDocType] = useState('65'); // Nota de Venta por defecto
@@ -55,6 +58,9 @@ export default function POSPage() {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [showCloseModal, setShowCloseModal] = useState(false);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [showErpModal, setShowErpModal] = useState(false);
+    const [erpModalData, setErpModalData] = useState(null);
+    const [searchType, setSearchType] = useState('DNI'); // 'DNI' o 'RUC'
     const [manualDoc, setManualDoc] = useState('');
     const [orderSuccess, setOrderSuccess] = useState(null);
     const [exchangeRate, setExchangeRate] = useState(1);
@@ -154,24 +160,38 @@ export default function POSPage() {
     const handleCustomerSearch = async (e) => {
         const val = e.target.value.replace(/[^0-9]/g, '');
         setCustomerSearch(val);
+        
+        const targetLength = searchType === 'DNI' ? 8 : 11;
+
         if (val.length === 11) setDocType('01');
-        if (val.length === 8 || val.length === 11) {
+        if (val.length === targetLength) {
             setIsSearchingCustomer(true);
             try {
                 const res = await fetch(`/api/customers/search?q=${val}`);
                 const { data } = await res.json();
                 if (data) {
-                    setCustomer({
-                        name: data.nomcli,
-                        ruc: data.ruccli || data.nrodni,
-                        code: data.codcli,
-                        address: data.address,
-                        phone: data.phone || '',
-                        birthdate: data.birthdate || '',
-                        expirationDate: data.fecfinpres,
-                        daysRemaining: data.daysRemaining,
-                        isNew: data.isNew
-                    });
+                    if (data.isNew && data.source === 'EXTERNAL') {
+                        setErpModalData({
+                            ruc: data.ruccli,
+                            name: data.nomcli,
+                            address: data.address,
+                            phone: data.phone || '',
+                            birthdate: data.birthdate || ''
+                        });
+                        setShowErpModal(true);
+                    } else {
+                        setCustomer({
+                            name: data.nomcli,
+                            ruc: data.ruccli || data.nrodni,
+                            code: data.codcli,
+                            address: data.address,
+                            phone: data.phone || '',
+                            birthdate: data.birthdate || '',
+                            expirationDate: data.fecfinpres,
+                            daysRemaining: data.daysRemaining,
+                            isNew: data.isNew
+                        });
+                    }
                 } else {
                     setManualDoc(val);
                     setCustomer({ name: 'NO ENCONTRADO', ruc: val, code: 'MANUAL', isNew: true, phone: '', birthdate: '' });
@@ -190,7 +210,38 @@ export default function POSPage() {
     };
 
     const updateQuantity = (id, delta) =>
-        setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i));
+        setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.max(0.01, i.quantity + delta) } : i));
+
+    const updatePrice = (id, newPrice) =>
+        setCart(prev => prev.map(i => i.id === id ? { ...i, price: Math.max(0, newPrice) } : i));
+
+    const applyGlobalDiscount = () => {
+        setModal({
+            show: true,
+            title: 'Descuento Global (S/)',
+            message: `Ingrese el monto total a descontar de la venta (Total actual: S/ ${total.toFixed(2)}):`,
+            type: 'prompt',
+            value: '0',
+            onConfirm: (val) => {
+                const discountAmount = parseFloat(val);
+                if (!isNaN(discountAmount) && discountAmount > 0 && discountAmount < total) {
+                    const factor = (total - discountAmount) / total;
+                    setCart(prev => prev.map(i => ({ 
+                        ...i, 
+                        price: parseFloat((i.price * factor).toFixed(4)) 
+                    })));
+                    showAlert('Descuento Aplicado', `Se ha aplicado un descuento de S/ ${discountAmount.toFixed(2)} al ticket.`, 'success');
+                } else if (discountAmount >= total) {
+                    showAlert('Monto Inválido', 'El descuento no puede ser mayor o igual al total de la venta.', 'warning');
+                }
+                setModal(prev => ({ ...prev, show: false }));
+            }
+        });
+    };
+
+    const showAlert = (title, message, type = 'info', showButtons = true) => {
+        setModal({ show: true, title, message, type, value: '', showButtons, onConfirm: () => setModal(prev => ({ ...prev, show: false })) });
+    };
 
     const removeFromCart = (id) => setCart(prev => prev.filter(i => i.id !== id));
 
@@ -205,9 +256,17 @@ export default function POSPage() {
                 body: JSON.stringify({ amount: parseFloat(openingAmount) })
             });
             const data = await res.json();
-            if (data.success) setIdApeCaj(data.id);
-            else alert('Error al abrir caja');
-        } catch { alert('Error de conexión'); }
+            if (data.success) {
+                setIdApeCaj(data.id);
+                // Mostrar alerta sin botones que se cierra sola en 1.5s
+                showAlert('Caja Abierta', 'La sesión de caja se inició correctamente.', 'success', false);
+                setTimeout(() => {
+                    setModal(prev => ({ ...prev, show: false }));
+                }, 1500);
+            } else {
+                showAlert('Error', 'No se pudo abrir la caja.', 'error');
+            }
+        } catch { showAlert('Error', 'Error de conexión con el servidor.', 'error'); }
         finally { setIsOpeningCash(false); }
     };
 
@@ -250,11 +309,12 @@ export default function POSPage() {
         if (!cart.length || !idApeCaj) return;
         setIsFinalizing(true);
         try {
-            const { cashReceived, changeGiven } = paymentInfo;
+            const { cashReceived, changeGiven, isMixed } = paymentInfo;
             const res = await fetch('/api/sales/finalize', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     docType, pointOfSale: '01', 
+                    isMixed,
                     codcli: customer.code === 'MANUAL' ? '000000' : customer.code,
                     nomcli: customer.name, 
                     ruccli: customer.ruc, 
@@ -298,8 +358,10 @@ export default function POSPage() {
                 setDocType('65'); // Volver a Nota por defecto
                 setPaymentMethod(1); // Volver a Efectivo por defecto
                 setSelectedTar(''); // Limpiar tarjeta seleccionada
-            } else alert('Error: ' + result.error);
-        } catch (err) { alert('Error al procesar la venta'); }
+            } else {
+                showAlert('Error', result.error || 'No se pudo procesar la venta.', 'error');
+            }
+        } catch (err) { showAlert('Error', 'Ocurrió un error crítico al procesar la venta.', 'error'); }
         finally { setIsFinalizing(false); }
     };
 
@@ -431,7 +493,7 @@ export default function POSPage() {
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden' }}>
                                 
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
-                                <div style={{ background: '#fff', padding: '10px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ background: '#fff', padding: '16px 24px', minHeight: '80px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                         <div style={{ background: '#eff6ff', padding: '6px 12px', borderRadius: '8px', border: '1px solid #dbeafe' }}>
                                             <p style={{ fontSize: '10px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
@@ -458,16 +520,45 @@ export default function POSPage() {
                                     </div>
                                 </div>
 
-                                {/* LÍNEA 2: BARRA CLIENTE POS (EXISTENTE) */}
-                                <div style={{ background: '#fff', padding: '12px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <div style={{ width: '180px', position: 'relative' }}>
+                                {/* LÍNEA 2: BARRA CLIENTE POS (PROFESIONAL) */}
+                                <div style={{ background: '#fff', padding: '12px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    
+                                    {/* Selector de Tipo DNI/RUC */}
+                                    <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '10px', padding: '3px', gap: '2px', border: '1px solid #e2e8f0' }}>
+                                        {['DNI', 'RUC'].map(type => (
+                                            <button 
+                                                key={type}
+                                                onClick={() => {
+                                                    setSearchType(type);
+                                                    setCustomerSearch('');
+                                                }}
+                                                style={{ 
+                                                    padding: '6px 12px', 
+                                                    borderRadius: '8px', 
+                                                    border: 'none', 
+                                                    cursor: 'pointer', 
+                                                    fontSize: '11px', 
+                                                    fontWeight: 800, 
+                                                    background: searchType === type ? '#fff' : 'transparent',
+                                                    color: searchType === type ? '#3b82f6' : '#64748b',
+                                                    boxShadow: searchType === type ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div style={{ width: '200px', position: 'relative' }}>
                                         <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={14} />
                                         <input 
                                             type="text" 
-                                            placeholder="DNI o RUC..." 
+                                            placeholder={searchType === 'DNI' ? "8 dígitos..." : "11 dígitos..."}
                                             value={customerSearch}
                                             onChange={handleCustomerSearch}
-                                            style={{ width: '100%', padding: '10px 12px 10px 36px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 600, outline: 'none' }}
+                                            maxLength={searchType === 'DNI' ? 8 : 11}
+                                            style={{ width: '100%', padding: '10px 12px 10px 36px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '13px', fontWeight: 700, outline: 'none' }}
                                         />
                                         {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '10px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={14} />}
                                     </div>
@@ -490,16 +581,6 @@ export default function POSPage() {
                                     </button>
 
                                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '16px', borderLeft: '1px solid #f1f5f9', paddingLeft: '20px' }}>
-                                        <div style={{ minWidth: '130px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
-                                            <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Vendedor</p>
-                                            <select 
-                                                value={selectedSalesperson} 
-                                                onChange={e => setSelectedSalesperson(e.target.value)}
-                                                style={{ width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 8px', fontSize: '11px', fontWeight: 700, outline: 'none', color: '#1e293b' }}
-                                            >
-                                                {salespeople.map(v => <option key={v.id} value={v.id}>{v.name.trim()}</option>)}
-                                            </select>
-                                        </div>
 
                                         <div style={{ width: '120px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
                                             <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Celular</p>
@@ -539,12 +620,6 @@ export default function POSPage() {
                                             </div>
                                         </div>
                                     </div>
-
-                                    {customer.isNew && (
-                                        <button onClick={registerCustomer} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', fontSize: '11px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <UserPlus size={14} /> Registrar
-                                        </button>
-                                    )}
                                 </div>
 
                                 {/* BARRA SUPERIOR POS (AHORA SEGUNDO) */}
@@ -552,6 +627,15 @@ export default function POSPage() {
                                     <div style={{ flex: 1, position: 'relative' }}>
                                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                         <input type="text" placeholder="Busca productos..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '10px 12px 10px 40px', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none' }} />
+                                    </div>
+                                    <div style={{ minWidth: '180px' }}>
+                                        <select 
+                                            value={selectedSalesperson} 
+                                            onChange={e => setSelectedSalesperson(e.target.value)}
+                                            style={{ width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: 800, outline: 'none', color: '#1e293b' }}
+                                        >
+                                            {salespeople.map(v => <option key={v.id} value={v.id}>VENDEDOR: {v.name.trim()}</option>)}
+                                        </select>
                                     </div>
                                     <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', gap: '4px' }}>
                                         {['03', '01', '65'].map(t => (
@@ -588,22 +672,29 @@ export default function POSPage() {
 
                             {/* CARRITO POS */}
                             <div style={{ width: '360px', background: '#fff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-                                <div style={{ padding: '24px 24px 12px', borderBottom: '1px solid #f1f5f9' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                <div style={{ padding: '16px 24px', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <div style={{ background: '#3b82f6', color: '#fff', borderRadius: '12px', padding: '8px' }}>
                                                 <ShoppingCart size={20} />
                                             </div>
-                                            <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket de Venta ({ (cart || []).length })</h2>
+                                            <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket ({ (cart || []).length })</h2>
                                         </div>
                                         <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => setCart([])} style={{ background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '10px', padding: '8px', cursor: 'pointer' }}><Trash2 size={18} /></button>
-                                            <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '10px', padding: '8px', cursor: 'pointer' }}><LayoutGrid size={18} /></button>
+                                            <button onClick={applyGlobalDiscount} style={{ background: '#f0fdf4', border: 'none', color: '#16a34a', borderRadius: '10px', padding: '8px', cursor: 'pointer' }} title="Descuento Global"><Percent size={18} /></button>
+                                            <button onClick={() => setCart([])} style={{ background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '10px', padding: '8px', cursor: 'pointer' }} title="Vaciar Carrito"><Trash2 size={18} /></button>
+                                            <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '10px', padding: '8px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={18} /></button>
                                         </div>
-                                    </div>
                                 </div>
                                 <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-                                    {(cart || []).map(item => <CartItem key={item.id} item={item} onUpdateQty={updateQuantity} onRemove={removeFromCart} />)}
+                                    {(cart || []).map(item => (
+                                        <CartItem 
+                                            key={item.id} 
+                                            item={item} 
+                                            onUpdateQty={updateQuantity} 
+                                            onRemove={removeFromCart}
+                                            onUpdatePrice={updatePrice}
+                                        />
+                                    ))}
                                 </div>
                                 <PaymentSection 
                                     total={total} 
@@ -613,6 +704,7 @@ export default function POSPage() {
                                     onFinalize={handleFinalizeSale} 
                                     loading={isFinalizing} 
                                     cartEmpty={(cart || []).length === 0} 
+                                    onAlert={showAlert}
                                 />
                             </div>
                         </motion.div>
@@ -967,6 +1059,33 @@ export default function POSPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <QuickModal 
+                show={modal.show}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+                showButtons={modal.showButtons}
+                inputValue={modal.value}
+                onInputChange={(val) => setModal(prev => ({ ...prev, value: val }))}
+                onClose={() => setModal(prev => ({ ...prev, show: false }))}
+                onConfirm={() => modal.onConfirm(modal.value)}
+            />
+            <CustomerErpModal 
+                isOpen={showErpModal}
+                onClose={() => setShowErpModal(false)}
+                initialData={erpModalData}
+                onSave={(newCli) => {
+                    setCustomer({
+                        name: newCli.nomcli,
+                        ruc: newCli.ruccli,
+                        code: newCli.code,
+                        phone: newCli.phone,
+                        birthdate: newCli.birthdate,
+                        isNew: false
+                    });
+                    setCustomerSearch(newCli.ruccli);
+                }}
+            />
         </div>
     );
 }

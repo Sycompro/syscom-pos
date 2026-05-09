@@ -14,9 +14,19 @@ export async function POST(request) {
         }
 
         const pool = await getConnection(session.user.company);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0];
         const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+        
+        // Formato exacto de 11 caracteres para Navasoft: "YY HH:mm AM" (ej: "26 03:45 PM")
+        const yearYY = now.getFullYear().toString().slice(-2);
+        const hours = now.getHours();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const hours12 = (hours % 12 || 12).toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const formattedHora = `${yearYY} ${hours12}:${minutes} ${ampm}`;
 
         // --- DETECCIÓN DE ESQUEMA ---
         let schemaType = 'ERP';
@@ -71,18 +81,15 @@ export async function POST(request) {
 
                 // 2. INSERTAR APERTURA DE CAJA
                 const result = await transaction.request()
-                    .input('fecape', sql.DateTime, now)
+                    .input('fecape', sql.VarChar(10), dateStr) // FORZAR STRING PARA EVITAR DESFASE HORARIO
+                    .input('hora', sql.VarChar(12), formattedHora)
                     .input('codpto', sql.Char(2), sedeCode)
                     .input('codusu', sql.Char(3), userCode.substring(0, 3))
                     .input('apesol', sql.Decimal(18, 2), amount || 0)
                     .input('nropla', sql.Char(12), nropla)
                     .query(`
-                        DECLARE @formattedHora VARCHAR(12) = RIGHT(CAST(YEAR(GETDATE()) AS VARCHAR), 2) + ' ' + LTRIM(RIGHT(CONVERT(VARCHAR, GETDATE(), 100), 7));
-                        -- Asegurar que no haya dobles espacios
-                        SET @formattedHora = REPLACE(@formattedHora, '  ', ' ');
-
                         INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur, nropla)
-                        VALUES (@fecape, @formattedHora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, '            ');
+                        VALUES (@fecape, @hora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, @nropla);
                         SELECT SCOPE_IDENTITY() as id;
                     `);
                 
@@ -90,10 +97,11 @@ export async function POST(request) {
 
                 // 3. ACTUALIZAR TABLA MAESTRA tbl01pto (Para visibilidad en monitores ERP)
                 await transaction.request()
-                    .input('codpto', sql.Char(10), sedeCode) // Usamos Char mayor para cubrir cualquier padding
+                    .input('codpto', sql.Char(10), sedeCode) 
                     .input('idapecaj', sql.Int, newId)
                     .input('apesol', sql.Decimal(18, 2), amount || 0)
                     .input('codusu', sql.Char(3), userCode.substring(0, 3))
+                    .input('hora', sql.DateTime, now) // USAR DATE PARA DATETIME
                     .query(`
                         UPDATE tbl01pto 
                         SET estado = 0, 
@@ -101,14 +109,15 @@ export async function POST(request) {
                             apecajsol = @apesol,
                             apecajusu = @codusu,
                             apecajtur = '01',
-                            apecajhra = GETDATE()
+                            apecajhra = @hora
                         WHERE LTRIM(RTRIM(codpto)) = LTRIM(RTRIM(@codpto))
                     `);
 
                 await transaction.commit();
                 return NextResponse.json({ success: true, id: newId, nropla });
             } catch (err) {
-                await transaction.rollback();
+                console.error('ERROR DENTRO DE TRANSACCION:', err.message, err.number);
+                if (transaction) await transaction.rollback();
                 throw err;
             }
         } else {
@@ -135,7 +144,8 @@ export async function POST(request) {
         }
 
     } catch (err) {
-        console.error('Cash open error:', err);
+        console.error('Cash open error CRITICO:', err.message);
+        if (err.originalError) console.error('Original Error:', err.originalError.message);
         return NextResponse.json({ error: 'Error al abrir caja', details: err.message }, { status: 500 });
     }
 }

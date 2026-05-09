@@ -33,19 +33,25 @@ export async function GET() {
         try {
             const sedeCode = session.user.sedeId?.toString().trim() || '01'; // codpto
             
-            // Primero buscamos el ID de apertura actual desde la tabla maestra del punto de venta
+            // Primero buscamos el ID de apertura actual validando que la sesión esté realmente abierta en dtl_restpos_apecaj
             const ptoRes = await pool.request()
                 .input('codpto', sql.Char(6), sedeCode)
-                .query("SELECT apecaj FROM tbl01pto WHERE codpto = @codpto AND estado = 0");
+                .query(`
+                    SELECT p.apecaj 
+                    FROM tbl01pto p
+                    INNER JOIN dtl_restpos_apecaj a ON p.apecaj = a.idapecaj
+                    WHERE LTRIM(RTRIM(p.codpto)) = LTRIM(RTRIM(@codpto))
+                      AND a.estado = 0
+                `);
             
             let activeId = null;
             if (ptoRes.recordset.length > 0 && ptoRes.recordset[0].apecaj > 0) {
                 activeId = ptoRes.recordset[0].apecaj;
             } else {
-                // Fallback: Buscar la última abierta en dtl_restpos_apecaj para esta sede
+                // Fallback: Buscar la última abierta en dtl_restpos_apecaj para esta sede (por si no está vinculada en tbl01pto)
                 const result = await pool.request()
                     .input('codpto', sql.Char(6), sedeCode)
-                    .query("SELECT TOP 1 idapecaj as id FROM dtl_restpos_apecaj WHERE estado = 0 AND codpto = @codpto ORDER BY idapecaj DESC");
+                    .query("SELECT TOP 1 idapecaj as id FROM dtl_restpos_apecaj WHERE estado = 0 AND LTRIM(RTRIM(codpto)) = LTRIM(RTRIM(@codpto)) ORDER BY idapecaj DESC");
                 
                 if (result.recordset.length > 0) {
                     activeId = result.recordset[0].id;

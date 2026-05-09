@@ -76,7 +76,8 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
         
         setSendingWa(true);
         try {
-            const activeDb = company || 'BdNava03';
+            const activeDb = company;
+            if (!activeDb) return;
             const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${activeDb}`;
             
             const customerName = whatsappSale.nomcli.trim();

@@ -2,7 +2,7 @@
 import { Banknote, CreditCard, Smartphone, ArrowRight, Plus, Trash2, Split, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function PaymentSection({ total, availableMethods, payments, setPayments, onFinalize, loading, cartEmpty }) {
+export default function PaymentSection({ total, availableMethods, payments, setPayments, onFinalize, loading, cartEmpty, onAlert }) {
     const [showMixed, setShowMixed] = useState(false);
     const [tempAmount, setTempAmount] = useState('');
     const [selectedMethod, setSelectedMethod] = useState(null);
@@ -22,7 +22,7 @@ export default function PaymentSection({ total, availableMethods, payments, setP
     const addPayment = () => {
         const amt = parseFloat(tempAmount) || remaining;
         if (amt <= 0 || !selectedMethod) return;
-        if (amt > remaining + 0.01) return alert('El monto supera el saldo pendiente');
+        if (amt > remaining + 0.01) return onAlert('Error de Pago', 'El monto ingresado supera el saldo pendiente del ticket.', 'warning');
 
         const newPayment = {
             id: selectedMethod.id,
@@ -53,7 +53,8 @@ export default function PaymentSection({ total, availableMethods, payments, setP
     const handleFinalizeWithChange = () => {
         onFinalize({
             cashReceived: parseFloat(cashReceived) || total,
-            changeGiven: change
+            changeGiven: change,
+            isMixed: showMixed
         });
     };
 
@@ -66,7 +67,7 @@ export default function PaymentSection({ total, availableMethods, payments, setP
                     onClick={() => { setShowMixed(!showMixed); setPayments([]); setCashReceived(''); }}
                     style={{ ...modeBtnStyle, color: showMixed ? '#3b82f6' : '#94a3b8' }}
                 >
-                    <Split size={14} /> {showMixed ? 'Volver a Simple' : 'Pago Dividido'}
+                    <Split size={14} /> {showMixed ? 'Volver a Simple' : 'Pago Mixto'}
                 </button>
             </div>
 
