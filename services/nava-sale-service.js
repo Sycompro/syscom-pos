@@ -4,7 +4,7 @@ import logger from '@/lib/logger';
 import { calculateTaxBreakdown, getWarehouseForSede } from '@/lib/erp-utils';
 
 class NavaSaleService {
-  async finalize(data, dbName) {
+  async finalize(data, dbName, codusu) {
     const pool = await getConnection(dbName);
     const transaction = new sql.Transaction(pool);
 
@@ -113,7 +113,7 @@ class NavaSaleService {
         .input('codfdp', isMixed ? '' : globalCodFdp)
         .input('codtar', sql.Char(2), isMixed ? '' : globalCodTar.substring(0, 2))
         .input('compro', '03/      ')
-        .input('codusu', '   ') // Vacío como en el POS físico
+        .input('codusu', sql.VarChar(10), codusu || '   ') // Usar el código del cajero de la sesión
         .input('flag', '0')
         .input('tfact', navaTfact)
         .input('Codcdv', erpData.codcdv_nava || '01')

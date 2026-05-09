@@ -28,7 +28,7 @@ export async function POST(req) {
         }
 
         // 2. Ejecutar servicio de venta
-        const result = await NavaSaleService.finalize(validation.data, session.user.company);
+        const result = await NavaSaleService.finalize(validation.data, session.user.company, session.user.id);
 
         return NextResponse.json(result);
 
