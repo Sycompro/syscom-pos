@@ -70,11 +70,10 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
         
         const activeDb = company || localStorage.getItem('selected_company') || 'BdNava03';
         const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${activeDb}`;
-        const companyName = "Syscom.click";
-        
-        const msg = `*¡Hola!* Gracias por tu compra en *${companyName}*. 🤝\n\n` +
-                    `📄 *Documento:* ${whatsappSale.cdocu === '01' ? 'Factura' : (whatsappSale.cdocu === '03' ? 'Boleta' : 'Nota')} ${whatsappSale.ndocu}\n` +
-                    `💰 *Monto:* S/ ${Number(whatsappSale.tota).toFixed(2)}\n\n` +
+        const msg = `*¡Gracias por tu compra!* 🤝\n\n` +
+                    `📄 *Detalles del pedido:*\n` +
+                    `* • Documento:* ${whatsappSale.cdocu === '01' ? 'Factura' : (whatsappSale.cdocu === '03' ? 'Boleta' : 'Nota')} ${whatsappSale.ndocu}\n` +
+                    `* • Total:* S/ ${Number(whatsappSale.tota).toFixed(2)}\n\n` +
                     `¡Gracias por tu confianza!`;
 
         if (onQueueWhatsApp) {
