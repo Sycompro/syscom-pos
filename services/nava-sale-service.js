@@ -322,6 +322,8 @@ class NavaSaleService {
         }
       }
 
+      let membershipInfo = null;
+
       if (totalMembershipDays > 0 && finalCodCli !== 'C00001' && finalCodCli !== '000000') {
         logger.info(`[SaleService] Detectada venta de membresía (${totalMembershipDays} días) para cliente ${finalCodCli}`);
         
@@ -333,21 +335,17 @@ class NavaSaleService {
         if (resCli.recordset.length > 0) {
           const currentEnd = resCli.recordset[0].fecfinpres;
           const [onlyDate] = fechaStr.split('T');
-          // Crear fecha usando componentes para evitar desfase de zona horaria
           const [y, m, d] = onlyDate.split('-').map(Number);
           const today = new Date(y, m - 1, d); 
           
           let startDate = new Date(today);
-          // Si el cliente tiene una membresía vigente (vence después de hoy), extendemos desde esa fecha
           if (currentEnd && currentEnd > today && currentEnd.getFullYear() > 1900) {
              startDate = new Date(currentEnd);
-             logger.info(`[SaleService] Cliente tiene membresía vigente hasta ${currentEnd.toISOString().split('T')[0]}. Extendiendo...`);
           }
           
           const newEndDate = new Date(startDate);
           newEndDate.setDate(startDate.getDate() + totalMembershipDays);
           
-          // Grabar como String YYYY-MM-DD para que SQL no aplique conversiones de zona horaria
           const feciniStr = today.toISOString().split('T')[0];
           const fecfinStr = newEndDate.toISOString().split('T')[0];
 
@@ -355,6 +353,11 @@ class NavaSaleService {
             .input('fecini', sql.VarChar, feciniStr)
             .input('fecfin', sql.VarChar, fecfinStr)
             .query(`UPDATE mst01cli SET fecinipres = @fecini, fecfinpres = @fecfin WHERE codcli = @codcli`);
+          
+          membershipInfo = {
+            startDate: feciniStr.split('-').reverse().join('/'),
+            endDate: fecfinStr.split('-').reverse().join('/')
+          };
             
           logger.info(`[SaleService] Ficha de socio actualizada. Nueva fecha: ${fecfinStr}`);
         }
@@ -368,7 +371,8 @@ class NavaSaleService {
         ndocu: nextNdocu, 
         total: breakdown.total,
         base: breakdown.subtotal,
-        igv: breakdown.tax
+        igv: breakdown.tax,
+        membershipInfo
       };
 
     } catch (err) {
