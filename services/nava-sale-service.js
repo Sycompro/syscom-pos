@@ -314,6 +314,45 @@ class NavaSaleService {
         }
       }
 
+      // 8. LÓGICA DE MEMBRESÍAS: Actualizar ficha del cliente en mst01cli
+      let totalMembershipDays = 0;
+      for (const item of items) {
+        if (item.membershipDays > 0) {
+          totalMembershipDays += (item.membershipDays * (item.quantity || 1));
+        }
+      }
+
+      if (totalMembershipDays > 0 && finalCodCli !== 'C00001' && finalCodCli !== '000000') {
+        logger.info(`[SaleService] Detectada venta de membresía (${totalMembershipDays} días) para cliente ${finalCodCli}`);
+        
+        const reqCli = new sql.Request(transaction);
+        const resCli = await reqCli
+          .input('codcli', sql.Char(6), finalCodCli)
+          .query(`SELECT fecfinpres FROM mst01cli WHERE codcli = @codcli`);
+        
+        if (resCli.recordset.length > 0) {
+          const currentEnd = resCli.recordset[0].fecfinpres;
+          const today = new Date(fechaStr + 'T00:00:00'); // Usamos la fecha de la venta sin hora
+          
+          let startDate = today;
+          // Si el cliente tiene una membresía vigente (vence después de hoy), extendemos desde esa fecha
+          if (currentEnd && currentEnd > today && currentEnd.getFullYear() > 1900) {
+             startDate = new Date(currentEnd);
+             logger.info(`[SaleService] Cliente tiene membresía vigente hasta ${currentEnd.toISOString().split('T')[0]}. Extendiendo...`);
+          }
+          
+          const newEndDate = new Date(startDate);
+          newEndDate.setDate(startDate.getDate() + totalMembershipDays);
+          
+          await reqCli
+            .input('fecini', sql.Date, today) // La fecha de inicio de esta transacción es hoy
+            .input('fecfin', sql.Date, newEndDate)
+            .query(`UPDATE mst01cli SET fecinipres = @fecini, fecfinpres = @fecfin WHERE codcli = @codcli`);
+            
+          logger.info(`[SaleService] Ficha de socio actualizada. Nueva fecha de vencimiento: ${newEndDate.toISOString().split('T')[0]}`);
+        }
+      }
+
       await transaction.commit();
       logger.info(`[SaleService/MSSQL] Venta finalizada exitosamente: ${nextNdocu}`);
       
