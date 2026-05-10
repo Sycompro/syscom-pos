@@ -427,8 +427,9 @@ export default function POSPage() {
                 setLastMembershipInfo(result.membershipInfo);
                 setOrderSuccess(result.ndocu);
                 setCart([]);
-                setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' });
+                setSearchTerm('');
                 setCustomerSearch('');
+                setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' });
                 setPayments([]); // Limpiar pagos mixtos
                 setDocType('65'); // Volver a Nota por defecto
                 setPaymentMethod(1); // Volver a Efectivo por defecto
