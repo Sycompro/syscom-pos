@@ -14,7 +14,7 @@ export default function MembershipsView({ onRenew }) {
     const [stats, setStats] = useState({ total: 0, active: 0, expiring: 0, expired: 0 });
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
-    const [filterSede, setFilterSede] = useState('all');
+    const [filterSede, setFilterSede] = useState('my');
     const [renewingMember, setRenewingMember] = useState(null);
     const [plans, setPlans] = useState([]);
     const [planSearchTerm, setPlanSearchTerm] = useState('');
