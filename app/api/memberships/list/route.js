@@ -26,8 +26,8 @@ export async function GET(request) {
                 RTRIM(c.codcli) as id,
                 RTRIM(c.nomcli) as name,
                 RTRIM(c.celcli) as phone,
-                c.fecinipres as startDate,
-                c.fecfinpres as endDate,
+                CONVERT(varchar, c.fecinipres, 23) as startDate,
+                CONVERT(varchar, c.fecfinpres, 23) as endDate,
                 ISNULL(RTRIM(pun.nompto), 'SEDE 01') as sede,
                 ISNULL(RTRIM(tie.DirTie), RTRIM(c.dircli)) as address,
                 (
@@ -86,7 +86,12 @@ export async function GET(request) {
         in7Days.setDate(now.getDate() + 7);
 
         const data = result.recordset.map(r => {
-            const expDate = r.endDate ? new Date(r.endDate) : null;
+            let expDate = null;
+            if (r.endDate && r.endDate !== '1900-01-01') {
+                const [y, m, d] = r.endDate.split('-').map(Number);
+                expDate = new Date(y, m - 1, d);
+            }
+
             let statusValue = 'Vencido';
             
             if (expDate) {
