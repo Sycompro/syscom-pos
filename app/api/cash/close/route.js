@@ -133,7 +133,7 @@ export async function POST(request) {
 
                 // 4. Cabecera Maestra (mst01cob) - RIC
                 const nomCliOficial = `VTA.CONT.${fecape_formatted} PTO: ${erpPto}`.substring(0, 50);
-                const glosaOficial = nomCliOficial;
+                const glosaOficial = nomCliOficial.substring(0, 40);
                 await transaction.request()
                     .input('fecha', sql.Date, fechaStr).input('cdocu', '38').input('ndocu', nroRIC)
                     .input('nplan', planillaOficial).input('compro', comproOficial)
@@ -220,7 +220,7 @@ export async function POST(request) {
                     for (const p of salePayments) {
                         const montoSolPart = Number(p.monto || 0);
                         const montoUSDPart = Number((montoSolPart / tcamOficial).toFixed(2));
-                        const glosaDetalle = `VTA.CONT: ${(sale.nomcli || 'VENTA CONTADO')}`.substring(0, 50);
+                        const glosaDetalle = `VTA.CONT: ${(sale.nomcli || 'VENTA CONTADO')}`.substring(0, 40);
                         const isCash = (p.codtar === 'NS' || !p.codtar || p.codtar.trim() === '');
                         const accountDebe = isCash ? '10111' : '10174';
 
@@ -240,9 +240,9 @@ export async function POST(request) {
                         .input('idcompro', sql.Int, idComproSeq)
                         .input('codsub', sql.Char(2), 'VC')
                         .input('coddoc', sql.Char(2), '38')
-                        .input('nrodoc', sql.VarChar(20), nroRIC)
-                        .input('docref', sql.Char(2), sale.cdocu)
-                        .input('nroref', sql.VarChar(20), sale.ndocu)
+                        .input('nrodoc', sql.Char(12), nroRIC.substring(0, 12))
+                        .input('docref', sql.Char(2), sale.cdocu.substring(0, 2))
+                        .input('nroref', sql.Char(12), sale.ndocu.substring(0, 12))
                         .input('nomref', sql.VarChar(30), (sale.nomcli || 'VENTA CONTADO').substring(0, 30))
                         .query(`
                             INSERT INTO ${cgmTable} (
@@ -274,9 +274,9 @@ export async function POST(request) {
                         .input('idcompro', sql.Int, idComproSeq)
                         .input('codsub', sql.Char(2), 'VC')
                         .input('coddoc', sql.Char(2), '38')
-                        .input('nrodoc', sql.VarChar(20), nroRIC)
-                        .input('docref', sql.Char(2), sale.cdocu)
-                        .input('nroref', sql.VarChar(20), sale.ndocu)
+                        .input('nrodoc', sql.Char(12), nroRIC.substring(0, 12))
+                        .input('docref', sql.Char(2), sale.cdocu.substring(0, 2))
+                        .input('nroref', sql.Char(12), sale.ndocu.substring(0, 12))
                         .input('cpago', sql.Char(3), isCash ? '009' : '000') // Estándar BD01: 009 para Efectivo
                         .query(`
                             INSERT INTO ${cgmTable} (
