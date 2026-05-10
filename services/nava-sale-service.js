@@ -332,9 +332,12 @@ class NavaSaleService {
         
         if (resCli.recordset.length > 0) {
           const currentEnd = resCli.recordset[0].fecfinpres;
-          const today = new Date(fechaStr + 'T00:00:00'); // Usamos la fecha de la venta sin hora
+          const [onlyDate] = fechaStr.split('T');
+          // Crear fecha usando componentes para evitar desfase de zona horaria
+          const [y, m, d] = onlyDate.split('-').map(Number);
+          const today = new Date(y, m - 1, d); 
           
-          let startDate = today;
+          let startDate = new Date(today);
           // Si el cliente tiene una membresía vigente (vence después de hoy), extendemos desde esa fecha
           if (currentEnd && currentEnd > today && currentEnd.getFullYear() > 1900) {
              startDate = new Date(currentEnd);
@@ -344,12 +347,16 @@ class NavaSaleService {
           const newEndDate = new Date(startDate);
           newEndDate.setDate(startDate.getDate() + totalMembershipDays);
           
+          // Grabar como String YYYY-MM-DD para que SQL no aplique conversiones de zona horaria
+          const feciniStr = today.toISOString().split('T')[0];
+          const fecfinStr = newEndDate.toISOString().split('T')[0];
+
           await reqCli
-            .input('fecini', sql.Date, today) // La fecha de inicio de esta transacción es hoy
-            .input('fecfin', sql.Date, newEndDate)
+            .input('fecini', sql.VarChar, feciniStr)
+            .input('fecfin', sql.VarChar, fecfinStr)
             .query(`UPDATE mst01cli SET fecinipres = @fecini, fecfinpres = @fecfin WHERE codcli = @codcli`);
             
-          logger.info(`[SaleService] Ficha de socio actualizada. Nueva fecha de vencimiento: ${newEndDate.toISOString().split('T')[0]}`);
+          logger.info(`[SaleService] Ficha de socio actualizada. Nueva fecha: ${fecfinStr}`);
         }
       }
 
