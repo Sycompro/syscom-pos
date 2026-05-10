@@ -69,7 +69,8 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
         if (!whatsappPhone || whatsappPhone.length < 9) return;
         setSendingWa(true);
         try {
-            const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${company}`;
+            const activeDb = company || localStorage.getItem('selected_company') || 'BdNava03';
+            const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${activeDb}`;
             const companyName = "Syscom.click";
             
             const msg = `*¡Hola!* Gracias por tu compra en *${companyName}*. 🤝\n\n` +
