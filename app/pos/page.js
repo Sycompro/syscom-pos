@@ -7,7 +7,8 @@ import {
     Search, ShoppingCart, User, Plus, Minus, X, Check,
     ChevronRight, Loader2, UserPlus, ShieldCheck, Trash2,
     LayoutGrid, Clock, Settings, LogOut, ShoppingBag, Zap, Sparkles, Package,
-    Lock, Phone, Users, ArrowRight, Receipt, Percent, Calculator
+    Lock, Phone, Users, ArrowRight, Receipt, Percent, Calculator, 
+    BellRing, Smartphone, RefreshCw, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -36,6 +37,59 @@ export default function POSPage() {
     const [loading, setLoading] = useState(true);
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [activeTab, setActiveTab] = useState('pos'); // 'pos' o 'memberships'
+    
+    // SISTEMA DE COLA DE WHATSAPP (ASÍNCRONO)
+    const [waQueue, setWaQueue] = useState([]); // {id, phone, message, media_url, status, error}
+    const [isProcessingWa, setIsProcessingWa] = useState(false);
+    const [showWaAlerts, setShowWaAlerts] = useState(false);
+
+    const addToWaQueue = (phone, message, media_url) => {
+        const newMsg = {
+            id: Date.now() + Math.random(),
+            phone,
+            message,
+            media_url,
+            status: 'PENDIENTE',
+            createdAt: new Date()
+        };
+        setWaQueue(prev => [...prev, newMsg]);
+    };
+
+    // Procesador de Cola
+    useEffect(() => {
+        const processNext = async () => {
+            const next = waQueue.find(m => m.status === 'PENDIENTE');
+            if (!next || isProcessingWa) return;
+
+            setIsProcessingWa(true);
+            setWaQueue(prev => prev.map(m => m.id === next.id ? { ...m, status: 'ENVIANDO' } : m));
+
+            try {
+                const res = await fetch('/api/whatsapp/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        phone: next.phone, 
+                        message: next.message, 
+                        media_url: next.media_url 
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    setWaQueue(prev => prev.filter(m => m.id !== next.id));
+                } else {
+                    throw new Error(data.error || 'Fallo de entrega');
+                }
+            } catch (err) {
+                setWaQueue(prev => prev.map(m => m.id === next.id ? { ...m, status: 'ERROR', error: err.message } : m));
+            } finally {
+                setIsProcessingWa(false);
+            }
+        };
+
+        processNext();
+    }, [waQueue, isProcessingWa]);
     const [cart, setCart] = useState([]);
     const [warehouse, setWarehouse] = useState(session?.sedeId || '01');
     const [idApeCaj, setIdApeCaj] = useState(null);
@@ -587,7 +641,72 @@ export default function POSPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '20px' }}>
+                                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                                        {/* MONITOR DE WHATSAPP */}
+                                        {(waQueue.length > 0 || isProcessingWa) && (
+                                            <div style={{ position: 'relative' }}>
+                                                <motion.button 
+                                                    animate={waQueue.some(m => m.status === 'ERROR') ? { scale: [1, 1.1, 1] } : {}}
+                                                    transition={{ repeat: Infinity, duration: 1.5 }}
+                                                    onClick={() => setShowWaAlerts(!showWaAlerts)}
+                                                    style={{
+                                                        background: waQueue.some(m => m.status === 'ERROR') ? '#fef2f2' : '#f0f9ff',
+                                                        border: `1px solid ${waQueue.some(m => m.status === 'ERROR') ? '#fecaca' : '#bae6fd'}`,
+                                                        borderRadius: '10px', padding: '8px', cursor: 'pointer',
+                                                        display: 'flex', alignItems: 'center', gap: '8px', color: waQueue.some(m => m.status === 'ERROR') ? '#ef4444' : '#0ea5e9'
+                                                    }}
+                                                >
+                                                    {isProcessingWa ? <RefreshCw size={14} className="animate-spin" /> : <Smartphone size={14} />}
+                                                    <span style={{ fontSize: '11px', fontWeight: 900 }}>
+                                                        {waQueue.filter(m => m.status === 'ERROR').length > 0 
+                                                            ? `${waQueue.filter(m => m.status === 'ERROR').length} ERROR` 
+                                                            : (isProcessingWa ? 'ENVIANDO...' : 'PENDIENTE')}
+                                                    </span>
+                                                </motion.button>
+
+                                                <AnimatePresence>
+                                                    {showWaAlerts && (
+                                                        <motion.div 
+                                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                            style={{
+                                                                position: 'absolute', top: '100%', right: 0, marginTop: '12px',
+                                                                width: '320px', background: '#fff', borderRadius: '16px',
+                                                                boxShadow: '0 20px 50px rgba(0,0,0,0.15)', zIndex: 1000,
+                                                                border: '1px solid #f1f5f9', overflow: 'hidden'
+                                                            }}
+                                                        >
+                                                            <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>COLA DE WHATSAPP</span>
+                                                                <button onClick={() => setWaQueue([])} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Limpiar todo</button>
+                                                            </div>
+                                                            <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                                                                {waQueue.map(m => (
+                                                                    <div key={m.id} style={{ padding: '12px', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                        <div>
+                                                                            <p style={{ margin: 0, fontSize: '11px', fontWeight: 700 }}>{m.phone}</p>
+                                                                            <p style={{ margin: 0, fontSize: '10px', color: m.status === 'ERROR' ? '#ef4444' : '#64748b' }}>
+                                                                                {m.status === 'ERROR' ? `Error: ${m.error}` : 'Enviando comprobante...'}
+                                                                            </p>
+                                                                        </div>
+                                                                        {m.status === 'ERROR' && (
+                                                                            <button 
+                                                                                onClick={() => setWaQueue(prev => prev.map(msg => msg.id === m.id ? {...msg, status: 'PENDIENTE'} : msg))}
+                                                                                style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}
+                                                                            >
+                                                                                Reintentar
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        )}
+
                                         <div style={{ textAlign: 'right' }}>
                                             <p style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Tipo Cambio</p>
                                             <p style={{ fontSize: '12px', fontWeight: 900, color: '#3b82f6', margin: 0 }}>S/ {Number(exchangeRate || 1).toFixed(3)}</p>
@@ -841,6 +960,7 @@ export default function POSPage() {
                     orderNumber={orderSuccess}
                     onReset={() => {
                         setOrderSuccess(null);
+                        setPrintData(null);
                         setPayments([]);
                         setShowMixed(false);
                         setCashReceived('');
@@ -852,6 +972,7 @@ export default function POSPage() {
                     docType={docType}
                     company={session?.user?.company}
                     membershipInfo={lastMembershipInfo}
+                    onQueueWhatsApp={addToWaQueue}
                 />
             )}
             <CustomerManualModal isOpen={showManualModal} onClose={() => setShowManualModal(false)} initialDoc={manualDoc} onCustomerCreated={(c) => { setCustomer(c); setCustomerSearch(c.ruc); setShowManualModal(false); }} />
@@ -870,6 +991,7 @@ export default function POSPage() {
                 idApeCaj={idApeCaj}
                 onPrint={handlePrint}
                 company={session?.user?.company}
+                onQueueWhatsApp={addToWaQueue}
             />
             <CloseCashModal
                 isOpen={showCloseModal}

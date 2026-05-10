@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { X, Receipt, Search, Printer, Calendar, Loader2, MessageCircle, CheckCircle2, Banknote, CreditCard, UserCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, company }) {
+export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, company, onQueueWhatsApp }) {
     const [sales, setSales] = useState([]);
     const [sessionInfo, setSessionInfo] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -67,31 +67,40 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
 
     const handleSendWhatsApp = async () => {
         if (!whatsappPhone || whatsappPhone.length < 9) return;
-        setSendingWa(true);
-        try {
-            const activeDb = company || localStorage.getItem('selected_company') || 'BdNava03';
-            const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${activeDb}`;
-            const companyName = "Syscom.click";
-            
-            const msg = `*¡Hola!* Gracias por tu compra en *${companyName}*. 🤝\n\n` +
-                        `📄 *Documento:* ${whatsappSale.cdocu === '01' ? 'Factura' : (whatsappSale.cdocu === '03' ? 'Boleta' : 'Nota')} ${whatsappSale.ndocu}\n` +
-                        `💰 *Monto:* S/ ${Number(whatsappSale.tota).toFixed(2)}\n\n` +
-                        `¡Gracias por tu confianza!`;
+        
+        const activeDb = company || localStorage.getItem('selected_company') || 'BdNava03';
+        const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${activeDb}`;
+        const companyName = "Syscom.click";
+        
+        const msg = `*¡Hola!* Gracias por tu compra en *${companyName}*. 🤝\n\n` +
+                    `📄 *Documento:* ${whatsappSale.cdocu === '01' ? 'Factura' : (whatsappSale.cdocu === '03' ? 'Boleta' : 'Nota')} ${whatsappSale.ndocu}\n` +
+                    `💰 *Monto:* S/ ${Number(whatsappSale.tota).toFixed(2)}\n\n` +
+                    `¡Gracias por tu confianza!`;
 
-            await fetch('/api/whatsapp/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone: whatsappPhone, message: msg, media_url: pdfUrl })
-            });
-
-            setSendingWa(false);
+        if (onQueueWhatsApp) {
+            onQueueWhatsApp(whatsappPhone, msg, pdfUrl);
             setShowWaSuccess(true);
             setTimeout(() => {
                 setShowWaSuccess(false);
                 setWhatsappSale(null);
-            }, 2000);
-        } catch (e) {
-            setSendingWa(false);
+            }, 1000);
+        } else {
+            setSendingWa(true);
+            try {
+                await fetch('/api/whatsapp/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: whatsappPhone, message: msg, media_url: pdfUrl })
+                });
+                setSendingWa(false);
+                setShowWaSuccess(true);
+                setTimeout(() => {
+                    setShowWaSuccess(false);
+                    setWhatsappSale(null);
+                }, 2000);
+            } catch (e) {
+                setSendingWa(false);
+            }
         }
     };
 

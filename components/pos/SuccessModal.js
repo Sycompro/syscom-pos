@@ -1,59 +1,55 @@
 import { CheckCircle2, Receipt, Printer, ArrowRight, MessageCircle, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function SuccessModal({ orderNumber, onReset, onPrint, customerPhone, total, docType, membershipInfo }) {
+export default function SuccessModal({ orderNumber, onReset, onPrint, customerPhone, total, docType, membershipInfo, onQueueWhatsApp }) {
     const [phone, setPhone] = useState(customerPhone || '');
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
 
     const handleSendWhatsApp = async () => {
         if (!phone || phone.length < 9) return alert('Ingrese un número válido');
-        setSending(true);
-        try {
-            const businessType = localStorage.getItem('pos_business_type') || 'gym';
-            const customerName = 'Cliente'; // Podríamos pasar el nombre si fuera necesario
-            
-            let msg = '';
-            // Si el objeto membershipInfo tiene datos, es una membresía
-            const isMembership = membershipInfo && membershipInfo.startDate && membershipInfo.endDate;
+        
+        const businessType = localStorage.getItem('pos_business_type') || 'gym';
+        let msg = '';
+        const isMembership = membershipInfo && membershipInfo.startDate && membershipInfo.endDate;
 
-            if (isMembership) {
-                msg = `*¡Bienvenido!* Tu membresía está activa. 🏋️\n\n` +
-                      `📋 *Detalles:*\n` +
-                      `* • Inicio:* ${membershipInfo.startDate}\n` +
-                      `* • Vencimiento:* ${membershipInfo.endDate}\n\n` +
-                      `¡Gracias por tu preferencia!`;
-            } else {
-                msg = `*¡Gracias por tu compra!* 🤝\n\n` +
-                      `📄 *Detalles del pedido:*\n` +
-                      `* • Documento:* ${docType === '01' ? 'Factura' : (docType === '03' ? 'Boleta' : 'Nota')} ${orderNumber}\n` +
-                      `* • Total:* S/ ${Number(total).toFixed(2)}\n\n` +
-                      `¡Gracias por tu confianza!`;
-            }
+        if (isMembership) {
+            msg = `*¡Bienvenido!* Tu membresía está activa. 🏋️\n\n` +
+                  `📋 *Detalles:*\n` +
+                  `* • Inicio:* ${membershipInfo.startDate}\n` +
+                  `* • Vencimiento:* ${membershipInfo.endDate}\n\n` +
+                  `¡Gracias por tu preferencia!`;
+        } else {
+            msg = `*¡Gracias por tu compra!* 🤝\n\n` +
+                  `📄 *Detalles del pedido:*\n` +
+                  `* • Documento:* ${docType === '01' ? 'Factura' : (docType === '03' ? 'Boleta' : 'Nota')} ${orderNumber}\n` +
+                  `* • Total:* S/ ${Number(total).toFixed(2)}\n\n` +
+                  `¡Gracias por tu confianza!`;
+        }
 
-            const company = localStorage.getItem('selected_company') || 'BdNava03';
-            const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${orderNumber}&cdocu=${docType}&db=${company}`;
-            
-            const res = await fetch('/api/whatsapp/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    phone, 
-                    message: msg,
-                    media_url: pdfUrl
-                })
-            });
-            const data = await res.json();
-            if (data.success) {
+        const company = localStorage.getItem('selected_company') || 'BdNava03';
+        const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${orderNumber}&cdocu=${docType}&db=${company}`;
+        
+        if (onQueueWhatsApp) {
+            onQueueWhatsApp(phone, msg, pdfUrl);
+            setSent(true);
+            setTimeout(() => setSent(false), 2000);
+        } else {
+            // Fallback por si no se pasa la función (aunque debería estar siempre)
+            setSending(true);
+            try {
+                await fetch('/api/whatsapp/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, message: msg, media_url: pdfUrl })
+                });
                 setSent(true);
-                setTimeout(() => setSent(false), 3000);
-            } else {
-                alert('Error al enviar: ' + data.error);
+                setTimeout(() => setSent(false), 2000);
+            } catch (e) {
+                alert('Error de conexión');
+            } finally {
+                setSending(false);
             }
-        } catch (e) {
-            alert('Error de conexión');
-        } finally {
-            setSending(false);
         }
     };
 
