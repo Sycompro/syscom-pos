@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, Receipt, Search, Printer, Calendar, Loader2, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { X, Receipt, Search, Printer, Calendar, Loader2, MessageCircle, CheckCircle2, Banknote, CreditCard, UserCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, company }) {
@@ -9,8 +9,6 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
     const [reprinting, setReprinting] = useState(null);
-
-    const activeDb = company || 'BdNava03';
 
     useEffect(() => {
         if (isOpen && idApeCaj) {
@@ -52,7 +50,6 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
             }
         } catch (e) {
             console.error('Error reprinting:', e);
-            alert('Error al obtener detalles de la venta');
         } finally {
             setReprinting(null);
         }
@@ -69,71 +66,31 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
     };
 
     const handleSendWhatsApp = async () => {
-        if (!whatsappPhone || whatsappPhone.length < 9) {
-            alert('Ingrese un número válido');
-            return;
-        }
-        
+        if (!whatsappPhone || whatsappPhone.length < 9) return;
         setSendingWa(true);
         try {
-            const activeDb = company;
-            if (!activeDb) return;
-            const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${activeDb}`;
+            const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${company}`;
+            const companyName = "Syscom.click";
             
-            const customerName = whatsappSale.nomcli.trim();
-            const businessType = localStorage.getItem('pos_business_type') || 'gym';
-            const companyName = session?.user?.companyName || "Nuestra Empresa";
-            
-            let msg = '';
-            if (businessType === 'gym') {
-                msg = `*¡Hola!* Tu membresía en *${companyName}* está activa. 🏋️\n\n` +
-                      `📋 *Detalles:*\n` +
-                      `* • Inicio:* ${new Date(whatsappSale.fecha).toLocaleDateString('es-PE')}\n`;
-                if (whatsappSale.fecfinpres) {
-                    msg += `* • Vencimiento:* ${new Date(whatsappSale.fecfinpres).toLocaleDateString('es-PE')}\n`;
-                }
-                msg += `\n¡Gracias por tu preferencia!`;
-            } else {
-                msg = `*¡Hola!* Gracias por tu compra en *${companyName}*. 🤝\n\n` +
-                      `📄 *Documento:* ${whatsappSale.cdocu === '01' ? 'Factura' : (whatsappSale.cdocu === '03' ? 'Boleta' : 'Nota')} ${whatsappSale.ndocu}\n` +
-                      `💰 *Monto:* S/ ${Number(whatsappSale.tota).toFixed(2)}\n\n` +
-                      `¡Gracias por tu confianza! ¡Que tengas un gran día!`;
-            }
+            const msg = `*¡Hola!* Gracias por tu compra en *${companyName}*. 🤝\n\n` +
+                        `📄 *Documento:* ${whatsappSale.cdocu === '01' ? 'Factura' : (whatsappSale.cdocu === '03' ? 'Boleta' : 'Nota')} ${whatsappSale.ndocu}\n` +
+                        `💰 *Monto:* S/ ${Number(whatsappSale.tota).toFixed(2)}\n\n` +
+                        `¡Gracias por tu confianza!`;
 
-            fetch('/api/whatsapp/send', {
+            await fetch('/api/whatsapp/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    phone: whatsappPhone, 
-                    message: msg,
-                    media_url: pdfUrl
-                })
-            }).then(async r => {
-                const text = await r.text();
-                try {
-                    return JSON.parse(text);
-                } catch(e) {
-                    return { success: false, error: 'Respuesta no válida' };
-                }
-            }).then(data => {
-                if (!data.success) console.log('WA Note:', data.error);
-            }).catch(e => {
-                // Silenciamos errores de red/saturación para no asustar al usuario
-                console.log('WA Async skip');
+                body: JSON.stringify({ phone: whatsappPhone, message: msg, media_url: pdfUrl })
             });
 
-            // Respuesta instantánea en UI
             setSendingWa(false);
             setShowWaSuccess(true);
             setTimeout(() => {
                 setShowWaSuccess(false);
                 setWhatsappSale(null);
             }, 2000);
-
         } catch (e) {
-            console.error('WA optimization error:', e);
             setSendingWa(false);
-            alert('Error al iniciar el envío');
         }
     };
 
@@ -146,38 +103,38 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
 
     return (
         <div style={overlayStyle}>
-            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={modalStyle}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={modalStyle}>
                 <div style={headerStyle}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={iconBoxStyle}><Receipt size={20} /></div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={iconBoxStyle}><Receipt size={18} /></div>
                         <div>
-                            <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Historial de Ventas</h2>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Sesión de Caja #{idApeCaj}</p>
+                            <h2 style={{ fontSize: '15px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Historial de Ventas</h2>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                <span style={miniTagStyle}>ID #{idApeCaj}</span>
                                 {sessionInfo && (
-                                    <p style={{ fontSize: '11px', color: '#3b82f6', fontWeight: 800, margin: 0, background: '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}>
-                                        Apertura: {new Date(sessionInfo.openingDate).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })} - {sessionInfo.openingTime.split(' ')[1]} {sessionInfo.openingTime.split(' ')[2]}
-                                    </p>
+                                    <span style={{ ...miniTagStyle, color: '#3b82f6', background: '#eff6ff' }}>
+                                        Apertura: {new Date(sessionInfo.openingDate).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })}
+                                    </span>
                                 )}
                             </div>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         {!loading && (
-                            <div style={{ textAlign: 'right', background: '#f8fafc', padding: '8px 16px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                                <p style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Ventas Totales</p>
-                                <p style={{ fontSize: '18px', fontWeight: 900, color: '#10b981', margin: 0 }}>S/ {sales.reduce((acc, s) => acc + s.tota, 0).toFixed(2)}</p>
+                            <div style={summaryBoxStyle}>
+                                <span style={summaryLabelStyle}>TOTAL SESIÓN</span>
+                                <span style={summaryValueStyle}>S/ {sales.reduce((acc, s) => acc + s.tota, 0).toFixed(2)}</span>
                             </div>
                         )}
-                        <button onClick={onClose} style={closeBtnStyle}><X size={20} /></button>
+                        <button onClick={onClose} style={closeBtnStyle}><X size={16} /></button>
                     </div>
                 </div>
 
                 <div style={searchBoxStyle}>
-                    <Search size={18} style={{ color: '#94a3b8' }} />
+                    <Search size={14} style={{ color: '#94a3b8' }} />
                     <input 
                         type="text" 
-                        placeholder="Buscar por Nro de documento o cliente..." 
+                        placeholder="Buscar por documento o cliente..." 
                         value={filter}
                         onChange={e => setFilter(e.target.value)}
                         style={searchInputStyle}
@@ -186,46 +143,58 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
 
                 <div style={contentStyle}>
                     {loading ? (
-                        <div style={centerStyle}>Cargando historial...</div>
-                    ) : filteredSales.length === 0 ? (
-                        <div style={centerStyle}>No hay ventas registradas en esta sesión.</div>
+                        <div style={centerStyle}><Loader2 className="animate-spin" /></div>
                     ) : (
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead style={tableHeaderStyle}>
                                 <tr>
-                                    <th style={thStyle}>Documento</th>
-                                    <th style={thStyle}>Cliente</th>
-                                    <th style={thStyle}>Hora</th>
-                                    <th style={thStyle}>Total</th>
-                                    <th style={{ ...thStyle, textAlign: 'center' }}>Acciones</th>
+                                    <th style={thStyle}>DOCUMENTO</th>
+                                    <th style={thStyle}>CLIENTE / IDENTIFICACIÓN</th>
+                                    <th style={thStyle}>VENDEDOR</th>
+                                    <th style={thStyle}>HORA</th>
+                                    <th style={{ ...thStyle, textAlign: 'right' }}>TOTAL</th>
+                                    <th style={{ ...thStyle, textAlign: 'center' }}>ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredSales.map(sale => (
                                     <tr key={sale.ndocu} style={rowStyle}>
                                         <td style={tdStyle}>
-                                            <span style={{ fontWeight: 800, color: '#1e293b' }}>{sale.ndocu}</span>
-                                            <div style={{ fontSize: '10px', color: '#94a3b8' }}>{sale.cdocu === '01' ? 'FACTURA' : (sale.cdocu === '03' ? 'BOLETA' : 'NOTA')}</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={docNumStyle}>{sale.ndocu}</span>
+                                                    <span style={docTypeStyle}>{sale.cdocu === '01' ? 'FACTURA' : (sale.cdocu === '03' ? 'BOLETA' : 'NOTA')}</span>
+                                                </div>
+                                                <span style={sale.status === 'ANULADO' ? statusBadgeAnulado : statusBadgeActivo}>
+                                                    {sale.status}
+                                                </span>
+                                            </div>
                                         </td>
-                                        <td style={tdStyle}>{sale.nomcli}</td>
-                                        <td style={tdStyle}>{new Date(sale.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                                        <td style={{ ...tdStyle, fontWeight: 900, color: '#3b82f6' }}>S/ {sale.tota.toFixed(2)}</td>
+                                        <td style={tdStyle}>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={clientNameStyle}>{sale.nomcli.trim()}</span>
+                                                <span style={clientIdStyle}>{sale.ruccli ? `DOC: ${sale.ruccli}` : 'SIN DOCUMENTO'}</span>
+                                            </div>
+                                        </td>
+                                        <td style={tdStyle}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '11px', fontWeight: 600 }}>
+                                                <UserCircle size={12} /> {sale.codven || 'V0001'}
+                                            </div>
+                                        </td>
+                                        <td style={{ ...tdStyle, color: '#64748b' }}>
+                                            {new Date(sale.FecReg || sale.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                        </td>
+                                        <td style={{ ...tdStyle, textAlign: 'right' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                                                {sale.paymentType === 'EFECTIVO' ? <Banknote size={12} style={{ color: '#10b981' }} /> : <CreditCard size={12} style={{ color: '#3b82f6' }} />}
+                                                <span style={totalStyle}>S/ {sale.tota.toFixed(2)}</span>
+                                            </div>
+                                        </td>
                                         <td style={{ ...tdStyle, textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                                <button 
-                                                    onClick={() => openWaModal(sale)}
-                                                    style={{ ...actionBtnStyle, background: '#ecfdf5', color: '#10b981' }}
-                                                    title="Enviar WhatsApp"
-                                                >
-                                                    <MessageCircle size={18} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleReprint(sale)}
-                                                    disabled={reprinting === sale.ndocu}
-                                                    style={{ ...actionBtnStyle, background: '#f8fafc', color: '#64748b' }} 
-                                                    title="Reimprimir Ticket"
-                                                >
-                                                    {reprinting === sale.ndocu ? <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={16} /> : <Printer size={18} />}
+                                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                                <button onClick={() => openWaModal(sale)} style={actionBtnWa} title="WhatsApp"><MessageCircle size={14} /></button>
+                                                <button onClick={() => handleReprint(sale)} disabled={reprinting === sale.ndocu} style={actionBtnPrint} title="Imprimir">
+                                                    {reprinting === sale.ndocu ? <Loader2 className="animate-spin" size={14} /> : <Printer size={14} />}
                                                 </button>
                                             </div>
                                         </td>
@@ -235,102 +204,72 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                         </table>
                     )}
                 </div>
+            </motion.div>
 
-                <AnimatePresence>
-                    {whatsappSale && (
-                        <div style={miniOverlayStyle}>
-                            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} style={miniModalStyle}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 900 }}>Enviar WhatsApp</h3>
-                                    <button onClick={() => setWhatsappSale(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
-                                </div>
-                                <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
-                                    Enviando: <b>{whatsappSale.cdocu === '01' ? 'Factura' : 'Boleta'} {whatsappSale.ndocu}</b>
-                                </p>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '6px' }}>NÚMERO DE CELULAR</label>
-                                    <input 
-                                        type="text" 
-                                        value={whatsappPhone}
-                                        onChange={e => setWhatsappPhone(e.target.value)}
-                                        placeholder="999999999"
-                                        style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none' }}
-                                    />
-                                </div>
-                                <button 
-                                    onClick={handleSendWhatsApp}
-                                    disabled={sendingWa}
-                                    style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                                >
-                                {sendingWa ? <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={18} /> : <MessageCircle size={18} />}
-                                {sendingWa ? 'Enviando...' : 'Enviar Comprobante'}
+            {/* Modal de WhatsApp compacto */}
+            <AnimatePresence>
+                {whatsappSale && (
+                    <div style={miniOverlayStyle}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} style={miniModalStyle}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 900 }}>Enviar Comprobante</h3>
+                                <button onClick={() => setWhatsappSale(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={16} /></button>
+                            </div>
+                            <input 
+                                type="text" 
+                                value={whatsappPhone}
+                                onChange={e => setWhatsappPhone(e.target.value)}
+                                placeholder="Número de celular..."
+                                style={miniInputStyle}
+                            />
+                            <button onClick={handleSendWhatsApp} disabled={sendingWa} style={miniSendBtn}>
+                                {sendingWa ? <Loader2 className="animate-spin" size={14} /> : <MessageCircle size={14} />}
+                                {sendingWa ? 'Enviando...' : 'Enviar ahora'}
                             </button>
-
                             <AnimatePresence>
                                 {showWaSuccess && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        style={miniToastStyle}
-                                    >
-                                        <CheckCircle2 size={16} /> ¡Enviado con éxito!
+                                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={miniToastStyle}>
+                                        <CheckCircle2 size={12} /> ¡Enviado!
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </motion.div>
                     </div>
                 )}
-                </AnimatePresence>
-            </motion.div>
+            </AnimatePresence>
         </div>
     );
 }
 
-const miniOverlayStyle = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, borderRadius: '24px' };
-const miniModalStyle = { background: '#fff', padding: '24px', borderRadius: '20px', width: '100%', maxWidth: '320px', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', position: 'relative' };
-const miniToastStyle = {
-    position: 'absolute',
-    top: '-60px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    color: '#fff',
-    padding: '12px 24px',
-    borderRadius: '100px',
-    boxShadow: '0 10px 40px -10px rgba(16, 185, 129, 0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    fontSize: '14px',
-    fontWeight: 700,
-    zIndex: 9999,
-    border: '1px solid rgba(255,255,255,0.2)',
-    whiteSpace: 'nowrap',
-    pointerEvents: 'none'
-};
-const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', zIndex: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' };
-const modalStyle = { background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '900px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 30px 100px rgba(0,0,0,0.3)', position: 'relative' };
-const headerStyle = { padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const iconBoxStyle = { width: '40px', height: '40px', background: '#eff6ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' };
-const closeBtnStyle = { background: '#f8fafc', border: 'none', color: '#94a3b8', borderRadius: '10px', padding: '8px', cursor: 'pointer' };
-const searchBoxStyle = { padding: '16px 24px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid #f8fafc' };
-const searchInputStyle = { flex: 1, border: 'none', outline: 'none', fontSize: '14px', fontWeight: 600, color: '#1e293b' };
-const contentStyle = { flex: 1, overflowY: 'auto', padding: '0 24px' };
+// Estilos Compactos y Profesionales
+const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' };
+const modalStyle = { background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '850px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 70px rgba(0,0,0,0.2)' };
+const headerStyle = { padding: '12px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' };
+const iconBoxStyle = { width: '32px', height: '32px', background: '#eff6ff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f7df9' };
+const miniTagStyle = { fontSize: '9px', fontWeight: 800, color: '#64748b', background: '#f1f5f9', padding: '1px 6px', borderRadius: '4px', textTransform: 'uppercase' };
+const summaryBoxStyle = { textAlign: 'right', background: '#f8fafc', padding: '6px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' };
+const summaryLabelStyle = { fontSize: '8px', fontWeight: 800, color: '#94a3b8', display: 'block' };
+const summaryValueStyle = { fontSize: '15px', fontWeight: 900, color: '#10b981' };
+const closeBtnStyle = { background: '#f8fafc', border: 'none', color: '#94a3b8', borderRadius: '8px', padding: '6px', cursor: 'pointer' };
+const searchBoxStyle = { padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #f8fafc' };
+const searchInputStyle = { flex: 1, border: 'none', outline: 'none', fontSize: '12px', fontWeight: 600, color: '#1e293b' };
+const contentStyle = { flex: 1, overflowY: 'auto', padding: '0 20px' };
 const tableHeaderStyle = { position: 'sticky', top: 0, background: '#fff', zIndex: 10 };
-const thStyle = { textAlign: 'left', padding: '12px', fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #f1f5f9' };
-const tdStyle = { padding: '16px 12px', fontSize: '13px', borderBottom: '1px solid #f8fafc' };
-const rowStyle = { transition: 'background 0.2s' };
-const actionBtnStyle = {
-    border: 'none',
-    borderRadius: '8px',
-    padding: '8px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s'
-};
-
-const printBtnStyle = { background: '#f8fafc', border: 'none', color: '#64748b', borderRadius: '8px', padding: '8px', cursor: 'pointer' };
-const centerStyle = { padding: '100px 0', textAlign: 'center', color: '#94a3b8', fontWeight: 600 };
+const thStyle = { textAlign: 'left', padding: '10px', fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #f1f5f9' };
+const tdStyle = { padding: '10px', fontSize: '11px', borderBottom: '1px solid #f8fafc' };
+const rowStyle = { transition: 'background 0.1s' };
+const docNumStyle = { fontSize: '11px', fontWeight: 800, color: '#0f172a' };
+const docTypeStyle = { fontSize: '9px', fontWeight: 700, color: '#94a3b8' };
+const statusBadgeActivo = { fontSize: '8px', fontWeight: 900, color: '#10b981', background: '#ecfdf5', padding: '1px 6px', borderRadius: '4px' };
+const statusBadgeAnulado = { fontSize: '8px', fontWeight: 900, color: '#ef4444', background: '#fff1f2', padding: '1px 6px', borderRadius: '4px' };
+const clientNameStyle = { fontSize: '11px', fontWeight: 700, color: '#1e293b' };
+const clientIdStyle = { fontSize: '9px', fontWeight: 600, color: '#94a3b8' };
+const totalStyle = { fontSize: '12px', fontWeight: 900, color: '#4f7df9' };
+const actionBtnWa = { border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer', background: '#ecfdf5', color: '#10b981' };
+const actionBtnPrint = { border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer', background: '#f8fafc', color: '#64748b' };
+const centerStyle = { padding: '60px 0', textAlign: 'center', color: '#94a3b8', fontWeight: 600, display: 'flex', justifyContent: 'center' };
+const miniOverlayStyle = { position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, borderRadius: '16px' };
+const miniModalStyle = { background: '#fff', padding: '16px', borderRadius: '12px', width: '260px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', position: 'relative' };
+const miniInputStyle = { width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px', outline: 'none', marginBottom: '10px' };
+const miniSendBtn = { width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px' };
+const miniToastStyle = { position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#fff', padding: '6px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' };

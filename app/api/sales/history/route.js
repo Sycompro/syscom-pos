@@ -32,7 +32,7 @@ export async function GET(request) {
                 SELECT 
                     f.ndocu, f.cdocu, f.nomcli, f.ruccli, 
                     CAST(f.totn AS FLOAT) as tota, 
-                    f.fecha,
+                    f.fecha, f.FecReg, f.flag, f.selpago, f.codven, f.codfdp,
                     c.fecfinpres,
                     COALESCE(NULLIF(f.observ, ''), NULLIF(c.celcli, ''), NULLIF(c.telcli, ''), '') as phone
                 FROM mst01fac f
@@ -42,7 +42,11 @@ export async function GET(request) {
             `);
 
         return NextResponse.json({
-            sales: salesRes.recordset,
+            sales: salesRes.recordset.map(s => ({
+                ...s,
+                status: s.flag === '9' ? 'ANULADO' : 'ACTIVO',
+                paymentType: s.selpago === 1 ? 'EFECTIVO' : 'TARJETA'
+            })),
             sessionInfo
         });
     } catch (err) {
