@@ -579,6 +579,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                     members={members}
                     onSendBulk={onQueueWhatsApp}
                     companyName={companyName}
+                    onNotify={(msg, type) => setToast({ show: true, message: msg, type })}
                 />
             )}
 

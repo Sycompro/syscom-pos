@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function PromotionsView({ members, onSendBulk, companyName }) {
+export default function PromotionsView({ members, onSendBulk, companyName, onNotify }) {
     const [target, setTarget] = useState('active'); // segments...
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -71,8 +71,8 @@ export default function PromotionsView({ members, onSendBulk, companyName }) {
     };
 
     const handleSend = async () => {
-        if (targetMembers.length === 0) return alert('No hay destinatarios');
-        if (!message) return alert('Escribe un mensaje');
+        if (targetMembers.length === 0) return onNotify('No hay destinatarios seleccionados', 'error');
+        if (!message) return onNotify('El mensaje no puede estar vacío', 'error');
 
         setIsSending(true);
         setProgress({ current: 0, total: targetMembers.length });
@@ -90,7 +90,7 @@ export default function PromotionsView({ members, onSendBulk, companyName }) {
 
         setTimeout(() => {
             setIsSending(false);
-            alert(`Campaña finalizada. ${targetMembers.length} mensajes procesados.`);
+            onNotify(`¡Éxito! Se han enviado ${targetMembers.length} mensajes a la cola.`, 'success');
         }, 1000);
     };
 
