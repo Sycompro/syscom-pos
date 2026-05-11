@@ -45,9 +45,17 @@ export default function POSPage() {
     const [posLogo, setPosLogo] = useState('logocia01.jpg');
 
     useEffect(() => {
-        const storedLogo = localStorage.getItem('pos_logo');
-        if (storedLogo) setPosLogo(storedLogo);
-    }, []);
+        const currentDb = session?.user?.company;
+        if (currentDb) {
+            const storedLogo = localStorage.getItem(`pos_logo_${currentDb}`);
+            if (storedLogo) {
+                setPosLogo(storedLogo);
+            } else {
+                const dbCode = currentDb.replace('BdNava', '').padStart(2, '0') || '01';
+                setPosLogo(`logocia${dbCode}.jpg`);
+            }
+        }
+    }, [session]);
 
     const addToWaQueue = (phone, message, media_url) => {
         const newMsg = {
@@ -1008,7 +1016,7 @@ export default function POSPage() {
                     setTimeout(() => signOut(), 5000); // Dar más tiempo a imprimir antes de salir
                 }}
             />
-            <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
+            <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} db={session?.user?.company} />
             <CashExpenseModal
                 isOpen={activeTab === 'expenses'}
                 onClose={() => setActiveTab('pos')}

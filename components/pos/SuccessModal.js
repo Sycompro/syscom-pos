@@ -28,7 +28,7 @@ export default function SuccessModal({ orderNumber, onReset, onPrint, customerPh
         }
 
         const company = localStorage.getItem('selected_company') || 'BdNava03';
-        const logo = localStorage.getItem('pos_logo') || 'logocia01.jpg';
+        const logo = localStorage.getItem(`pos_logo_${company}`) || `logocia${company.replace('BdNava', '').padStart(2, '0')}.jpg`;
         const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${orderNumber}&cdocu=${docType}&db=${company}&logo=${logo}`;
         
         if (onQueueWhatsApp) {

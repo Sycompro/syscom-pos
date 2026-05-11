@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Dumbbell, Store, Check, Info } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export default function SettingsModal({ isOpen, onClose }) {
+export default function SettingsModal({ isOpen, onClose, db }) {
     const [businessType, setBusinessType] = useState('gym'); // 'gym' o 'universal'
-    const [posLogo, setPosLogo] = useState('logocia01.jpg');
+    const [posLogo, setPosLogo] = useState('');
     const [saved, setSaved] = useState(false);
+
+    const logoKey = `pos_logo_${db}`;
+    const typeKey = `pos_business_type_${db}`;
 
     const availableLogos = [
         { id: 'logocia01.jpg', name: 'Logo Empresa 01' },
@@ -16,20 +19,29 @@ export default function SettingsModal({ isOpen, onClose }) {
     ];
 
     useEffect(() => {
-        const storedType = localStorage.getItem('pos_business_type');
-        const storedLogo = localStorage.getItem('pos_logo');
-        if (storedType) setBusinessType(storedType);
-        if (storedLogo) setPosLogo(storedLogo);
-    }, []);
+        if (db) {
+            const storedType = localStorage.getItem(typeKey);
+            const storedLogo = localStorage.getItem(logoKey);
+            if (storedType) setBusinessType(storedType);
+            
+            // Si no hay logo guardado, usamos el default por código de DB
+            if (storedLogo) {
+                setPosLogo(storedLogo);
+            } else {
+                const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
+                setPosLogo(`logocia${dbCode}.jpg`);
+            }
+        }
+    }, [db]);
 
     const handleSave = () => {
-        localStorage.setItem('pos_business_type', businessType);
-        localStorage.setItem('pos_logo', posLogo);
+        localStorage.setItem(typeKey, businessType);
+        localStorage.setItem(logoKey, posLogo);
         setSaved(true);
         setTimeout(() => {
             setSaved(false);
             onClose();
-            window.location.reload(); // Recargar para que los cambios surtan efecto
+            window.location.reload();
         }, 1500);
     };
 
