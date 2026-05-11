@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { getPrismaClient } from '@/lib/prisma-client';
 import logger from '@/lib/logger';
 
