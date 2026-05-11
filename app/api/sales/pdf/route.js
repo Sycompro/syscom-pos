@@ -133,16 +133,20 @@ export async function GET(request) {
         const logoName = `logocia${dbCode}.jpg`;
         const logoPath = path.join(process.cwd(), 'public', 'logos', logoName);
         
+        console.log(`[PDF/Logo] DB Recibida: ${db}, Code: ${dbCode}, Buscando: ${logoPath}`);
+        
         if (fs.existsSync(logoPath)) {
+            console.log(`[PDF/Logo] Archivo encontrado. Intentando cargar...`);
             try {
                 const logoData = fs.readFileSync(logoPath).toString('base64');
                 const imgType = logoName.endsWith('.png') ? 'PNG' : 'JPEG';
-                // Insertar logo centrado (ajustar dimensiones si es necesario)
                 doc.addImage(`data:image/${imgType.toLowerCase()};base64,${logoData}`, imgType, 25, currentY, 30, 15);
-                currentY += 18; // Espacio después del logo
+                currentY += 18;
             } catch (e) {
-                console.error("[PDF] Error cargando logo:", e.message);
+                console.error("[PDF/Logo] Error crítico al procesar imagen:", e.message);
             }
+        } else {
+            console.warn(`[PDF/Logo] Archivo NO encontrado en la ruta especificada.`);
         }
 
         doc.setFontSize(9);
