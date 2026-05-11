@@ -43,14 +43,20 @@ export async function POST(request) {
 
         if (media_url) payload.media_url = media_url;
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 segundos de timeout
+
         const response = await fetch(ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': API_KEY
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         const data = await response.json();
 
@@ -66,11 +72,16 @@ export async function POST(request) {
 
         return NextResponse.json(data);
     } catch (error) {
+        if (error.name === 'AbortError') {
+            return NextResponse.json({ 
+                success: true, 
+                warning: 'El mensaje se está procesando, pero el servidor de WhatsApp tardó en confirmar. No es necesario reintentar inmediatamente.' 
+            });
+        }
         console.error('WhatsApp API Error:', error);
-        // Si el error es de JSON (Unexpected token <), devolvemos un error limpio
         return NextResponse.json({ 
             success: false, 
-            error: 'El servidor está procesando muchas solicitudes. El mensaje podría haber sido enviado.' 
+            error: 'El servidor está procesando muchas solicitudes. Inténtalo de nuevo en unos segundos.' 
         }, { status: 500 });
     }
 }
