@@ -528,7 +528,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                 </div>
             )}
 
-        </div>
+
 
             {/* MODAL DE WHATSAPP */}
             <WhatsAppMessageModal 
