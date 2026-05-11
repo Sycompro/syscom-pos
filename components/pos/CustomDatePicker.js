@@ -120,8 +120,12 @@ export default function CustomDatePicker({ value, onChange, label }) {
     );
 }
 
-const labelStyle = { fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', display: 'block' };
-const inputStyle = { width: '100%', padding: '6px 8px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', minHeight: '30px', boxSizing: 'border-box' };
+const labelStyle = { fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' };
+const inputStyle = { 
+    width: '100%', padding: '0 12px', background: '#fff', border: '1px solid #e2e8f0', 
+    borderRadius: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', 
+    gap: '10px', cursor: 'pointer', height: '42px', boxSizing: 'border-box' 
+};
 const calendarPopupStyle = { position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 500, background: '#fff', borderRadius: '16px', padding: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', border: '1px solid #f1f5f9', width: '240px' };
 const calendarHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' };
 const selectHeaderStyle = { border: 'none', background: '#f1f5f9', borderRadius: '6px', padding: '4px 6px', fontSize: '11px', fontWeight: 800, color: '#0f172a', outline: 'none', cursor: 'pointer' };

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
+import CustomDatePicker from './CustomDatePicker';
 
 export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName }) {
     const { data: session } = useSession();
@@ -761,12 +762,10 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                         />
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>Cumpleaños</label>
-                                        <input 
-                                            type="date"
-                                            style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
+                                        <CustomDatePicker 
+                                            label="Cumpleaños"
                                             value={editingMember.fecnac}
-                                            onChange={(e) => setEditingMember({...editingMember, fecnac: e.target.value})}
+                                            onChange={(val) => setEditingMember({...editingMember, fecnac: val})}
                                         />
                                     </div>
                                 </div>
