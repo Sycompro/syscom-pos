@@ -556,13 +556,19 @@ const sedeAddrStyle = { fontSize: '10px', color: '#94a3b8', marginTop: '2px' };
 
 const getStatusBadgeStyle = (status) => ({
     padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '700',
-    background: status === 'Activo' ? '#ecfdf5' : status === 'Por vencer' ? '#fffbeb' : '#fef2f2',
-    color: status === 'Activo' ? '#10b981' : status === 'Por vencer' ? '#f59e0b' : '#ef4444'
+    background: status === 'Activo' ? '#ecfdf5' : 
+                status === 'Por vencer' ? '#fff7ed' : 
+                status === 'Próximo' ? '#fefce8' : '#fef2f2',
+    color: status === 'Activo' ? '#10b981' : 
+           status === 'Por vencer' ? '#f97316' : 
+           status === 'Próximo' ? '#eab308' : '#ef4444'
 });
 
 const getExpStyle = (status) => ({
     fontSize: '13px', fontWeight: '700',
-    color: status === 'Activo' ? '#10b981' : status === 'Por vencer' ? '#f59e0b' : '#ef4444'
+    color: status === 'Activo' ? '#10b981' : 
+           status === 'Por vencer' ? '#f97316' : 
+           status === 'Próximo' ? '#eab308' : '#ef4444'
 });
 
 const daysLeftStyle = { fontSize: '10px', color: '#94a3b8', marginTop: '2px' };

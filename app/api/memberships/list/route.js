@@ -82,23 +82,27 @@ export async function GET(request) {
         const now = getPeruTime();
         now.setHours(0,0,0,0);
         
-        const in7Days = new Date(now);
-        in7Days.setDate(now.getDate() + 7);
-
-        const data = result.recordset.map(r => {
-            let expDate = null;
-            if (r.endDate && r.endDate !== '1900-01-01') {
-                const [y, m, d] = r.endDate.split('-').map(Number);
-                expDate = new Date(y, m - 1, d);
-            }
-
-            let statusValue = 'Vencido';
+            const in3Days = new Date(now);
+            in3Days.setDate(now.getDate() + 3);
             
-            if (expDate) {
-                if (expDate < now) statusValue = 'Vencido';
-                else if (expDate <= in7Days) statusValue = 'Por vencer';
-                else statusValue = 'Activo';
-            }
+            const in7Days = new Date(now);
+            in7Days.setDate(now.getDate() + 7);
+
+            const data = result.recordset.map(r => {
+                let expDate = null;
+                if (r.endDate && r.endDate !== '1900-01-01') {
+                    const [y, m, d] = r.endDate.split('-').map(Number);
+                    expDate = new Date(y, m - 1, d);
+                }
+
+                let statusValue = 'Vencido';
+                
+                if (expDate) {
+                    if (expDate < now) statusValue = 'Vencido';
+                    else if (expDate <= in3Days) statusValue = 'Por vencer'; // Naranja (3 días)
+                    else if (expDate <= in7Days) statusValue = 'Próximo';    // Amarillo (7 días)
+                    else statusValue = 'Activo';                            // Verde
+                }
 
             return {
                 ...r,
@@ -108,13 +112,15 @@ export async function GET(request) {
         });
 
         // Filtrar por estado si es necesario
-        const filteredData = status === 'all' ? data : data.filter(d => d.status.toLowerCase() === status.toLowerCase());
+        const filteredData = status === 'all' ? data : 
+                             status === 'por vencer' ? data.filter(d => d.status === 'Por vencer' || d.status === 'Próximo') :
+                             data.filter(d => d.status.toLowerCase() === status.toLowerCase());
 
         // Calcular estadísticas
         const stats = {
             total: data.length,
             active: data.filter(d => d.status === 'Activo').length,
-            expiring: data.filter(d => d.status === 'Por vencer').length,
+            expiring: data.filter(d => d.status === 'Por vencer' || d.status === 'Próximo').length,
             expired: data.filter(d => d.status === 'Vencido').length
         };
 
