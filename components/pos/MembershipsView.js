@@ -195,6 +195,256 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                             />
                         </div>
                     </div>
+
+                    {/* Apartado: Listado y Filtros (ESTO AHORA ESTÁ DENTRO) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Listado detallado de socios
+                        </label>
+                        <div style={filterBarStyle}>
+                        <div style={searchWrapperStyle}>
+                            <Search size={18} style={{ color: '#94a3b8' }} />
+                            <input 
+                                type="text" 
+                                placeholder="Buscar por miembro, teléfono o plan..." 
+                                style={searchInputStyle}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        
+                        <div style={actionsRowStyle}>
+                            <select 
+                                style={selectStyle}
+                                value={filterSede}
+                                onChange={(e) => setFilterSede(e.target.value)}
+                            >
+                                <option value="all">Todas las sedes</option>
+                                <option value="my">Mi sede</option>
+                            </select>
+                            <select 
+                                style={selectStyle} 
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                            >
+                                <option value="all">Todos los estados</option>
+                                <option value="activo">Activos</option>
+                                <option value="por vencer">Por vencer</option>
+                                <option value="vencido">Vencidos</option>
+                            </select>
+                            <select style={selectStyle}><option>Todos los planes</option></select>
+                        </div>
+                    </div>
+
+                    {/* Tabla de Resultados */}
+                    <div style={tableContainerStyle}>
+                        <div style={tableHeaderStyle}>
+                            <span style={{ flex: 2 }}>Miembro</span>
+                            <span style={{ flex: 1.5 }}>Sede</span>
+                            <span style={{ flex: 1.5 }}>Plan</span>
+                            <span style={{ flex: 1 }}>Inicio</span>
+                            <span style={{ flex: 1.2 }}>Vencimiento</span>
+                            <span style={{ flex: 1 }}>Estado</span>
+                            <span style={{ flex: 1 }}>Precio</span>
+                            <span style={{ flex: 1 }}>Acciones</span>
+                        </div>
+
+                        {loading ? (
+                            <div style={loadingStyle}>Cargando membresías...</div>
+                        ) : (members || []).length === 0 ? (
+                            <div style={loadingStyle}>No se encontraron membresías.</div>
+                        ) : (
+                            (members || []).map((member, idx) => (
+                                <div key={member.id}>
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        style={{
+                                            ...tableRowStyle,
+                                            borderLeft: expandedMember === member.id ? '4px solid #3b82f6' : '4px solid transparent',
+                                            background: expandedMember === member.id ? '#f8fafc' : '#fff'
+                                        }}
+                                    >
+                                        {/* Miembro */}
+                                        <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={avatarStyle}>{member.name.charAt(0)}</div>
+                                            <div>
+                                                <div style={memberNameStyle}>{member.name}</div>
+                                                <div style={memberPhoneStyle}>{member.phone}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Sede */}
+                                        <div style={{ flex: 1.5 }}>
+                                            <div style={sedeNameStyle}><MapPin size={14} /> {member.sede}</div>
+                                            <div style={sedeAddrStyle}>{member.address}</div>
+                                        </div>
+
+                                        {/* Plan */}
+                                        <div style={{ flex: 1.5, color: '#475569', fontSize: '13px' }}>
+                                            {member.planName || 'Sin plan registrado'}
+                                        </div>
+
+                                        {/* Inicio */}
+                                        <div style={{ flex: 1, color: '#64748b', fontSize: '13px' }}>
+                                            {member.startDate ? (() => {
+                                                const [y, m, d] = member.startDate.split('-');
+                                                return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                            })() : '-'}
+                                        </div>
+
+                                        {/* Vencimiento */}
+                                        <div style={{ flex: 1.2 }}>
+                                            <div style={getExpStyle(member.status)}>
+                                                {member.endDate && member.endDate !== '1900-01-01' ? (() => {
+                                                    const [y, m, d] = member.endDate.split('-');
+                                                    return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                                })() : 'Sin fecha'}
+                                            </div>
+                                            <div style={daysLeftStyle}>{member.daysLeft > 0 ? `${member.daysLeft}d restantes` : member.daysLeft < 0 ? `Vencido hace ${Math.abs(member.daysLeft)}d` : ''}</div>
+                                        </div>
+
+                                        {/* Estado */}
+                                        <div style={{ flex: 1 }}>
+                                            <span style={getStatusBadgeStyle(member.status)}>{member.status}</span>
+                                        </div>
+
+                                        {/* Precio */}
+                                        <div style={{ flex: 1, fontWeight: '600', color: '#1e293b' }}>
+                                            {member.price ? `S/${parseFloat(member.price).toFixed(2)}` : '-'}
+                                        </div>
+
+                                        <div style={{ flex: 1, display: 'flex', gap: '10px', color: '#94a3b8', alignItems: 'center' }}>
+                                            <RefreshCw 
+                                                size={16} 
+                                                style={{ 
+                                                    ...actionIconStyle, 
+                                                    color: member.status === 'Vencido' ? '#3b82f6' : '#cbd5e1',
+                                                    opacity: member.status === 'Vencido' ? 1 : 0.5
+                                                }} 
+                                                title="Renovar"
+                                                onClick={() => {
+                                                    if (member.status !== 'Vencido') {
+                                                        alert('Esta membresía aún se encuentra vigente. Si desea agregar más tiempo antes de que venza, use la opción "Extender" (icono de calendario).');
+                                                        return;
+                                                    }
+                                                    setIsExtension(false);
+                                                    setRenewingMember(member);
+                                                }}
+                                            />
+                                            <MessageCircle 
+                                                size={16} 
+                                                style={{ ...actionIconStyle, color: '#10b981' }} 
+                                                title="Enviar WhatsApp"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedMemberWA(member);
+                                                    setShowWAModal(true);
+                                                }}
+                                            />
+                                            <Calendar 
+                                                size={16} 
+                                                style={{ 
+                                                    ...actionIconStyle, 
+                                                    color: (member.status === 'Activo' || member.status === 'Por vencer') ? '#10b981' : '#cbd5e1',
+                                                    opacity: (member.status === 'Activo' || member.status === 'Por vencer') ? 1 : 0.5
+                                                }} 
+                                                title="Extender"
+                                                onClick={() => {
+                                                    if (member.status === 'Vencido') {
+                                                        alert('Esta membresía ya expiró. Use la opción "Renovar" (flechas azules) para iniciar un nuevo periodo hoy mismo.');
+                                                        return;
+                                                    }
+                                                    setIsExtension(true);
+                                                    setRenewingMember(member);
+                                                }}
+                                            />
+                                            <Clock 
+                                                size={16} 
+                                                style={{ 
+                                                    ...actionIconStyle, 
+                                                    color: (expandedMember === member.id || member.historyCount > 1) ? '#8b5cf6' : '#cbd5e1',
+                                                    opacity: (expandedMember === member.id || member.historyCount > 1) ? 1 : 0.4
+                                                }} 
+                                                title={member.historyCount > 1 ? "Ver historial de extensiones" : "Sin historial previo"}
+                                                onClick={() => fetchHistory(member)}
+                                            />
+                                            <Trash2 size={16} style={{ ...actionIconStyle, color: '#fca5a5' }} />
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Panel Desplegable de Historial */}
+                                    <AnimatePresence>
+                                        {expandedMember === member.id && (
+                                            <motion.div 
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                style={{ overflow: 'hidden', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}
+                                            >
+                                                <div style={{ padding: '20px 40px 24px 70px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                                        <div style={{ width: '4px', height: '14px', background: '#8b5cf6', borderRadius: '2px' }} />
+                                                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                            Historial de Operaciones
+                                                        </span>
+                                                    </div>
+
+                                                    {loadingHistory && !memberHistory[member.id] ? (
+                                                        <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>Consultando base de datos...</div>
+                                                    ) : (memberHistory[member.id] || []).length === 0 ? (
+                                                        <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>No se encontraron operaciones previas.</div>
+                                                    ) : (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                            {(memberHistory[member.id] || []).map((entry, hIdx) => (
+                                                                <div key={hIdx} style={{ 
+                                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+                                                                    background: hIdx === 0 ? '#fff' : 'transparent',
+                                                                    padding: '10px 16px', borderRadius: '10px',
+                                                                    border: hIdx === 0 ? '1px solid #e2e8f0' : '1px solid transparent',
+                                                                    boxShadow: hIdx === 0 ? '0 2px 4px rgba(0,0,0,0.02)' : 'none'
+                                                                }}>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                                        <div style={{ 
+                                                                            width: '32px', height: '32px', borderRadius: '8px', 
+                                                                            background: hIdx === 0 ? '#f5f3ff' : '#f1f5f9',
+                                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                            color: hIdx === 0 ? '#8b5cf6' : '#94a3b8'
+                                                                        }}>
+                                                                            <FileText size={14} />
+                                                                        </div>
+                                                                        <div>
+                                                                            <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>{entry.planName}</div>
+                                                                            <div style={{ fontSize: '11px', color: '#94a3b8' }}>{entry.document} • {entry.docType === '01' ? 'Factura' : 'Boleta'}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div style={{ textAlign: 'right' }}>
+                                                                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                                                                            {(() => {
+                                                                                const parts = entry.date.split('-');
+                                                                                if (parts.length === 3) {
+                                                                                    const [y, m, d] = parts;
+                                                                                    return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                                                                }
+                                                                                return entry.date;
+                                                                            })()}
+                                                                        </div>
+                                                                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#10b981' }}>S/ {entry.price.toFixed(2)}</div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
                 </>
             ) : activeTab === 'birthdays' ? (
                 <div style={{ marginBottom: '4px' }}>
@@ -278,254 +528,6 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                 </div>
             )}
 
-            {/* Apartado: Listado y Filtros */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Listado detallado de socios
-                </label>
-                <div style={filterBarStyle}>
-                <div style={searchWrapperStyle}>
-                    <Search size={18} style={{ color: '#94a3b8' }} />
-                    <input 
-                        type="text" 
-                        placeholder="Buscar por miembro, teléfono o plan..." 
-                        style={searchInputStyle}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                
-                <div style={actionsRowStyle}>
-                    <select 
-                        style={selectStyle}
-                        value={filterSede}
-                        onChange={(e) => setFilterSede(e.target.value)}
-                    >
-                        <option value="all">Todas las sedes</option>
-                        <option value="my">Mi sede</option>
-                    </select>
-                    <select 
-                        style={selectStyle} 
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                    >
-                        <option value="all">Todos los estados</option>
-                        <option value="activo">Activos</option>
-                        <option value="por vencer">Por vencer</option>
-                        <option value="vencido">Vencidos</option>
-                    </select>
-                    <select style={selectStyle}><option>Todos los planes</option></select>
-                </div>
-            </div>
-
-            {/* Tabla de Resultados */}
-            <div style={tableContainerStyle}>
-                <div style={tableHeaderStyle}>
-                    <span style={{ flex: 2 }}>Miembro</span>
-                    <span style={{ flex: 1.5 }}>Sede</span>
-                    <span style={{ flex: 1.5 }}>Plan</span>
-                    <span style={{ flex: 1 }}>Inicio</span>
-                    <span style={{ flex: 1.2 }}>Vencimiento</span>
-                    <span style={{ flex: 1 }}>Estado</span>
-                    <span style={{ flex: 1 }}>Precio</span>
-                    <span style={{ flex: 1 }}>Acciones</span>
-                </div>
-
-                {loading ? (
-                    <div style={loadingStyle}>Cargando membresías...</div>
-                ) : (members || []).length === 0 ? (
-                    <div style={loadingStyle}>No se encontraron membresías.</div>
-                ) : (
-                    (members || []).map((member, idx) => (
-                        <div key={member.id}>
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.05 }}
-                                style={{
-                                    ...tableRowStyle,
-                                    borderLeft: expandedMember === member.id ? '4px solid #3b82f6' : '4px solid transparent',
-                                    background: expandedMember === member.id ? '#f8fafc' : '#fff'
-                                }}
-                            >
-                                {/* Miembro */}
-                                <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={avatarStyle}>{member.name.charAt(0)}</div>
-                                    <div>
-                                        <div style={memberNameStyle}>{member.name}</div>
-                                        <div style={memberPhoneStyle}>{member.phone}</div>
-                                    </div>
-                                </div>
-
-                                {/* Sede */}
-                                <div style={{ flex: 1.5 }}>
-                                    <div style={sedeNameStyle}><MapPin size={14} /> {member.sede}</div>
-                                    <div style={sedeAddrStyle}>{member.address}</div>
-                                </div>
-
-                                {/* Plan */}
-                                <div style={{ flex: 1.5, color: '#475569', fontSize: '13px' }}>
-                                    {member.planName || 'Sin plan registrado'}
-                                </div>
-
-                                {/* Inicio */}
-                                <div style={{ flex: 1, color: '#64748b', fontSize: '13px' }}>
-                                    {member.startDate ? (() => {
-                                        const [y, m, d] = member.startDate.split('-');
-                                        return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                                    })() : '-'}
-                                </div>
-
-                                {/* Vencimiento */}
-                                <div style={{ flex: 1.2 }}>
-                                    <div style={getExpStyle(member.status)}>
-                                        {member.endDate && member.endDate !== '1900-01-01' ? (() => {
-                                            const [y, m, d] = member.endDate.split('-');
-                                            return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                                        })() : 'Sin fecha'}
-                                    </div>
-                                    <div style={daysLeftStyle}>{member.daysLeft > 0 ? `${member.daysLeft}d restantes` : member.daysLeft < 0 ? `Vencido hace ${Math.abs(member.daysLeft)}d` : ''}</div>
-                                </div>
-
-                                {/* Estado */}
-                                <div style={{ flex: 1 }}>
-                                    <span style={getStatusBadgeStyle(member.status)}>{member.status}</span>
-                                </div>
-
-                                {/* Precio */}
-                                <div style={{ flex: 1, fontWeight: '600', color: '#1e293b' }}>
-                                    {member.price ? `S/${parseFloat(member.price).toFixed(2)}` : '-'}
-                                </div>
-
-                                <div style={{ flex: 1, display: 'flex', gap: '10px', color: '#94a3b8', alignItems: 'center' }}>
-                                    <RefreshCw 
-                                        size={16} 
-                                        style={{ 
-                                            ...actionIconStyle, 
-                                            color: member.status === 'Vencido' ? '#3b82f6' : '#cbd5e1',
-                                            opacity: member.status === 'Vencido' ? 1 : 0.5
-                                        }} 
-                                        title="Renovar"
-                                        onClick={() => {
-                                            if (member.status !== 'Vencido') {
-                                                alert('Esta membresía aún se encuentra vigente. Si desea agregar más tiempo antes de que venza, use la opción "Extender" (icono de calendario).');
-                                                return;
-                                            }
-                                            setIsExtension(false);
-                                            setRenewingMember(member);
-                                        }}
-                                    />
-                                    <MessageCircle 
-                                        size={16} 
-                                        style={{ ...actionIconStyle, color: '#10b981' }} 
-                                        title="Enviar WhatsApp"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedMemberWA(member);
-                                            setShowWAModal(true);
-                                        }}
-                                    />
-                                    <Calendar 
-                                        size={16} 
-                                        style={{ 
-                                            ...actionIconStyle, 
-                                            color: (member.status === 'Activo' || member.status === 'Por vencer') ? '#10b981' : '#cbd5e1',
-                                            opacity: (member.status === 'Activo' || member.status === 'Por vencer') ? 1 : 0.5
-                                        }} 
-                                        title="Extender"
-                                        onClick={() => {
-                                            if (member.status === 'Vencido') {
-                                                alert('Esta membresía ya expiró. Use la opción "Renovar" (flechas azules) para iniciar un nuevo periodo hoy mismo.');
-                                                return;
-                                            }
-                                            setIsExtension(true);
-                                            setRenewingMember(member);
-                                        }}
-                                    />
-                                    <Clock 
-                                        size={16} 
-                                        style={{ 
-                                            ...actionIconStyle, 
-                                            color: (expandedMember === member.id || member.historyCount > 1) ? '#8b5cf6' : '#cbd5e1',
-                                            opacity: (expandedMember === member.id || member.historyCount > 1) ? 1 : 0.4
-                                        }} 
-                                        title={member.historyCount > 1 ? "Ver historial de extensiones" : "Sin historial previo"}
-                                        onClick={() => fetchHistory(member)}
-                                    />
-                                    <Trash2 size={16} style={{ ...actionIconStyle, color: '#fca5a5' }} />
-                                </div>
-                            </motion.div>
-
-                            {/* Panel Desplegable de Historial */}
-                            <AnimatePresence>
-                                {expandedMember === member.id && (
-                                    <motion.div 
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        style={{ overflow: 'hidden', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}
-                                    >
-                                        <div style={{ padding: '20px 40px 24px 70px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                                <div style={{ width: '4px', height: '14px', background: '#8b5cf6', borderRadius: '2px' }} />
-                                                <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                    Historial de Operaciones
-                                                </span>
-                                            </div>
-
-                                            {loadingHistory && !memberHistory[member.id] ? (
-                                                <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>Consultando base de datos...</div>
-                                            ) : (memberHistory[member.id] || []).length === 0 ? (
-                                                <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>No se encontraron operaciones previas.</div>
-                                            ) : (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                    {(memberHistory[member.id] || []).map((entry, hIdx) => (
-                                                        <div key={hIdx} style={{ 
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-                                                            background: hIdx === 0 ? '#fff' : 'transparent',
-                                                            padding: '10px 16px', borderRadius: '10px',
-                                                            border: hIdx === 0 ? '1px solid #e2e8f0' : '1px solid transparent',
-                                                            boxShadow: hIdx === 0 ? '0 2px 4px rgba(0,0,0,0.02)' : 'none'
-                                                        }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                                <div style={{ 
-                                                                    width: '32px', height: '32px', borderRadius: '8px', 
-                                                                    background: hIdx === 0 ? '#f5f3ff' : '#f1f5f9',
-                                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                                    color: hIdx === 0 ? '#8b5cf6' : '#94a3b8'
-                                                                }}>
-                                                                    <FileText size={14} />
-                                                                </div>
-                                                                <div>
-                                                                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>{entry.planName}</div>
-                                                                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>{entry.document} • {entry.docType === '01' ? 'Factura' : 'Boleta'}</div>
-                                                                </div>
-                                                            </div>
-                                                            <div style={{ textAlign: 'right' }}>
-                                                                <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
-                                                                    {(() => {
-                                                                        const parts = entry.date.split('-');
-                                                                        if (parts.length === 3) {
-                                                                            const [y, m, d] = parts;
-                                                                            return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                                                                        }
-                                                                        return entry.date;
-                                                                    })()}
-                                                                </div>
-                                                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#10b981' }}>S/ {entry.price.toFixed(2)}</div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    ))
-                )}
-            </div>
         </div>
 
             {/* MODAL DE WHATSAPP */}
