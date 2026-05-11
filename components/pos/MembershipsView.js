@@ -7,8 +7,9 @@ import {
     FileText, Download, MapPin, CreditCard, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import WhatsAppMessageModal from './WhatsAppMessageModal';
 
-export default function MembershipsView({ onRenew }) {
+export default function MembershipsView({ onRenew, onQueueWhatsApp }) {
     const [loading, setLoading] = useState(true);
     const [members, setMembers] = useState([]);
     const [stats, setStats] = useState({ total: 0, active: 0, expiring: 0, expired: 0 });
@@ -22,6 +23,10 @@ export default function MembershipsView({ onRenew }) {
     const [expandedMember, setExpandedMember] = useState(null);
     const [memberHistory, setMemberHistory] = useState({});
     const [loadingHistory, setLoadingHistory] = useState(false);
+    
+    // Estados para WhatsApp
+    const [showWAModal, setShowWAModal] = useState(false);
+    const [selectedMemberWA, setSelectedMemberWA] = useState(null);
 
     useEffect(() => {
         fetchMemberships();
@@ -268,6 +273,16 @@ export default function MembershipsView({ onRenew }) {
                                             setRenewingMember(member);
                                         }}
                                     />
+                                    <MessageCircle 
+                                        size={16} 
+                                        style={{ ...actionIconStyle, color: '#10b981' }} 
+                                        title="Enviar WhatsApp"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedMemberWA(member);
+                                            setShowWAModal(true);
+                                        }}
+                                    />
                                     <Calendar 
                                         size={16} 
                                         style={{ 
@@ -370,6 +385,18 @@ export default function MembershipsView({ onRenew }) {
                 )}
             </div>
         </div>
+
+            {/* MODAL DE WHATSAPP */}
+            <WhatsAppMessageModal 
+                isOpen={showWAModal}
+                onClose={() => setShowWAModal(false)}
+                member={selectedMemberWA}
+                onSend={(phone, msg) => {
+                    if (onQueueWhatsApp) {
+                        onQueueWhatsApp(phone, msg);
+                    }
+                }}
+            />
 
             {/* Modal de Renovación */}
             {renewingMember && (
