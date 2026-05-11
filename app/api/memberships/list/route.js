@@ -29,8 +29,10 @@ export async function GET(request) {
                 RTRIM(c.celcli) as phone,
                 CONVERT(varchar, c.fecinipres, 23) as startDate,
                 CONVERT(varchar, c.fecfinpres, 23) as endDate,
+                RTRIM(c.email) as email,
+                CONVERT(varchar, c.fecnac, 23) as birthDate,
                 ISNULL(RTRIM(pun.nompto), 'SEDE 01') as sede,
-                ISNULL(RTRIM(tie.DirTie), RTRIM(c.dircli)) as address,
+                RTRIM(c.dircli) as address,
                 (
                     SELECT TOP 1 RTRIM(d.descr)
                     FROM dtl01fac d

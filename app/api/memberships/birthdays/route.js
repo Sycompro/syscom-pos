@@ -24,6 +24,8 @@ export async function GET(req) {
                     C.codcli, 
                     C.nomcli, 
                     C.celcli as phone, 
+                    C.email,
+                    RTRIM(C.dircli) as address,
                     C.fecnac,
                     DAY(C.fecnac) as birthDay,
                     MONTH(C.fecnac) as birthMonth,

@@ -5,7 +5,7 @@ import {
     Search, Filter, Plus, Users, Clock, AlertCircle, 
     CheckCircle2, XCircle, ChevronDown, MoreVertical, 
     RefreshCw, Calendar, MessageCircle, Edit3, Trash2,
-    FileText, Download, MapPin, CreditCard, X
+    FileText, Download, MapPin, CreditCard, X, User, Save
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
@@ -32,6 +32,8 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
     // Estados para WhatsApp
     const [showWAModal, setShowWAModal] = useState(false);
     const [selectedMemberWA, setSelectedMemberWA] = useState(null);
+    const [editingMember, setEditingMember] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
     // ESTADOS PARA PESTAÑAS Y CUMPLEAÑOS
@@ -365,6 +367,22 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                                 title={member.historyCount > 1 ? "Ver historial de extensiones" : "Sin historial previo"}
                                                 onClick={() => fetchHistory(member)}
                                             />
+                                            <User 
+                                                size={16} 
+                                                style={{ ...actionIconStyle, color: '#3b82f6' }} 
+                                                title="Editar Perfil"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEditingMember({
+                                                        id: member.id,
+                                                        nomcli: member.name,
+                                                        celcli: member.phone,
+                                                        email: member.email || '',
+                                                        direccion: member.address || '',
+                                                        fecnac: member.birthDate || ''
+                                                    });
+                                                }}
+                                            />
                                             <Trash2 size={16} style={{ ...actionIconStyle, color: '#fca5a5' }} />
                                         </div>
                                     </motion.div>
@@ -501,15 +519,33 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                         )}
                                     </div>
 
-                                    <button 
-                                        onClick={() => {
-                                            setSelectedMemberWA({ id: b.codcli, name: b.nomcli, phone: b.phone });
-                                            setShowWAModal(true);
-                                        }}
-                                        style={{ ...birthdayActionBtnStyle, background: isToday ? '#f43f5e' : '#f1f5f9', color: isToday ? '#fff' : '#64748b' }}
-                                    >
-                                        <MessageCircle size={16} />
-                                    </button>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedMemberWA({ id: b.codcli, name: b.nomcli, phone: b.phone });
+                                                setShowWAModal(true);
+                                            }}
+                                            style={{ ...birthdayActionBtnStyle, background: isToday ? '#f43f5e' : '#f1f5f9', color: isToday ? '#fff' : '#64748b' }}
+                                        >
+                                            <MessageCircle size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                setEditingMember({
+                                                    id: b.codcli,
+                                                    nomcli: b.nomcli,
+                                                    celcli: b.phone,
+                                                    email: b.email || '',
+                                                    direccion: b.address || '',
+                                                    fecnac: b.fecnac ? b.fecnac.split('T')[0] : ''
+                                                });
+                                            }}
+                                            style={{ ...birthdayActionBtnStyle, background: '#f8fafc', color: '#94a3b8' }}
+                                            title="Editar datos"
+                                        >
+                                            <User size={16} />
+                                        </button>
+                                    </div>
                                 </motion.div>
                             );
                         })}
@@ -675,6 +711,126 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                     </motion.div>
                 </div>
             )}
+
+            {/* MODAL DE EDICIÓN DE SOCIO */}
+            <AnimatePresence>
+                {editingMember && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={modalOverlayStyle}
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            style={{ ...renewalModalStyle, maxWidth: '500px' }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ ...iconBoxStyle, background: '#eff6ff', color: '#3b82f6' }}>
+                                        <User size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#1e293b', margin: 0 }}>Editar Perfil</h2>
+                                        <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>ID: {editingMember.id}</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setEditingMember(null)} style={closeBtnStyle}><X size={20} /></button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div>
+                                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>Nombre Completo</label>
+                                    <input 
+                                        type="text"
+                                        style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
+                                        value={editingMember.nomcli}
+                                        onChange={(e) => setEditingMember({...editingMember, nomcli: e.target.value})}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div>
+                                        <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>WhatsApp / Teléfono</label>
+                                        <input 
+                                            type="text"
+                                            style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
+                                            value={editingMember.celcli}
+                                            onChange={(e) => setEditingMember({...editingMember, celcli: e.target.value})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>Cumpleaños</label>
+                                        <input 
+                                            type="date"
+                                            style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
+                                            value={editingMember.fecnac}
+                                            onChange={(e) => setEditingMember({...editingMember, fecnac: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>Correo Electrónico</label>
+                                    <input 
+                                        type="email"
+                                        style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
+                                        value={editingMember.email}
+                                        onChange={(e) => setEditingMember({...editingMember, email: e.target.value})}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>Dirección</label>
+                                    <input 
+                                        type="text"
+                                        style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
+                                        value={editingMember.direccion}
+                                        onChange={(e) => setEditingMember({...editingMember, direccion: e.target.value})}
+                                    />
+                                </div>
+
+                                <button 
+                                    style={{ 
+                                        width: '100%', height: '48px', borderRadius: '14px', border: 'none',
+                                        background: '#3b82f6', color: '#fff', fontSize: '14px', fontWeight: 800,
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                        marginTop: '10px', boxShadow: '0 10px 15px -3px rgba(59,130,246,0.2)'
+                                    }}
+                                    disabled={isSaving}
+                                    onClick={async () => {
+                                        setIsSaving(true);
+                                        try {
+                                            const res = await fetch('/api/customers/update', {
+                                                method: 'PATCH',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(editingMember)
+                                            });
+                                            const data = await res.json();
+                                            if (data.success) {
+                                                alert('Datos actualizados correctamente');
+                                                setEditingMember(null);
+                                                fetchMembers(); // Refrescar lista
+                                                if (activeTab === 'birthdays') fetchBirthdays();
+                                            } else {
+                                                alert('Error: ' + data.error);
+                                            }
+                                        } catch (err) {
+                                            alert('Fallo al conectar con el servidor');
+                                        } finally {
+                                            setIsSaving(false);
+                                        }
+                                    }}
+                                >
+                                    {isSaving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+                                    Guardar Cambios en ERP
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
