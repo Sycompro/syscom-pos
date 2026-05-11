@@ -206,12 +206,25 @@ const labelStyle = {
     marginBottom: '10px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' 
 };
 
-const categoryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '8px' };
+const categoryGridStyle = { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', 
+    gap: '6px' 
+};
 
 const categoryBtnStyle = {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
-    padding: '12px 8px', borderRadius: '16px', border: '1px solid', fontSize: '11px',
-    fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s'
+    display: 'flex', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: '10px',
+    padding: '8px 12px', 
+    borderRadius: '12px', 
+    border: '1px solid', 
+    fontSize: '11px',
+    fontWeight: '600', 
+    cursor: 'pointer', 
+    transition: 'all 0.2s',
+    textAlign: 'left'
 };
 
 const templateListStyle = { display: 'flex', flexDirection: 'column', gap: '8px' };
