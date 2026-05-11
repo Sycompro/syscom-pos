@@ -956,7 +956,7 @@ export default function POSPage() {
                             <MembershipsView 
                     onRenew={handleRenew} 
                     onQueueWhatsApp={addToWaQueue}
-                    companyName={companySettings?.name}
+                    companyName={companySettings?.company?.name}
                 />
                         </motion.div>
                     )}

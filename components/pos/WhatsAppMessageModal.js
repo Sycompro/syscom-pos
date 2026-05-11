@@ -32,32 +32,32 @@ export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, 
 
     const templates = {
         vencimiento: [
-            `¡Hola *${member?.name}*! 🏋️ Te saludamos de *${companyName}*. Te recordamos que tu plan vence el *${formatMsgDate(member?.endDate)}*. ¡No detengas tu progreso! Te esperamos hoy para entrenar. 💪`,
-            `¡Atención *${member?.name}*! 🚨 Tu membresía en *${companyName}* está por finalizar. Asegura tu renovación y sigue con ese gran ritmo. ¡Te esperamos! 🔥`
+            `¡Hola *${member?.name}*! 🏋️ Te saludamos de *${companyName}*. Te recordamos que tu plan vence el *${formatMsgDate(member?.endDate)}*. ¡No detengas tu progreso! Te esperamos hoy para entrenar. 💪\n\nTu equipo de *${companyName}*`,
+            `¡Atención *${member?.name}*! 🚨 Tu membresía en *${companyName}* está por finalizar. Asegura tu renovación y sigue con ese gran ritmo. ¡Te esperamos! 🔥\n\nAtentamente, *${companyName}*`
         ],
         bienvenida: [
-            `¡Bienvenido a *${companyName}*, *${member?.name}*! 🎉 Estamos felices de acompañarte en este camino. Hoy empieza tu transformación. ¡A darle con todo! ⚡`,
-            `¡Hola *${member?.name}*! 👋 Gracias por elegir *${companyName}*. Estamos aquí para apoyarte en cada entrenamiento. ¡Nos vemos en el área! 🏋️`
+            `¡Bienvenido a *${companyName}*, *${member?.name}*! 🎉 Estamos felices de acompañarte en este camino. Hoy empieza tu transformación. ¡A darle con todo! ⚡\n\nTu equipo de *${companyName}*`,
+            `¡Hola *${member?.name}*! 👋 Gracias por elegir *${companyName}*. Estamos aquí para apoyarte en cada entrenamiento. ¡Nos vemos en el área! 🏋️\n\nAtentamente, *${companyName}*`
         ],
         motivacion: [
-            `¡Vamos *${member?.name}*! 🔥 En *${companyName}* creemos en tu potencial. La disciplina de hoy es el éxito de mañana. ¡Te esperamos para sudar la camiseta! 🏆`,
-            `¡Buen día *${member?.name}*! 🌟 El único entrenamiento malo es el que no se hace. ¡Ven a *${companyName}* y libera tu energía! ⚡`
+            `¡Vamos *${member?.name}*! 🔥 En *${companyName}* creemos en tu potencial. La disciplina de hoy es el éxito de mañana. ¡Te esperamos para sudar la camiseta! 🏆\n\nTu equipo de *${companyName}* 💪`,
+            `¡Buen día *${member?.name}*! 🌟 El único entrenamiento malo es el que no se hace. ¡Ven a *${companyName}* y libera tu energía! ⚡\n\nTu equipo de *${companyName}*`
         ],
         ausencia: [
-            `¡Te extrañamos en *${companyName}*, *${member?.name}*! 🥺 Hace unos días no te vemos por aquí. ¡Regresa hoy y recupera tu racha! 💪`,
-            `¡Hola *${member?.name}*! 👋 ¿Todo bien? No dejes que el esfuerzo invertido se pierda. ¡Te esperamos en *${companyName}* para retomar con fuerza! 🏋️`
+            `¡Te extrañamos en *${companyName}*, *${member?.name}*! 🥺 Hace unos días no te vemos por aquí. ¡Regresa hoy y recupera tu racha! 💪\n\nTu equipo de *${companyName}*`,
+            `¡Hola *${member?.name}*! 👋 ¿Todo bien? No dejes que el esfuerzo invertido se pierda. ¡Te esperamos en *${companyName}* para retomar con fuerza! 🏋️\n\nTu equipo de *${companyName}*`
         ],
         pago: [
-            `Estimado *${member?.name}*, le saludamos de *${companyName}* para recordarle que tiene un pago pendiente. Por favor, acérquese a recepción para regularizarlo. ¡Saludos! 💳`,
-            `¡Hola *${member?.name}*! 👋 En *${companyName}* tenemos un registro de pago pendiente. Si ya lo realizó, por favor ignore este mensaje. ¡Gracias! ✨`
+            `Estimado *${member?.name}*, le saludamos de *${companyName}* para recordarle que tiene un pago pendiente. Por favor, acérquese a recepción para regularizarlo. ¡Saludos! 💳\n\nAdministración de *${companyName}*`,
+            `¡Hola *${member?.name}*! 👋 En *${companyName}* tenemos un registro de pago pendiente. Si ya lo realizó, por favor ignore este mensaje. ¡Gracias! ✨\n\nAtentamente, *${companyName}*`
         ],
         promo: [
-            `¡Exclusivo para ti, *${member?.name}*! 🎁 Solo por esta semana en *${companyName}*, renueva tu plan y llévate un beneficio especial. ¡Pregunta en recepción! 🚀`,
-            `¡Hola *${member?.name}*! 🔥 Tenemos una promoción VIP para nuestros miembros activos. No dejes pasar esta oportunidad en *${companyName}*. 💎`
+            `¡Exclusivo para ti, *${member?.name}*! 🎁 Solo por esta semana en *${companyName}*, renueva tu plan y llévate un beneficio especial. ¡Pregunta en recepción! 🚀\n\nTu equipo de *${companyName}*`,
+            `¡Hola *${member?.name}*! 🔥 Tenemos una promoción VIP para nuestros miembros activos. No dejes pasar esta oportunidad en *${companyName}*. 💎\n\nAtentamente, *${companyName}*`
         ],
         logro: [
-            `¡Felicidades *${member?.name}*! 🥳 En *${companyName}* hemos notado tu gran constancia. Estás logrando tus metas. ¡Eres una inspiración! 🥇`,
-            `¡Increíble progreso, *${member?.name}*! 👏 Tu dedicación en *${companyName}* está dando frutos. ¡A seguir ganando! 🔥`
+            `¡Felicidades *${member?.name}*! 🥳 En *${companyName}* hemos notado tu gran constancia. Estás logrando tus metas. ¡Eres una inspiración! 🥇\n\nTu equipo de *${companyName}*`,
+            `¡Increíble progreso, *${member?.name}*! 👏 Tu dedicación en *${companyName}* está dando frutos. ¡A seguir ganando! 🔥\n\nTu equipo de *${companyName}*`
         ]
     };
 

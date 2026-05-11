@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { 
     Search, Filter, Plus, Users, Clock, AlertCircle, 
     CheckCircle2, XCircle, ChevronDown, MoreVertical, 
@@ -10,7 +11,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
 
 export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName }) {
+    const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
+    
+    // Si companyName no viene de settings, intentamos usar el de la sesión
+    const finalCompanyName = companyName || session?.user?.name || session?.user?.company || 'nuestro gimnasio';
     const [members, setMembers] = useState([]);
     const [stats, setStats] = useState({ total: 0, active: 0, expiring: 0, expired: 0 });
     const [searchTerm, setSearchTerm] = useState('');
@@ -391,7 +396,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                 isOpen={showWAModal}
                 onClose={() => setShowWAModal(false)}
                 member={selectedMemberWA}
-                companyName={companyName}
+                companyName={finalCompanyName}
                 onSend={(phone, msg) => {
                     if (onQueueWhatsApp) {
                         onQueueWhatsApp(phone, msg);
