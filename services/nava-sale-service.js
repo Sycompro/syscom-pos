@@ -140,7 +140,7 @@ class NavaSaleService {
         .input('codfdp', isMixed ? '' : globalCodFdp)
         .input('codtar', sql.Char(2), isMixed ? '' : globalCodTar.substring(0, 2))
         .input('compro', formattedCompro)
-        .input('codusu', sql.VarChar(10), codusu || '   ')
+        .input('codusu', sql.VarChar(10), (codusu || 'ADMIN').substring(0, 10))
         .input('flag', '0')
         .input('tfact', navaTfact)
         .input('Codcdv', erpData.codcdv_nava || '01')
@@ -158,7 +158,7 @@ class NavaSaleService {
         .input('flagtp', '0')
         .query(`
           INSERT INTO mst01fac (cdocu, ndocu, fecha, fven, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, Codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub, cajrecib, cajvuelto, cobmixta, tipent, FecReg, monrecib, monvuelto, drefe, codtra, FlagTp)
-          VALUES (@cdocu, @ndocu, @fecha, @fven, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @Codpto, @CodAlm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, @Codcdv, @codvta, @codven, @codsub, @cajrecib, @cajvuelto, @cobmixta, @tipent, GETDATE(), @monrecib, @monvuelto, @drefe, @codtra, @flagtp)
+          VALUES (@cdocu, @ndocu, @fecha, @fven, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @Codpto, @CodAlm, @idapecaj, @selpago, @codfdp, @codtar, '03/      ', @codusu, @flag, @tfact, @Codcdv, @codvta, @codven, @codsub, @cajrecib, @cajvuelto, @cobmixta, @tipent, GETDATE(), @monrecib, @monvuelto, @drefe, @codtra, @flagtp)
         `);
 
       // 6. Inserción de Detalles (dtl01fac)
