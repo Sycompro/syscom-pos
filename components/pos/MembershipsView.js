@@ -439,7 +439,6 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                             ))
                         )}
                     </div>
-                </div>
                 </>
             ) : activeTab === 'birthdays' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
