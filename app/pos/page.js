@@ -647,7 +647,7 @@ export default function POSPage() {
                                         </div>
                                         <div>
                                             <h1 style={{ fontSize: '16px', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                {companySettings?.company?.name || 'Cargando sede...'}
+                                                {companySettings?.company?.legalName || companySettings?.company?.name || 'Cargando sede...'}
                                                 <span style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8' }}>• R.U.C. {companySettings?.company?.ruc || ''}</span>
                                             </h1>
                                             <p style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', margin: 0 }}>
@@ -956,7 +956,7 @@ export default function POSPage() {
                             <MembershipsView 
                     onRenew={handleRenew} 
                     onQueueWhatsApp={addToWaQueue}
-                    companyName={companySettings?.company?.name}
+                    companyName={companySettings?.company?.commercialName || companySettings?.company?.name}
                 />
                         </motion.div>
                     )}

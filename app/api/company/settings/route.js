@@ -44,6 +44,8 @@ export async function GET(request) {
         return NextResponse.json({
             company: {
                 name: webConfig.use_custom_name === 1 ? webConfig.custom_name : (emisor.nomcia?.trim() || 'MI EMPRESA'),
+                legalName: emisor.nomcia?.trim() || 'MI EMPRESA',
+                commercialName: webConfig.use_custom_name === 1 ? webConfig.custom_name : (emisor.nomcia?.trim() || 'MI EMPRESA'),
                 ruc: emisor.ruccia?.trim() || '',
                 address: sede.DirTie?.trim() || emisor.dircia?.trim() || '',
                 phone: sede.TelTie?.trim() || emisor.telcia?.trim() || '',
