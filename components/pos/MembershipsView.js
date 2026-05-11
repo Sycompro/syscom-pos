@@ -9,7 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
 
-export default function MembershipsView({ onRenew, onQueueWhatsApp }) {
+export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName }) {
     const [loading, setLoading] = useState(true);
     const [members, setMembers] = useState([]);
     const [stats, setStats] = useState({ total: 0, active: 0, expiring: 0, expired: 0 });
@@ -391,6 +391,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp }) {
                 isOpen={showWAModal}
                 onClose={() => setShowWAModal(false)}
                 member={selectedMemberWA}
+                companyName={companyName}
                 onSend={(phone, msg) => {
                     if (onQueueWhatsApp) {
                         onQueueWhatsApp(phone, msg);

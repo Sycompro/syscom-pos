@@ -7,9 +7,18 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend }) {
+export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, companyName = 'nuestro gimnasio' }) {
     const [message, setMessage] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(null);
+
+    // Formatear fecha para el mensaje
+    const formatMsgDate = (dateStr) => {
+        if (!dateStr || dateStr === '1900-01-01') return 'pronto';
+        try {
+            const [y, m, d] = dateStr.split('-');
+            return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' });
+        } catch (e) { return dateStr; }
+    };
 
     const categories = [
         { id: 'vencimiento', label: 'Vencimiento', icon: <Calendar size={16} />, color: '#f97316' },
@@ -23,32 +32,32 @@ export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend }
 
     const templates = {
         vencimiento: [
-            `¡Hola *${member?.name}*! 🏋️ Te saludamos de *LAS BRISAS*. Te recordamos que tu plan vence el *${member?.endDate}*. ¡No detengas tu progreso! Te esperamos hoy. 💪`,
-            `¡Atención *${member?.name}*! 🚨 Tu membresía está por finalizar. Asegura tu cupo y sigue entrenando con nosotros. ¡Tu racha de progreso es increíble! 🔥`
+            `¡Hola *${member?.name}*! 🏋️ Te saludamos de *${companyName}*. Te recordamos que tu plan vence el *${formatMsgDate(member?.endDate)}*. ¡No detengas tu progreso! Te esperamos hoy para entrenar. 💪`,
+            `¡Atención *${member?.name}*! 🚨 Tu membresía en *${companyName}* está por finalizar. Asegura tu renovación y sigue con ese gran ritmo. ¡Te esperamos! 🔥`
         ],
         bienvenida: [
-            `¡Bienvenido a la familia, *${member?.name}*! 🎉 Estamos felices de tenerte con nosotros. Hoy empieza tu mejor versión. ¡A darle con todo! ⚡`,
-            `¡Hola *${member?.name}*! 👋 Gracias por confiar en nosotros para tu transformación. Recuerda que estamos aquí para apoyarte en cada paso. ¡A entrenar! 🏋️`
+            `¡Bienvenido a *${companyName}*, *${member?.name}*! 🎉 Estamos felices de acompañarte en este camino. Hoy empieza tu transformación. ¡A darle con todo! ⚡`,
+            `¡Hola *${member?.name}*! 👋 Gracias por elegir *${companyName}*. Estamos aquí para apoyarte en cada entrenamiento. ¡Nos vemos en el área! 🏋️`
         ],
         motivacion: [
-            `¡Vamos *${member?.name}*! 🔥 No te detengas hasta sentirte orgulloso. La disciplina es el puente entre tus metas y tus logros. ¡Nos vemos en el gym! 🏆`,
-            `¡Buen día *${member?.name}*! 🌟 Recuerda: el único entrenamiento malo es el que no se hizo. ¡Te esperamos para liberar endorfinas! ⚡`
+            `¡Vamos *${member?.name}*! 🔥 En *${companyName}* creemos en tu potencial. La disciplina de hoy es el éxito de mañana. ¡Te esperamos para sudar la camiseta! 🏆`,
+            `¡Buen día *${member?.name}*! 🌟 El único entrenamiento malo es el que no se hace. ¡Ven a *${companyName}* y libera tu energía! ⚡`
         ],
         ausencia: [
-            `¡Te extrañamos, *${member?.name}*! 🥺 Hace unos días no te vemos por aquí. El cuerpo logra lo que la mente cree. ¡Regresa hoy y recupera tu ritmo! 💪`,
-            `¡Hola *${member?.name}*! 👋 ¿Todo bien? No dejes que el esfuerzo que ya invertiste se pierda. ¡Vuelve hoy y entrena con todo! 🏋️`
+            `¡Te extrañamos en *${companyName}*, *${member?.name}*! 🥺 Hace unos días no te vemos por aquí. ¡Regresa hoy y recupera tu racha! 💪`,
+            `¡Hola *${member?.name}*! 👋 ¿Todo bien? No dejes que el esfuerzo invertido se pierda. ¡Te esperamos en *${companyName}* para retomar con fuerza! 🏋️`
         ],
         pago: [
-            `Estimado *${member?.name}*, le recordamos que tiene un pago pendiente de su membresía. Por favor, acérquese a recepción para regularizarlo. ¡Saludos! 💳`,
-            `¡Hola *${member?.name}*! 👋 Tenemos un registro de pago pendiente. Si ya lo realizó, por favor ignore este mensaje. ¡Gracias por su preferencia! ✨`
+            `Estimado *${member?.name}*, le saludamos de *${companyName}* para recordarle que tiene un pago pendiente. Por favor, acérquese a recepción para regularizarlo. ¡Saludos! 💳`,
+            `¡Hola *${member?.name}*! 👋 En *${companyName}* tenemos un registro de pago pendiente. Si ya lo realizó, por favor ignore este mensaje. ¡Gracias! ✨`
         ],
         promo: [
-            `¡Exclusivo para ti, *${member?.name}*! 🎁 Solo por esta semana, renueva tu plan y llévate un 20% de descuento o un mes extra gratis. ¡No lo dejes pasar! 🚀`,
-            `¡Hola *${member?.name}*! 🔥 Tenemos una promoción VIP para nuestros miembros más fieles. Pregunta en recepción por tu regalo de renovación. 💎`
+            `¡Exclusivo para ti, *${member?.name}*! 🎁 Solo por esta semana en *${companyName}*, renueva tu plan y llévate un beneficio especial. ¡Pregunta en recepción! 🚀`,
+            `¡Hola *${member?.name}*! 🔥 Tenemos una promoción VIP para nuestros miembros activos. No dejes pasar esta oportunidad en *${companyName}*. 💎`
         ],
         logro: [
-            `¡Felicidades *${member?.name}*! 🥳 Hemos notado tu constancia y esfuerzo. Estás logrando grandes cosas. ¡Sigue así, eres una inspiración! 🥇`,
-            `¡Increíble progreso, *${member?.name}*! 👏 Tu dedicación está dando frutos. ¡Nos motiva tener alumnos como tú! ¡A seguir ganando! 🔥`
+            `¡Felicidades *${member?.name}*! 🥳 En *${companyName}* hemos notado tu gran constancia. Estás logrando tus metas. ¡Eres una inspiración! 🥇`,
+            `¡Increíble progreso, *${member?.name}*! 👏 Tu dedicación en *${companyName}* está dando frutos. ¡A seguir ganando! 🔥`
         ]
     };
 
