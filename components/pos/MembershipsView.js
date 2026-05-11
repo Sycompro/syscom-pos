@@ -34,9 +34,39 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
     const [selectedMemberWA, setSelectedMemberWA] = useState(null);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
+    // ESTADOS PARA PESTAÑAS Y CUMPLEAÑOS
+    const [activeTab, setActiveTab] = useState('memberships'); 
+    const [birthdays, setBirthdays] = useState([]);
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const [loadingBirthdays, setLoadingBirthdays] = useState(false);
+
+    const monthNames = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
     useEffect(() => {
-        fetchMemberships();
-    }, [searchTerm, filterStatus, filterSede]);
+        if (activeTab === 'memberships') {
+            fetchMemberships();
+        } else {
+            fetchBirthdays();
+        }
+    }, [searchTerm, filterStatus, filterSede, activeTab, selectedMonth]);
+
+    const fetchBirthdays = async () => {
+        setLoadingBirthdays(true);
+        try {
+            const res = await fetch(`/api/memberships/birthdays?month=${selectedMonth}`);
+            const data = await res.json();
+            if (data.success) {
+                setBirthdays(data.birthdays || []);
+            }
+        } catch (e) {
+            console.error("Error al cargar cumpleaños:", e);
+        } finally {
+            setLoadingBirthdays(false);
+        }
+    };
 
     useEffect(() => {
         const t = setTimeout(() => fetchPlans(), 300);
