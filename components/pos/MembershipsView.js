@@ -99,48 +99,154 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
 
     return (
         <div style={containerStyle}>
-            {/* Cabecera Principal */}
-            <div style={{ marginBottom: '4px' }}>
-                <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Gestión de Membresías</h1>
-                <p style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Seguimiento, renovación y extensión de planes.</p>
+            {/* TABS SELECTOR (Navegación Superior) */}
+            <div style={tabsWrapperStyle}>
+                <button 
+                    onClick={() => setActiveTab('memberships')}
+                    style={{ ...tabStyle, ...(activeTab === 'memberships' ? activeTabActiveStyle : {}) }}
+                >
+                    <Users size={18} /> Membresías
+                </button>
+                <button 
+                    onClick={() => setActiveTab('promotions')}
+                    style={{ ...tabStyle, ...(activeTab === 'promotions' ? activeTabActiveStyle : { color: '#64748b' }) }}
+                >
+                    <RefreshCw size={18} /> Promociones
+                </button>
+                <button 
+                    onClick={() => setActiveTab('birthdays')}
+                    style={{ ...tabStyle, ...(activeTab === 'birthdays' ? birthdayTabActiveStyle : { color: '#64748b' }) }}
+                >
+                    <Calendar size={18} /> Cumpleaños
+                </button>
             </div>
 
-            {/* Apartado: Resumen de estados */}
-            <div>
-                <label style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Resumen de estados
-                </label>
-                <div style={statsGridStyle}>
-                    <StatCard 
-                        title="ACTIVAS" 
-                        count={stats.active} 
-                        icon={<CheckCircle2 size={20} />} 
-                        color="#10b981" 
-                        bgColor="#ecfdf5" 
-                    />
-                    <StatCard 
-                        title="POR VENCER" 
-                        count={stats.expiring} 
-                        icon={<AlertCircle size={20} />} 
-                        color="#f59e0b" 
-                        bgColor="#fffbeb" 
-                    />
-                    <StatCard 
-                        title="VENCIDAS" 
-                        count={stats.expired} 
-                        icon={<XCircle size={20} />} 
-                        color="#ef4444" 
-                        bgColor="#fef2f2" 
-                    />
-                    <StatCard 
-                        title="TOTAL" 
-                        count={stats.total} 
-                        icon={<Users size={20} />} 
-                        color="#3b82f6" 
-                        bgColor="#eff6ff" 
-                    />
+            {activeTab === 'memberships' ? (
+                <>
+                    {/* Cabecera Principal */}
+                    <div style={{ marginBottom: '4px' }}>
+                        <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Gestión de Membresías</h1>
+                        <p style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Seguimiento, renovación y extensión de planes.</p>
+                    </div>
+
+                    {/* Apartado: Resumen de estados */}
+                    <div>
+                        <label style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Resumen de estados
+                        </label>
+                        <div style={statsGridStyle}>
+                            <StatCard 
+                                title="ACTIVAS" 
+                                count={stats.active} 
+                                icon={<CheckCircle2 size={20} />} 
+                                color="#10b981" 
+                                bgColor="#ecfdf5" 
+                            />
+                            <StatCard 
+                                title="POR VENCER" 
+                                count={stats.expiring} 
+                                icon={<AlertCircle size={20} />} 
+                                color="#f59e0b" 
+                                bgColor="#fffbeb" 
+                            />
+                            <StatCard 
+                                title="VENCIDAS" 
+                                count={stats.expired} 
+                                icon={<XCircle size={20} />} 
+                                color="#ef4444" 
+                                bgColor="#fef2f2" 
+                            />
+                            <StatCard 
+                                title="TOTAL" 
+                                count={stats.total} 
+                                icon={<Users size={20} />} 
+                                color="#3b82f6" 
+                                bgColor="#eff6ff" 
+                            />
+                        </div>
+                    </div>
+                </>
+            ) : activeTab === 'birthdays' ? (
+                <div style={{ marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                        <select 
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            style={monthSelectStyle}
+                        >
+                            {monthNames.map((m, i) => (
+                                <option key={i+1} value={i+1}>{m}</option>
+                            ))}
+                        </select>
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#64748b' }}>
+                            {birthdays.length} cumpleaños en {monthNames[selectedMonth-1]}
+                        </span>
+                    </div>
+
+                    <div style={birthdayGridStyle}>
+                        {loadingBirthdays ? (
+                            <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#94a3b8' }}>Consultando cumpleaños...</div>
+                        ) : birthdays.length === 0 ? (
+                            <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#94a3b8' }}>No hay cumpleaños registrados para este mes.</div>
+                        ) : birthdays.map((b, i) => {
+                            const isToday = b.birthDay === new Date().getDate() && b.birthMonth === (new Date().getMonth() + 1);
+                            return (
+                                <motion.div 
+                                    key={b.codcli}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    style={{ 
+                                        ...birthdayCardStyle,
+                                        background: isToday ? '#fff1f2' : '#fff',
+                                        borderColor: isToday ? '#fda4af' : '#f1f5f9'
+                                    }}
+                                >
+                                    {/* Fecha Calendario */}
+                                    <div style={{ ...calendarDateStyle, background: isToday ? '#f43f5e' : '#94a3b8' }}>
+                                        <div style={{ fontSize: '18px', fontWeight: 900 }}>{b.birthDay}</div>
+                                        <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>{monthNames[b.birthMonth-1].substring(0,3)}</div>
+                                    </div>
+
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontWeight: 800, fontSize: '13px', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {b.nomcli}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#f43f5e' }}>{b.age} años</span>
+                                            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#cbd5e1' }} />
+                                            <span style={{ fontSize: '12px', color: '#64748b' }}>{b.birthDay} de {monthNames[b.birthMonth-1].toLowerCase()}</span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <MessageCircle size={12} /> {b.phone || 'Sin teléfono'}
+                                        </div>
+                                        {isToday && (
+                                            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', color: '#f43f5e', fontSize: '11px', fontWeight: 800 }}>
+                                                <RefreshCw size={12} className="animate-spin" /> ¡Cumpleaños hoy!
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button 
+                                        onClick={() => {
+                                            setSelectedMemberWA({ id: b.codcli, name: b.nomcli, phone: b.phone });
+                                            setShowWAModal(true);
+                                        }}
+                                        style={{ ...birthdayActionBtnStyle, background: isToday ? '#f43f5e' : '#f1f5f9', color: isToday ? '#fff' : '#64748b' }}
+                                    >
+                                        <MessageCircle size={16} />
+                                    </button>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                    <RefreshCw size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
+                    <p>Módulo de Promociones en desarrollo...</p>
+                </div>
+            )}
 
             {/* Apartado: Listado y Filtros */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -652,4 +758,48 @@ const planOptionStyle = {
     width: '100%', padding: '16px', borderRadius: '14px', border: '1px solid #f1f5f9', background: '#fff',
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s'
 };
-// Hover effect handled by inline if needed or just simple style
+const tabsWrapperStyle = { 
+    display: 'flex', gap: '8px', marginBottom: '20px', background: '#f1f5f9', 
+    padding: '6px', borderRadius: '16px', width: 'fit-content' 
+};
+
+const tabStyle = { 
+    display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '12px', 
+    border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '14px', fontWeight: '700', 
+    transition: 'all 0.2s', color: '#64748b'
+};
+
+const activeTabActiveStyle = { background: '#fff', color: '#1e293b', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' };
+
+const birthdayTabActiveStyle = { 
+    background: 'linear-gradient(135deg, #f43f5e 0%, #fb7185 100%)', 
+    color: '#fff', boxShadow: '0 10px 15px -3px rgba(244,63,94,0.3)' 
+};
+
+const monthSelectStyle = {
+    padding: '10px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', 
+    fontSize: '14px', fontWeight: '700', color: '#1e293b', background: '#fff',
+    cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+};
+
+const birthdayGridStyle = {
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px'
+};
+
+const birthdayCardStyle = {
+    padding: '16px', borderRadius: '20px', border: '1px solid #f1f5f9',
+    display: 'flex', alignItems: 'center', gap: '16px', position: 'relative',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)', transition: 'transform 0.2s'
+};
+
+const calendarDateStyle = {
+    width: '56px', height: '64px', borderRadius: '14px',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    color: '#fff', flexShrink: 0
+};
+
+const birthdayActionBtnStyle = {
+    width: '40px', height: '40px', borderRadius: '12px', border: 'none',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+    transition: 'all 0.2s'
+};
