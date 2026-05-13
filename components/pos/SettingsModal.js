@@ -12,9 +12,6 @@ export default function SettingsModal({ isOpen, onClose, db }) {
     const [saved, setSaved] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    const logoKey = `pos_logo_${db}`;
-    const typeKey = `pos_business_type_${db}`;
-
     const availableLogos = [
         { id: 'logocia01.jpg', name: 'Logo Empresa 01' },
         { id: 'logocia02.jpg', name: 'Logo Empresa 02' },
@@ -26,24 +23,14 @@ export default function SettingsModal({ isOpen, onClose, db }) {
             if (!db) return;
             setLoading(true);
             try {
-                // Cargar datos locales (Rubro y Logo)
-                const storedType = localStorage.getItem(typeKey);
-                const storedLogo = localStorage.getItem(logoKey);
-                if (storedType) setBusinessType(storedType);
-                
-                if (storedLogo) {
-                    setPosLogo(storedLogo);
-                } else {
-                    const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
-                    setPosLogo(`logocia${dbCode}.jpg`);
-                }
-
-                // Cargar datos del servidor (Nombre Personalizado)
+                // Cargar todo desde el servidor
                 const res = await fetch('/api/company/settings');
                 const data = await res.json();
                 if (data.company) {
                     setCustomName(data.company.customName || '');
                     setUseCustomName(data.company.useCustomName || false);
+                    setPosLogo(data.company.logo || '');
+                    setBusinessType(data.company.businessType || 'gym');
                 }
             } catch (e) {
                 console.error("Error al cargar configuraciones:", e);
@@ -57,15 +44,16 @@ export default function SettingsModal({ isOpen, onClose, db }) {
 
     const handleSave = async () => {
         try {
-            // 1. Guardar en LocalStorage (Rubro y Logo)
-            localStorage.setItem(typeKey, businessType);
-            localStorage.setItem(logoKey, posLogo);
-
-            // 2. Guardar en SQLite (Nombre Personalizado)
+            // Guardar todo en SQL Server a través del API
             await fetch('/api/company/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ customName, useCustomName })
+                body: JSON.stringify({ 
+                    customName, 
+                    useCustomName,
+                    companyLogoUrl: posLogo,
+                    businessType
+                })
             });
 
             setSaved(true);

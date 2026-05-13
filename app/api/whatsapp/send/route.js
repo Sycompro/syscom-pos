@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server';
 import sql from 'mssql';
 import { getConnection } from '@/lib/db';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function POST(request) {
+    const session = await getServerSession(authOptions);
     const body = await request.json();
     const { phone, message, media_url } = body;
 
-    // Recuperar ajustes de la base de datos
+    // Recuperar ajustes de la base de datos de la empresa actual
     let API_KEY = '';
     let ENDPOINT = '';
 
     try {
-        const dbName = process.env.DB_NAME || 'BdNava03';
+        const dbName = session?.user?.company;
+        if (!dbName) {
+            return NextResponse.json({ success: false, error: 'Sesión de empresa no identificada' }, { status: 401 });
+        }
         const pool = await getConnection(dbName);
         const settings = await pool.request().query('SELECT whatsapp_url, whatsapp_token FROM tbl_pos_settings WHERE id=1');
         if (settings.recordset.length > 0) {
@@ -61,7 +67,7 @@ export async function POST(request) {
         const data = await response.json();
 
         // Registrar en historial local (SIN AWAIT para responder más rápido)
-        getConnection().then(pool => {
+        getConnection(dbName).then(pool => {
             pool.request()
                 .input('phone', sql.VarChar(20), phone)
                 .input('message', sql.NVarChar(sql.MAX), message)

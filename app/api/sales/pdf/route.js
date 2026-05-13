@@ -125,29 +125,47 @@ export async function GET(request) {
         const doc = new jsPDF({ unit: 'mm', format: [80, 280], compress: true });
         doc.setFont('courier');
         
-        // --- CABECERA DINÁMICA CON LOGO ---
+        // --- CABECERA DINÁMICA CON LOGO DESDE SQL ---
         let currentY = 10;
+        let posLogo = '';
         
-        // Intentar cargar logo dinámico basado en parámetro o DB
-        const queryLogo = searchParams.get('logo');
-        const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
-        const logoName = queryLogo || `logocia${dbCode}.jpg`;
-        const logoPath = path.join(process.cwd(), 'public', 'logos', logoName);
-        
-        console.log(`[PDF/Logo] DB Recibida: ${db}, Code: ${dbCode}, Buscando: ${logoPath}`);
-        
-        if (fs.existsSync(logoPath)) {
-            console.log(`[PDF/Logo] Archivo encontrado. Intentando cargar...`);
-            try {
-                const logoData = fs.readFileSync(logoPath).toString('base64');
-                const imgType = logoName.endsWith('.png') ? 'PNG' : 'JPEG';
-                doc.addImage(`data:image/${imgType.toLowerCase()};base64,${logoData}`, imgType, 25, currentY, 30, 15);
-                currentY += 18;
-            } catch (e) {
-                console.error("[PDF/Logo] Error crítico al procesar imagen:", e.message);
+        try {
+            const settingsRes = await pool.request().query("SELECT company_logo_url FROM tbl_pos_settings WHERE id=1");
+            if (settingsRes.recordset.length > 0) {
+                posLogo = settingsRes.recordset[0].company_logo_url?.trim();
             }
-        } else {
-            console.warn(`[PDF/Logo] Archivo NO encontrado en la ruta especificada.`);
+        } catch (e) {
+            console.warn("[PDF] No se pudo obtener logo de tbl_pos_settings:", e.message);
+        }
+
+        // Si no hay logo en la tabla, usar el default por código de empresa
+        const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
+        if (!posLogo) {
+            posLogo = `logocia${dbCode}.jpg`;
+        }
+
+        try {
+            if (posLogo.startsWith('data:image')) {
+                // Es un Base64 guardado en la BD
+                const format = posLogo.split(';')[0].split('/')[1].toUpperCase();
+                doc.addImage(posLogo, format, 25, currentY, 30, 15);
+                currentY += 18;
+            } else if (posLogo.startsWith('http')) {
+                // Es una URL externa
+                doc.addImage(posLogo, 'JPEG', 25, currentY, 30, 15);
+                currentY += 18;
+            } else {
+                // Es un nombre de archivo local (ej: logocia01.jpg)
+                const logoPath = path.join(process.cwd(), 'public', 'logos', posLogo);
+                if (fs.existsSync(logoPath)) {
+                    const logoData = fs.readFileSync(logoPath).toString('base64');
+                    const imgType = posLogo.endsWith('.png') ? 'PNG' : 'JPEG';
+                    doc.addImage(`data:image/${imgType.toLowerCase()};base64,${logoData}`, imgType, 25, currentY, 30, 15);
+                    currentY += 18;
+                }
+            }
+        } catch (e) {
+            console.error("[PDF/Logo] Error al procesar imagen:", e.message);
         }
 
         doc.setFontSize(9);

@@ -1,19 +1,20 @@
 import { CheckCircle2, Receipt, Printer, ArrowRight, MessageCircle, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function SuccessModal({ orderNumber, onReset, onPrint, customerPhone, total, docType, membershipInfo, onQueueWhatsApp }) {
+export default function SuccessModal({ orderNumber, onReset, onPrint, customerPhone, total, docType, membershipInfo, onQueueWhatsApp, company, businessType }) {
     const [phone, setPhone] = useState(customerPhone || '');
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
 
     const handleSendWhatsApp = async () => {
         if (!phone || phone.length < 9) return alert('Ingrese un número válido');
+        if (!company) return alert('Error: No se pudo identificar la empresa actual.');
         
-        const businessType = localStorage.getItem('pos_business_type') || 'gym';
+        const type = businessType || 'gym';
         let msg = '';
         const isMembership = membershipInfo && membershipInfo.startDate && membershipInfo.endDate;
 
-        if (isMembership) {
+        if (isMembership && type === 'gym') {
             msg = `*¡Bienvenido!* Tu membresía está activa. 🏋️\n\n` +
                   `📋 *Detalles:*\n` +
                   `* • Inicio:* ${membershipInfo.startDate}\n` +
@@ -27,9 +28,7 @@ export default function SuccessModal({ orderNumber, onReset, onPrint, customerPh
                   `¡Gracias por tu confianza!`;
         }
 
-        const company = localStorage.getItem('selected_company') || 'BdNava03';
-        const logo = localStorage.getItem(`pos_logo_${company}`) || `logocia${company.replace('BdNava', '').padStart(2, '0')}.jpg`;
-        const pdfUrl = `${window.location.origin}/api/sales/pdf?logo=${logo}&ndocu=${orderNumber}&cdocu=${docType}&db=${company}&ext=.pdf`;
+        const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${orderNumber}&cdocu=${docType}&db=${company}&ext=.pdf`;
         
         if (onQueueWhatsApp) {
             onQueueWhatsApp(phone, msg, pdfUrl);

@@ -45,17 +45,13 @@ export default function POSPage() {
     const [posLogo, setPosLogo] = useState('logocia01.jpg');
 
     useEffect(() => {
-        const currentDb = session?.user?.company;
-        if (currentDb) {
-            const storedLogo = localStorage.getItem(`pos_logo_${currentDb}`);
-            if (storedLogo) {
-                setPosLogo(storedLogo);
-            } else {
-                const dbCode = currentDb.replace('BdNava', '').padStart(2, '0') || '01';
-                setPosLogo(`logocia${dbCode}.jpg`);
-            }
+        if (companySettings?.company?.logo) {
+            setPosLogo(companySettings.company.logo);
+        } else if (session?.user?.company) {
+            const dbCode = session.user.company.replace('BdNava', '').padStart(2, '0') || '01';
+            setPosLogo(`logocia${dbCode}.jpg`);
         }
-    }, [session]);
+    }, [companySettings, session]);
 
     const addToWaQueue = (phone, message, media_url) => {
         const newMsg = {
@@ -989,6 +985,7 @@ export default function POSPage() {
                     total={printData?.total}
                     docType={docType}
                     company={session?.user?.company}
+                    businessType={companySettings?.company?.businessType}
                     membershipInfo={lastMembershipInfo}
                     onQueueWhatsApp={addToWaQueue}
                 />
@@ -1064,9 +1061,9 @@ export default function POSPage() {
                     <div>
                         <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                             <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{companySettings?.company?.name || ''}</div>
-                             <div style={{ margin: '4px 0' }}>
-                                 <img src={`/logos/${posLogo}`} width="120" alt="Logo" style={{ display: 'block', margin: '0 auto', maxHeight: '50px', objectFit: 'contain' }} />
-                             </div>
+                            <div style={{ margin: '4px 0' }}>
+                                <img src={posLogo.startsWith('data:image') || posLogo.startsWith('http') ? posLogo : `/logos/${posLogo}`} width="120" alt="Logo" style={{ display: 'block', margin: '0 auto', maxHeight: '50px', objectFit: 'contain' }} />
+                            </div>
                             <div>R.U.C.: {companySettings?.company?.ruc || ''}</div>
                             <div style={{ fontSize: '10px' }}>{companySettings?.company?.address || ''}</div>
                             <div>Telf: {companySettings?.company?.phone || ''}</div>

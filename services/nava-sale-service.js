@@ -158,7 +158,7 @@ class NavaSaleService {
         .input('flagtp', '0')
         .query(`
           INSERT INTO mst01fac (cdocu, ndocu, fecha, fven, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, Codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub, cajrecib, cajvuelto, cobmixta, tipent, FecReg, monrecib, monvuelto, drefe, codtra, FlagTp)
-          VALUES (@cdocu, @ndocu, @fecha, @fven, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @Codpto, @CodAlm, @idapecaj, @selpago, @codfdp, @codtar, '03/      ', @codusu, @flag, @tfact, @Codcdv, @codvta, @codven, @codsub, @cajrecib, @cajvuelto, @cobmixta, @tipent, GETDATE(), @monrecib, @monvuelto, @drefe, @codtra, @flagtp)
+          VALUES (@cdocu, @ndocu, @fecha, @fven, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @Codpto, @CodAlm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, @Codcdv, @codvta, @codven, @codsub, @cajrecib, @cajvuelto, @cobmixta, @tipent, GETDATE(), @monrecib, @monvuelto, @drefe, @codtra, @flagtp)
         `);
 
       // 6. Inserción de Detalles (dtl01fac)
@@ -243,6 +243,9 @@ class NavaSaleService {
 
       // 6.5 Inserción en CCC
       const firstItemName = items[0]?.name.substring(0, 40) || 'VENTA WEB';
+      const isRegularized = data.customStartDate ? true : false;
+      const displayGlosa = isRegularized ? `[REG] ${firstItemName}`.substring(0, 100) : firstItemName;
+
       const reqMstCcc = new sql.Request(transaction);
       await reqMstCcc
         .input('fecha', sql.Date, fechaStr)
@@ -250,12 +253,12 @@ class NavaSaleService {
         .input('ndocu', nextNdocu.substring(0, 12))
         .input('crefe', docType.substring(0, 2))
         .input('nrefe', nextNdocu.substring(0, 12))
-        .input('codcli', (codcli && codcli !== '000000' ? codcli : 'C00000').substring(0, 6))
+        .input('codcli', (codcli && codcli !== '000000' ? codcli : 'C00001').substring(0, 6))
         .input('nomcli', (nomcli && nomcli !== 'CLIENTE VARIOS' ? nomcli : 'VENTA CONTADO').substring(0, 60))
         .input('ruccli', (ruccli || '').substring(0, 11))
         .input('monto', sql.Decimal(18, 2), breakdown.total)
         .input('saldo', sql.Decimal(18, 2), breakdown.total)
-        .input('glosa', firstItemName)
+        .input('glosa', displayGlosa)
         .input('fven', sql.Date, fechaStr)
         .input('mone', 'S')
         .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
@@ -279,14 +282,15 @@ class NavaSaleService {
         .input('ndocu', nextNdocu.substring(0, 12))
         .input('crefe', docType.substring(0, 2))
         .input('nrefe', nextNdocu.substring(0, 12))
-        .input('glosa', firstItemName)
+        .input('glosa', displayGlosa)
         .input('cargo', sql.Decimal(18, 2), breakdown.total)
         .input('mone', 'S')
         .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
-        .input('compro', '03/      ')
+        .input('compro', formattedCompro)
+        .input('nplan', sql.Char(12), '            ')
         .query(`
           INSERT INTO dtl01ccc (fecha, codcli, tmov, cdocu, ndocu, crefe, nrefe, glosa, cargo, abono, mone, tcam, cpago, mpago, npago, ipago, nplan, idunico, fecreg, compro)
-          VALUES (@fecha, @codcli, 'C', @cdocu, @ndocu, @crefe, @nrefe, @glosa, @cargo, 0, @mone, @tcam, ' ', ' ', '            ', 0, '            ', NEWID(), GETDATE(), @compro)
+          VALUES (@fecha, @codcli, 'C', @cdocu, @ndocu, @crefe, @nrefe, @glosa, @cargo, 0, @mone, @tcam, ' ', ' ', '            ', 0, @nplan, NEWID(), GETDATE(), @compro)
         `);
 
       // 7. Cobranza Mixta
@@ -338,8 +342,10 @@ class NavaSaleService {
           const [y, m, d] = onlyDate.split('-').map(Number);
           const today = new Date(y, m - 1, d); 
           
-          let startDate = new Date(today);
-          if (currentEnd && currentEnd > today && currentEnd.getFullYear() > 1900) {
+          let startDate = data.customStartDate ? new Date(data.customStartDate) : new Date(today);
+          
+          // Lógica de continuidad (Solo si NO es una fecha manual)
+          if (!data.customStartDate && currentEnd && currentEnd > today && currentEnd.getFullYear() > 1900) {
              startDate = new Date(currentEnd);
           }
           
