@@ -239,7 +239,7 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
                                 disabled={isClosing}
                                 style={{ ...confirmBtnStyle, background: isClosing ? '#94a3b8' : '#ef4444' }}
                             >
-                                {isClosing ? 'Cerrando...' : 'FINALIZAR Y CERRAR CAJA'}
+                                {isClosing ? 'Cerrando...' : 'Cerrar caja'}
                             </button>
                         </>
                     ) : (
