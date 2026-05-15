@@ -8,7 +8,7 @@ import {
     ChevronRight, Loader2, UserPlus, ShieldCheck, Trash2,
     LayoutGrid, Clock, Settings, LogOut, ShoppingBag, Zap, Sparkles, Package,
     Lock, Phone, Users, ArrowRight, Receipt, Percent, Calculator, 
-    BellRing, Smartphone, RefreshCw, AlertCircle
+    BellRing, Smartphone, RefreshCw, AlertCircle, Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -29,6 +29,7 @@ import MembershipsView from '@/components/pos/MembershipsView';
 import WhatsappView from '@/components/pos/WhatsappView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
+import NumericKeypad from '@/components/pos/NumericKeypad';
 
 export default function POSPage() {
     const { data: session } = useSession();
@@ -43,6 +44,7 @@ export default function POSPage() {
     const [isProcessingWa, setIsProcessingWa] = useState(false);
     const [showWaAlerts, setShowWaAlerts] = useState(false);
     const [posLogo, setPosLogo] = useState('logocia01.jpg');
+    const [companySettings, setCompanySettings] = useState(null);
 
     useEffect(() => {
         if (companySettings?.company?.logo) {
@@ -109,7 +111,15 @@ export default function POSPage() {
     const [docType, setDocType] = useState('65'); // Nota de Venta por defecto
     const [paymentMethod, setPaymentMethod] = useState(1);
     const [selectedTar, setSelectedTar] = useState('');
+    const formatDate = (date) => {
+        if (!date) return null;
+        const d = new Date(date);
+        return d.toISOString().split('T')[0];
+    };
+
     const [payments, setPayments] = useState([]);
+    const [membershipStartDate, setMembershipStartDate] = useState(null);
+    const [isRegularizing, setIsRegularizing] = useState(false);
     const [availableMethods, setAvailableMethods] = useState([]);
     const [customer, setCustomer] = useState({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' });
     const [customerSearch, setCustomerSearch] = useState('');
@@ -129,6 +139,7 @@ export default function POSPage() {
     const [orderSuccess, setOrderSuccess] = useState(null);
     const [exchangeRate, setExchangeRate] = useState(1);
     const [mounted, setMounted] = useState(false);
+    const [showNumpad, setShowNumpad] = useState(false);
     const [categories, setCategories] = useState([
         { id: 'all', name: 'Todos', icon: LayoutGrid }
     ]);
@@ -137,7 +148,6 @@ export default function POSPage() {
     const [isMobile, setIsMobile] = useState(false);
     const [salespeople, setSalespeople] = useState([]);
     const [selectedSalesperson, setSelectedSalesperson] = useState('');
-    const [companySettings, setCompanySettings] = useState(null);
     const [lastMembershipInfo, setLastMembershipInfo] = useState(null);
     const [showMixed, setShowMixed] = useState(false);
     const [cashReceived, setCashReceived] = useState('');
@@ -265,6 +275,36 @@ export default function POSPage() {
             } catch (err) { console.error('Error searching customer', err); }
             finally { setIsSearchingCustomer(false); }
         }
+    };
+
+    const handleNumpadKeyPress = (key) => {
+        setCustomerSearch(prev => {
+            const limit = searchType === 'DNI' ? 8 : 11;
+            const newVal = (prev + key).slice(0, limit);
+            if (newVal.length === limit) {
+                setTimeout(() => setShowNumpad(false), 100);
+            }
+            if (newVal.length >= 8) {
+                setTimeout(() => {
+                    const e = { target: { value: newVal } };
+                    handleCustomerSearch(e);
+                }, 10);
+            }
+            return newVal;
+        });
+    };
+
+    const handleNumpadDelete = () => {
+        setCustomerSearch(prev => {
+            const newVal = prev.slice(0, -1);
+            if (newVal.length >= 8) {
+                setTimeout(() => {
+                    const e = { target: { value: newVal } };
+                    handleCustomerSearch(e);
+                }, 10);
+            }
+            return newVal;
+        });
     };
 
     const addToCart = (product) => {
@@ -471,7 +511,8 @@ export default function POSPage() {
                     codven: selectedSalesperson,
                     exchangeRate,
                     cashReceived: cashReceived || total,
-                    changeGiven: changeGiven || 0
+                    changeGiven: changeGiven || 0,
+                    customStartDate: isRegularizing && membershipStartDate ? membershipStartDate : null
                 })
             });
             const result = await res.json();
@@ -495,6 +536,8 @@ export default function POSPage() {
                 setCustomerSearch('');
                 setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' });
                 setPayments([]); // Limpiar pagos mixtos
+                setMembershipStartDate(null);
+                setIsRegularizing(false);
                 setDocType('65'); // Volver a Nota por defecto
                 setPaymentMethod(1); // Volver a Efectivo por defecto
                 setSelectedTar(''); // Limpiar tarjeta seleccionada
@@ -762,13 +805,21 @@ export default function POSPage() {
                                         <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={14} />
                                         <input
                                             type="text"
+                                            inputMode="none" // Evita el teclado nativo en tablets
                                             placeholder={searchType === 'DNI' ? "8 dígitos..." : "11 dígitos..."}
                                             value={customerSearch}
+                                            onFocus={() => setShowNumpad(true)}
                                             onChange={handleCustomerSearch}
                                             maxLength={searchType === 'DNI' ? 8 : 11}
                                             style={{ width: '100%', padding: '10px 12px 10px 36px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '13px', fontWeight: 700, outline: 'none' }}
                                         />
                                         {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '10px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={14} />}
+                                        <NumericKeypad 
+                                            isOpen={showNumpad} 
+                                            onClose={() => setShowNumpad(false)} 
+                                            onKeyPress={handleNumpadKeyPress} 
+                                            onDelete={handleNumpadDelete} 
+                                        />
                                     </div>
                                     <button
                                         onClick={() => {
@@ -915,6 +966,51 @@ export default function POSPage() {
                                         <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '10px', padding: '8px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={18} /></button>
                                     </div>
                                 </div>
+
+                                {/* OPCIÓN DE FECHA DE INICIO (REGULARIZACIÓN) */}
+                                <div style={{ 
+                                    padding: '12px 16px', 
+                                    background: isRegularizing ? '#fffbeb' : '#fff', 
+                                    borderBottom: '1px solid #f1f5f9',
+                                    transition: 'all 0.3s'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <Calendar size={16} color={isRegularizing ? '#d97706' : '#94a3b8'} />
+                                            <span style={{ fontSize: '11px', fontWeight: 800, color: isRegularizing ? '#92400e' : '#64748b' }}>
+                                                INICIO PERSONALIZADO
+                                            </span>
+                                        </div>
+                                        <div 
+                                            onClick={() => {
+                                                setIsRegularizing(!isRegularizing);
+                                                if (!membershipStartDate) setMembershipStartDate(formatDate(new Date()));
+                                            }}
+                                            style={{
+                                                width: '36px', height: '18px', borderRadius: '18px',
+                                                background: isRegularizing ? '#d97706' : '#e2e8f0',
+                                                padding: '2px', cursor: 'pointer', display: 'flex',
+                                                alignItems: 'center', justifyContent: isRegularizing ? 'flex-end' : 'flex-start'
+                                            }}
+                                        >
+                                            <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#fff' }} />
+                                        </div>
+                                    </div>
+                                    
+                                    {isRegularizing && (
+                                        <div style={{ marginTop: '10px' }}>
+                                            <p style={{ fontSize: '10px', color: '#b45309', marginBottom: '6px', fontWeight: 700 }}>
+                                                * La membresía iniciará el:
+                                            </p>
+                                            <CustomDatePicker 
+                                                value={membershipStartDate || formatDate(new Date())} 
+                                                onChange={setMembershipStartDate}
+                                                compact={true}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
                                     {(cart || []).map(item => (
                                         <CartItem
