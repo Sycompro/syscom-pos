@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { X, Receipt, Search, Printer, Calendar, Loader2, MessageCircle, CheckCircle2, Banknote, CreditCard, UserCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import NumericKeypad from './NumericKeypad';
+import AlphanumericKeyboard from './AlphanumericKeyboard';
 
 export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, company, onQueueWhatsApp }) {
     const [sales, setSales] = useState([]);
@@ -9,6 +11,8 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
     const [reprinting, setReprinting] = useState(null);
+    const [showSearchKeyboard, setShowSearchKeyboard] = useState(false);
+    const [showWaNumpad, setShowWaNumpad] = useState(false);
 
     useEffect(() => {
         if (isOpen && idApeCaj) {
@@ -144,10 +148,19 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                     <Search size={14} style={{ color: '#94a3b8' }} />
                     <input 
                         type="text" 
+                        inputMode="none"
                         placeholder="Buscar por documento o cliente..." 
                         value={filter}
                         onChange={e => setFilter(e.target.value)}
+                        onFocus={() => setShowSearchKeyboard(true)}
                         style={searchInputStyle}
+                    />
+                    <AlphanumericKeyboard 
+                        isOpen={showSearchKeyboard}
+                        onClose={() => setShowSearchKeyboard(false)}
+                        onKeyPress={(key) => setFilter(prev => prev + key)}
+                        onDelete={() => setFilter(prev => prev.slice(0, -1))}
+                        value={filter}
                     />
                 </div>
 
@@ -228,13 +241,24 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                                 <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 900 }}>Enviar Comprobante</h3>
                                 <button onClick={() => setWhatsappSale(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={16} /></button>
                             </div>
-                            <input 
-                                type="text" 
-                                value={whatsappPhone}
-                                onChange={e => setWhatsappPhone(e.target.value)}
-                                placeholder="Número de celular..."
-                                style={miniInputStyle}
-                            />
+                            <div style={{ position: 'relative' }}>
+                                <input 
+                                    type="text" 
+                                    inputMode="none"
+                                    value={whatsappPhone}
+                                    onChange={e => setWhatsappPhone(e.target.value)}
+                                    onFocus={() => setShowWaNumpad(true)}
+                                    placeholder="Número de celular..."
+                                    style={miniInputStyle}
+                                />
+                                <NumericKeypad 
+                                    isOpen={showWaNumpad}
+                                    onClose={() => setShowWaNumpad(false)}
+                                    onKeyPress={(key) => { if(key !== '.') setWhatsappPhone(prev => prev + key) }}
+                                    onDelete={() => setWhatsappPhone(prev => prev.slice(0, -1))}
+                                    value={whatsappPhone}
+                                />
+                            </div>
                             <button onClick={handleSendWhatsApp} disabled={sendingWa} style={miniSendBtn}>
                                 {sendingWa ? <Loader2 className="animate-spin" size={14} /> : <MessageCircle size={14} />}
                                 {sendingWa ? 'Enviando...' : 'Enviar ahora'}
