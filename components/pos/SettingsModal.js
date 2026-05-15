@@ -89,10 +89,10 @@ export default function SettingsModal({ isOpen, onClose, db, onSaved }) {
             // Guardar preferencia de teclado localmente
             localStorage.setItem('pos_use_screen_keyboards', useScreenKeyboards);
 
+            if (onSaved) onSaved();
             setSaved(true);
             setTimeout(() => {
                 setSaved(false);
-                if (onSaved) onSaved();
                 onClose();
             }, 1000);
         } catch (e) {

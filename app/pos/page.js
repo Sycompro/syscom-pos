@@ -866,7 +866,7 @@ export default function POSPage() {
                                             inputMode="none" // Evita el teclado nativo en tablets
                                             placeholder={searchType === 'DNI' ? "8 dígitos..." : "11 dígitos..."}
                                             value={customerSearch}
-                                            onFocus={() => setShowNumpad(true)}
+                                            onFocus={() => useScreenKeyboards && setShowNumpad(true)}
                                             onChange={handleCustomerSearch}
                                             maxLength={searchType === 'DNI' ? 8 : 11}
                                             style={{ width: '100%', padding: '10px 12px 10px 36px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '13px', fontWeight: 700, outline: 'none' }}
@@ -909,7 +909,7 @@ export default function POSPage() {
                                                     inputMode="none"
                                                     placeholder="999..."
                                                     value={customer.phone || ''}
-                                                    onFocus={() => setShowPhoneNumpad(true)}
+                                                    onFocus={() => useScreenKeyboards && setShowPhoneNumpad(true)}
                                                     onChange={e => setCustomer({ ...customer, phone: e.target.value })}
                                                     maxLength={9}
                                                     style={{ width: '100%', padding: '6px 8px 6px 24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '11px', fontWeight: 700, outline: 'none' }}
