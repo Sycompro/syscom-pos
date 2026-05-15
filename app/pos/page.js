@@ -11,6 +11,7 @@ import {
     BellRing, Smartphone, RefreshCw, AlertCircle, Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Maximize, Minimize } from 'lucide-react';
 import Image from 'next/image';
 
 import Sidebar from '@/components/pos/Sidebar';
@@ -42,6 +43,7 @@ export default function POSPage() {
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [activeTab, setActiveTab] = useState('pos'); // 'pos' o 'memberships'
     const [useScreenKeyboards, setUseScreenKeyboards] = useState(true);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     
     // SISTEMA DE COLA DE WHATSAPP (ASÍNCRONO)
     const [waQueue, setWaQueue] = useState([]); // {id, phone, message, media_url, status, error}
@@ -68,7 +70,23 @@ export default function POSPage() {
 
     useEffect(() => {
         loadKeyboardPreference();
+
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error al intentar modo pantalla completa: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
 
     const addToWaQueue = (phone, message, media_url) => {
         const newMsg = {
@@ -721,9 +739,11 @@ export default function POSPage() {
                 onSignOut={() => signOut()}
                 onOpenCloseCash={() => setShowCloseModal(true)}
                 onOpenHistory={() => setShowHistoryModal(true)}
-                onOpenSettings={() => setShowSettingsModal(true)}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
+                onOpenSettings={() => setShowSettingsModal(true)} 
+                onToggleFullscreen={toggleFullscreen}
+                isFullscreen={isFullscreen}
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
             />
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

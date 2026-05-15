@@ -1,7 +1,6 @@
-'use client';
-import { LayoutGrid, ShoppingBag, Zap, Sparkles, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote } from 'lucide-react';
+import { LayoutGrid, ShoppingBag, Zap, Sparkles, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize } from 'lucide-react';
 
-export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, activeTab, setActiveTab }) {
+export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, onToggleFullscreen, isFullscreen, activeTab, setActiveTab }) {
     return (
         <aside style={{
             width: '68px',
@@ -52,6 +51,13 @@ export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onO
 
             {/* Bottom icons */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: 'auto' }}>
+                <button 
+                    onClick={onToggleFullscreen} 
+                    title={isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"} 
+                    style={{ ...bottomBtnStyle, color: isFullscreen ? '#3b82f6' : '#475569', background: isFullscreen ? '#eff6ff' : 'transparent' }}
+                >
+                    {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                </button>
                 <button onClick={onOpenHistory} title="Historial de Ventas" style={bottomBtnStyle}><History size={18} /></button>
                 <button onClick={() => setActiveTab('expenses')} title="Registrar Gasto" style={bottomBtnStyle}><Banknote size={18} /></button>
                 <button onClick={onOpenCloseCash} title="Cerrar Caja" style={bottomBtnStyle}><Lock size={18} /></button>
