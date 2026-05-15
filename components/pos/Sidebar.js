@@ -5,7 +5,8 @@ export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onO
     return (
         <aside style={{
             width: '68px',
-            background: '#0f172a',
+            background: '#ffffff',
+            borderRight: '1px solid #e2e8f0',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
