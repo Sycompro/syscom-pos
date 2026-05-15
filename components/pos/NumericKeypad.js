@@ -1,5 +1,5 @@
 'use client';
-import { Delete, ChevronDown } from 'lucide-react';
+import { Delete, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 
@@ -7,7 +7,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
     const [pos, setPos] = useState({ top: 'calc(100% + 8px)', left: 0, bottom: 'auto', right: 'auto' });
     const containerRef = useRef(null);
 
-    // Calcular posición inteligente (arriba/abajo, izquierda/derecha)
+    // Calcular posición inteligente
     useEffect(() => {
         if (isOpen && containerRef.current) {
             const parent = containerRef.current.parentElement;
@@ -18,14 +18,12 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
 
                 let newPos = { top: 'calc(100% + 8px)', left: 0, bottom: 'auto', right: 'auto' };
 
-                // Si no hay espacio abajo, abrir hacia arriba
-                if (rect.bottom + 360 > windowH) {
+                if (rect.bottom + 400 > windowH) {
                     newPos.top = 'auto';
                     newPos.bottom = 'calc(100% + 8px)';
                 }
                 
-                // Si no hay espacio a la derecha, alinear a la derecha del input
-                if (rect.left + 260 > windowW) {
+                if (rect.left + 300 > windowW) {
                     newPos.left = 'auto';
                     newPos.right = 0;
                 }
@@ -35,7 +33,6 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
         }
     }, [isOpen]);
 
-    // Cerrar al hacer clic afuera
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (isOpen && containerRef.current) {
@@ -51,7 +48,6 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
 
     if (!isOpen) return null;
 
-    // Se cambió '00' por '.' para soportar campos monetarios
     const keys = [
         '1', '2', '3',
         '4', '5', '6',
@@ -63,10 +59,10 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
         <AnimatePresence>
             <motion.div 
                 ref={containerRef}
-                initial={{ opacity: 0, scale: 0.95, y: pos.top !== 'auto' ? -10 : 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: pos.top !== 'auto' ? -10 : 10 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
+                initial={{ opacity: 0, scale: 0.9, y: pos.top !== 'auto' ? -15 : 15, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, scale: 0.9, y: pos.top !== 'auto' ? -15 : 15, filter: 'blur(10px)' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 onClick={(e) => e.stopPropagation()}
                 style={{
                     position: 'absolute',
@@ -74,120 +70,134 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     bottom: pos.bottom,
                     left: pos.left,
                     right: pos.right,
-                    width: '250px', // Diseño no exagerado, tamaño perfecto
-                    background: '#f8fafc', // Fondo pastel gris muy claro
-                    borderRadius: '20px',
-                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
-                    padding: '16px',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '10px',
+                    width: '300px',
+                    // ESTILO APPLE VISION PRO (Spatial UI)
+                    background: 'rgba(50, 50, 50, 0.45)', // Cristal oscuro translúcido
+                    backdropFilter: 'blur(40px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                    borderRadius: '36px',
+                    boxShadow: '0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    padding: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
                     zIndex: 9999
                 }}
             >
-                {/* Display Superior */}
+                {/* Display Superior (Texto Flotante) */}
                 <div style={{
-                    gridColumn: '1 / -1',
-                    background: '#ffffff',
-                    borderRadius: '12px',
-                    padding: '12px 16px',
-                    marginBottom: '4px',
-                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
-                    border: '1px solid #e2e8f0',
+                    width: '100%',
                     textAlign: 'center',
-                    minHeight: '44px',
+                    minHeight: '28px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)',
+                    paddingBottom: '12px'
                 }}>
-                    <span style={{ fontSize: '20px', fontWeight: 800, color: '#334155', letterSpacing: '1px' }}>
-                        {value || <span style={{ color: '#cbd5e1' }}>...</span>}
+                    <span style={{ 
+                        fontSize: '22px', 
+                        fontWeight: 400, 
+                        color: '#ffffff', 
+                        letterSpacing: '2px',
+                        textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+                    }}>
+                        {value || <span style={{ color: 'rgba(255,255,255,0.4)' }}>...</span>}
                     </span>
                 </div>
 
-                {/* Botones */}
-                {keys.map((key) => {
-                    const isDel = key === 'DEL';
-                    return (
-                        <button
-                            key={key}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                if (isDel) onDelete();
-                                else onKeyPress(key);
-                            }}
-                            style={{
-                                height: '48px',
-                                background: isDel ? '#fee2e2' : '#ffffff', // Fondo pastel para DEL
-                                border: isDel ? '1px solid #fecaca' : '1px solid #e2e8f0',
-                                borderRadius: '12px',
-                                fontSize: '20px',
-                                fontWeight: 800,
-                                color: isDel ? '#ef4444' : '#475569',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-                                transition: 'all 0.1s ease-out',
-                                userSelect: 'none'
-                            }}
-                            onMouseDown={e => {
-                                e.currentTarget.style.transform = 'scale(0.92)';
-                                e.currentTarget.style.background = isDel ? '#fca5a5' : '#f1f5f9';
-                            }}
-                            onMouseUp={e => {
-                                e.currentTarget.style.transform = 'scale(1)';
-                                e.currentTarget.style.background = isDel ? '#fee2e2' : '#ffffff';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.transform = 'scale(1)';
-                                e.currentTarget.style.background = isDel ? '#fee2e2' : '#ffffff';
-                            }}
-                        >
-                            {isDel ? <Delete size={22} strokeWidth={2.5} /> : key}
-                        </button>
-                    );
-                })}
+                {/* Botones Grid */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '12px'
+                }}>
+                    {keys.map((key) => {
+                        const isDel = key === 'DEL';
+                        return (
+                            <button
+                                key={key}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (isDel) onDelete();
+                                    else onKeyPress(key);
+                                }}
+                                style={{
+                                    height: '56px',
+                                    // Botones semitransparentes como en VisionOS
+                                    background: isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)',
+                                    border: 'none',
+                                    borderRadius: '50px', // Botones ovalados/circulares
+                                    fontSize: '22px',
+                                    fontWeight: 400, // Fuente limpia y no tan gruesa
+                                    color: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2)',
+                                    transition: 'all 0.15s ease-out',
+                                    userSelect: 'none'
+                                }}
+                                onMouseDown={e => {
+                                    e.currentTarget.style.transform = 'scale(0.85)';
+                                    e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.6)' : 'rgba(255, 255, 255, 0.4)';
+                                }}
+                                onMouseUp={e => {
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                    e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                    e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)';
+                                }}
+                            >
+                                {isDel ? <Delete size={22} strokeWidth={2} /> : key}
+                            </button>
+                        );
+                    })}
+                </div>
                 
+                {/* Barra de acción inferior / Espaciador (Estilo Apple Space/Enter) */}
                 <button
                     onClick={(e) => {
                         e.preventDefault();
                         onClose();
                     }}
                     style={{
-                        gridColumn: '1 / -1',
-                        height: '44px',
-                        background: '#e0e7ff', // Azul pastel muy suave y hermoso
-                        color: '#4f46e5',
-                        border: '1px solid #c7d2fe',
-                        borderRadius: '12px',
-                        fontSize: '13px',
-                        fontWeight: 800,
+                        width: '100%',
+                        height: '48px',
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '50px',
+                        fontSize: '15px',
+                        fontWeight: 500,
                         cursor: 'pointer',
-                        marginTop: '4px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '6px',
-                        transition: 'all 0.1s ease-out',
+                        gap: '8px',
+                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.3)',
+                        transition: 'all 0.15s ease-out',
                         userSelect: 'none'
                     }}
                     onMouseDown={e => {
-                        e.currentTarget.style.transform = 'scale(0.96)';
-                        e.currentTarget.style.background = '#c7d2fe';
+                        e.currentTarget.style.transform = 'scale(0.95)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)';
                     }}
                     onMouseUp={e => {
                         e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.background = '#e0e7ff';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
                     }}
                     onMouseLeave={e => {
                         e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.background = '#e0e7ff';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
                     }}
                 >
-                    <ChevronDown size={18} strokeWidth={3} />
-                    OK
+                    <Check size={18} strokeWidth={2.5} />
+                    Aceptar
                 </button>
             </motion.div>
         </AnimatePresence>
