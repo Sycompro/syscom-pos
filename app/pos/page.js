@@ -140,6 +140,7 @@ export default function POSPage() {
     const [exchangeRate, setExchangeRate] = useState(1);
     const [mounted, setMounted] = useState(false);
     const [showNumpad, setShowNumpad] = useState(false);
+    const [showPhoneNumpad, setShowPhoneNumpad] = useState(false);
     const [categories, setCategories] = useState([
         { id: 'all', name: 'Todos', icon: LayoutGrid }
     ]);
@@ -304,6 +305,23 @@ export default function POSPage() {
                 }, 10);
             }
             return newVal;
+        });
+    };
+
+    const handlePhoneNumpadKeyPress = (key) => {
+        setCustomer(prev => {
+            const newVal = ((prev.phone || '') + key).slice(0, 9);
+            if (newVal.length === 9) {
+                setTimeout(() => setShowPhoneNumpad(false), 100);
+            }
+            return { ...prev, phone: newVal };
+        });
+    };
+
+    const handlePhoneNumpadDelete = () => {
+        setCustomer(prev => {
+            const newVal = (prev.phone || '').slice(0, -1);
+            return { ...prev, phone: newVal };
         });
     };
 
@@ -847,10 +865,19 @@ export default function POSPage() {
                                                 <Phone size={10} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                                 <input
                                                     type="text"
+                                                    inputMode="none"
                                                     placeholder="999..."
-                                                    value={customer.phone}
+                                                    value={customer.phone || ''}
+                                                    onFocus={() => setShowPhoneNumpad(true)}
                                                     onChange={e => setCustomer({ ...customer, phone: e.target.value })}
+                                                    maxLength={9}
                                                     style={{ width: '100%', padding: '6px 8px 6px 24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '11px', fontWeight: 700, outline: 'none' }}
+                                                />
+                                                <NumericKeypad 
+                                                    isOpen={showPhoneNumpad} 
+                                                    onClose={() => setShowPhoneNumpad(false)} 
+                                                    onKeyPress={handlePhoneNumpadKeyPress} 
+                                                    onDelete={handlePhoneNumpadDelete} 
                                                 />
                                             </div>
                                         </div>
