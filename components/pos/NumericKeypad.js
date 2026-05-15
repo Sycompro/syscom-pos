@@ -52,13 +52,13 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     style={{
                         pointerEvents: 'auto', // Reactivar eventos solo en el teclado
                         width: '260px', // Tamaño reducido
-                        // ESTILO APPLE VISION PRO (Spatial UI)
-                        background: 'rgba(50, 50, 50, 0.45)', // Cristal oscuro translúcido
-                        backdropFilter: 'blur(40px) saturate(180%)',
-                        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                        // ESTILO APPLE VISION PRO (Crystal/Glass)
+                        background: 'rgba(255, 255, 255, 0.08)', // Cristal puro ultra-transparente
+                        backdropFilter: 'blur(50px) saturate(200%)',
+                        WebkitBackdropFilter: 'blur(50px) saturate(200%)',
                         borderRadius: '32px',
-                        boxShadow: '0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2)',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        boxShadow: '0 30px 60px rgba(0,0,0,0.3), inset 0 2px 6px rgba(255,255,255,0.4), inset 0 -1px 2px rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.25)',
                         padding: '16px', // Menor padding
                         display: 'flex',
                         flexDirection: 'column',
@@ -77,13 +77,13 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         paddingBottom: '10px'
                     }}>
                         <span style={{ 
-                            fontSize: '18px', // Fuente más pequeña
-                            fontWeight: 400, 
-                            color: '#ffffff', 
+                            fontSize: '18px',
+                            fontWeight: 800, 
+                            color: '#1e293b', 
                             letterSpacing: '2px',
-                            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+                            textShadow: '0 1px 2px rgba(255,255,255,0.8)'
                         }}>
-                            {value || <span style={{ color: 'rgba(255,255,255,0.4)' }}>...</span>}
+                            {value || <span style={{ color: 'rgba(30,41,59,0.3)' }}>...</span>}
                         </span>
                     </div>
 
@@ -104,33 +104,33 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                                         else onKeyPress(key);
                                     }}
                                     style={{
-                                        height: '46px', // Altura reducida
-                                        // Botones semitransparentes como en VisionOS
-                                        background: isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)',
-                                        border: 'none',
-                                        borderRadius: '50px', // Botones ovalados/circulares
-                                        fontSize: '18px', // Fuente más pequeña
-                                        fontWeight: 400, // Fuente limpia y no tan gruesa
-                                        color: '#ffffff',
+                                        height: '46px',
+                                        // Botones cristalizados claros
+                                        background: isDel ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.4)',
+                                        border: '1px solid rgba(255, 255, 255, 0.5)',
+                                        borderRadius: '50px',
+                                        fontSize: '18px',
+                                        fontWeight: 600,
+                                        color: isDel ? '#ef4444' : '#1e293b',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         cursor: 'pointer',
-                                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2)',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.02), inset 0 2px 4px rgba(255,255,255,0.5)',
                                         transition: 'all 0.15s ease-out',
                                         userSelect: 'none'
                                     }}
                                     onMouseDown={e => {
                                         e.currentTarget.style.transform = 'scale(0.85)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.6)' : 'rgba(255, 255, 255, 0.4)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.8)';
                                     }}
                                     onMouseUp={e => {
                                         e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.4)';
                                     }}
                                     onMouseLeave={e => {
                                         e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.4)';
                                     }}
                                 >
                                     {isDel ? <Delete size={20} strokeWidth={2} /> : key}
@@ -147,33 +147,33 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         }}
                         style={{
                             width: '100%',
-                            height: '42px', // Altura reducida
-                            background: 'rgba(255, 255, 255, 0.25)',
-                            color: '#ffffff',
-                            border: 'none',
+                            height: '42px',
+                            background: 'rgba(59, 130, 246, 0.15)',
+                            color: '#3b82f6',
+                            border: '1px solid rgba(59, 130, 246, 0.3)',
                             borderRadius: '50px',
                             fontSize: '14px',
-                            fontWeight: 500,
+                            fontWeight: 700,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '6px',
-                            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.3)',
+                            boxShadow: '0 2px 4px rgba(59,130,246,0.1)',
                             transition: 'all 0.15s ease-out',
                             userSelect: 'none'
                         }}
                         onMouseDown={e => {
                             e.currentTarget.style.transform = 'scale(0.95)';
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)';
+                            e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)';
                         }}
                         onMouseUp={e => {
                             e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                            e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
                         }}
                         onMouseLeave={e => {
                             e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                            e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
                         }}
                     >
                         <Check size={16} strokeWidth={2.5} />
