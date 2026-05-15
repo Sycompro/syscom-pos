@@ -51,10 +51,10 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     style={{
                         pointerEvents: 'auto',
                         width: '260px',
-                        // ESTILO NEGRO CRISTALIZADO (Deep Spatial UI)
-                        background: 'rgba(20, 20, 20, 0.45)', // Negro cristalizado
-                        backdropFilter: 'blur(40px) saturate(180%)',
-                        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                        // ESTILO AZULADO CRISTALIZADO (Slate Glass UI)
+                        background: 'rgba(15, 23, 42, 0.55)', // Azul profundo cristalizado
+                        backdropFilter: 'blur(40px) saturate(200%)',
+                        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
                         borderRadius: '32px',
                         boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2), 0 20px 60px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.08)',
                         border: 'none', // Quitamos el borde sólido para usar el inset shadow más fino
