@@ -14,26 +14,36 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete })
 
     return (
         <AnimatePresence>
-            <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+            <div 
                 style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 8px)',
-                    left: 0,
-                    width: '280px', // un poco más ancho que el input
-                    background: '#ffffff',
-                    borderRadius: '16px',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
-                    border: '1px solid #e2e8f0',
-                    padding: '16px',
-                    zIndex: 50,
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '10px'
-                }}
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }} 
+                onClick={onClose}
             >
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                        width: '340px',
+                        background: '#ffffff',
+                        borderRadius: '24px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
+                        border: '1px solid #e2e8f0',
+                        padding: '24px',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '12px'
+                    }}
+                >
                 {keys.map((key) => (
                     <button
                         key={key}
@@ -97,7 +107,8 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete })
                 >
                     OCULTAR TECLADO
                 </button>
-            </motion.div>
+                </motion.div>
+            </div>
         </AnimatePresence>
     );
 }
