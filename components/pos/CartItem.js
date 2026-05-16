@@ -8,18 +8,23 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
     const [showPriceNumpad, setShowPriceNumpad] = useState(false);
 
     const handleQtyKeyPress = (key) => {
-        if (key === '.') return; // No decimales para cantidad
-        const newQty = parseInt(item.quantity.toString() + key);
-        onUpdateQty(item.id, newQty - item.quantity);
+        if (key === '.') return;
+        const currentQtyStr = item.quantity.toString();
+        // Si es 0 o 1 y solo hay un dígito, quizás queremos reemplazar, 
+        // pero para mantener consistencia vamos a concatenar y el usuario que borre si quiere.
+        // O mejor: si el valor actual es 1 y presionan algo, lo reemplazamos si es el primer toque.
+        // Por ahora, concatenación simple pero con envío de valor absoluto:
+        const newQty = parseInt(currentQtyStr + key);
+        onUpdateQty(item.id, newQty, false);
     };
 
     const handleQtyDelete = () => {
         const strQty = item.quantity.toString();
         if (strQty.length <= 1) {
-            onUpdateQty(item.id, 1 - item.quantity);
+            onUpdateQty(item.id, 0, false);
         } else {
-            const newQty = parseInt(strQty.slice(0, -1));
-            onUpdateQty(item.id, newQty - item.quantity);
+            const newQty = parseInt(strQty.slice(0, -1)) || 0;
+            onUpdateQty(item.id, newQty, false);
         }
     };
 
@@ -28,9 +33,11 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
         if (key === '.') {
             if (!strPrice.includes('.')) strPrice += '.';
         } else {
-            strPrice += key;
+            // Si el precio es 0, reemplazamos en lugar de concatenar "05"
+            if (strPrice === '0') strPrice = key;
+            else strPrice += key;
         }
-        onUpdatePrice(item.id, parseFloat(strPrice));
+        onUpdatePrice(item.id, parseFloat(strPrice) || 0);
     };
 
     const handlePriceDelete = () => {
@@ -38,7 +45,8 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
         if (strPrice.length <= 1) {
             onUpdatePrice(item.id, 0);
         } else {
-            onUpdatePrice(item.id, parseFloat(strPrice.slice(0, -1)) || 0);
+            const newPrice = parseFloat(strPrice.slice(0, -1));
+            onUpdatePrice(item.id, isNaN(newPrice) ? 0 : newPrice);
         }
     };
     return (

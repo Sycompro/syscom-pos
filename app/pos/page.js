@@ -405,15 +405,15 @@ export default function POSPage() {
         });
     };
 
-    const updateQuantity = (id, delta) =>
+    const updateQuantity = (id, value, isDelta = true) =>
         setCart(prev => prev.map(i => {
             if (i.id === id) {
-                const newQty = i.quantity + delta;
-                if (delta > 0 && i.userCode !== 'DS00' && newQty > i.stock) {
+                const newQty = isDelta ? i.quantity + value : value;
+                if (isDelta && value > 0 && i.userCode !== 'DS00' && newQty > i.stock) {
                     showAlert('Límite de Stock', `Solo hay ${i.stock} unidades disponibles.`, 'warning');
                     return i;
                 }
-                return { ...i, quantity: Math.max(0.01, newQty) };
+                return { ...i, quantity: Math.max(0, newQty) };
             }
             return i;
         }));
