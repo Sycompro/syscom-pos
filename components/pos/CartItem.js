@@ -6,16 +6,19 @@ import NumericKeypad from './NumericKeypad';
 export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, useScreenKeyboards }) {
     const [showQtyNumpad, setShowQtyNumpad] = useState(false);
     const [showPriceNumpad, setShowPriceNumpad] = useState(false);
+    const [isFirstQtyTouch, setIsFirstQtyTouch] = useState(true);
+    const [isFirstPriceTouch, setIsFirstPriceTouch] = useState(true);
 
     const handleQtyKeyPress = (key) => {
         if (key === '.') return;
-        const currentQtyStr = item.quantity.toString();
-        // Si es 0 o 1 y solo hay un dígito, quizás queremos reemplazar, 
-        // pero para mantener consistencia vamos a concatenar y el usuario que borre si quiere.
-        // O mejor: si el valor actual es 1 y presionan algo, lo reemplazamos si es el primer toque.
-        // Por ahora, concatenación simple pero con envío de valor absoluto:
-        const newQty = parseInt(currentQtyStr + key);
-        onUpdateQty(item.id, newQty, false);
+        if (isFirstQtyTouch) {
+            onUpdateQty(item.id, parseInt(key), false);
+            setIsFirstQtyTouch(false);
+        } else {
+            const currentQtyStr = item.quantity.toString();
+            const newQty = parseInt(currentQtyStr + key);
+            onUpdateQty(item.id, newQty, false);
+        }
     };
 
     const handleQtyDelete = () => {
@@ -26,16 +29,21 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
             const newQty = parseInt(strQty.slice(0, -1)) || 0;
             onUpdateQty(item.id, newQty, false);
         }
+        setIsFirstQtyTouch(false); // Si borran, ya no es el primer toque de reemplazo
     };
 
     const handlePriceKeyPress = (key) => {
         let strPrice = item.price.toString();
-        if (key === '.') {
-            if (!strPrice.includes('.')) strPrice += '.';
+        if (isFirstPriceTouch) {
+            strPrice = key === '.' ? '0.' : key;
+            setIsFirstPriceTouch(false);
         } else {
-            // Si el precio es 0, reemplazamos en lugar de concatenar "05"
-            if (strPrice === '0') strPrice = key;
-            else strPrice += key;
+            if (key === '.') {
+                if (!strPrice.includes('.')) strPrice += '.';
+            } else {
+                if (strPrice === '0') strPrice = key;
+                else strPrice += key;
+            }
         }
         onUpdatePrice(item.id, parseFloat(strPrice) || 0);
     };
@@ -48,6 +56,7 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
             const newPrice = parseFloat(strPrice.slice(0, -1));
             onUpdatePrice(item.id, isNaN(newPrice) ? 0 : newPrice);
         }
+        setIsFirstPriceTouch(false);
     };
     return (
         <div style={{
@@ -73,7 +82,12 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
                         inputMode="none"
                         value={item.quantity}
                         onChange={(e) => onUpdateQty(item.id, (parseInt(e.target.value) || 1) - item.quantity)}
-                        onFocus={() => useScreenKeyboards && setShowQtyNumpad(true)}
+                        onFocus={() => {
+                            if (useScreenKeyboards) {
+                                setIsFirstQtyTouch(true);
+                                setShowQtyNumpad(true);
+                            }
+                        }}
                         style={{ 
                             fontSize: '15px', fontWeight: 900, color: '#4f46e5', 
                             width: '32px', textAlign: 'center', border: 'none', 
@@ -109,7 +123,12 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
                             inputMode="none"
                             value={item.price}
                             onChange={(e) => onUpdatePrice(item.id, parseFloat(e.target.value) || 0)}
-                            onFocus={() => useScreenKeyboards && setShowPriceNumpad(true)}
+                            onFocus={() => {
+                                if (useScreenKeyboards) {
+                                    setIsFirstPriceTouch(true);
+                                    setShowPriceNumpad(true);
+                                }
+                            }}
                             style={{ 
                                 fontSize: '11px', fontWeight: 700, color: '#64748b', 
                                 width: '60px', border: 'none', borderBottom: '1px dashed #cbd5e1',
