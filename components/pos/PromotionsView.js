@@ -8,7 +8,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function PromotionsView({ members, onSendBulk, companyName, onNotify }) {
+import AlphanumericKeyboard from './AlphanumericKeyboard';
+
+export default function PromotionsView({ members, onSendBulk, companyName, onNotify, useScreenKeyboards }) {
     const [target, setTarget] = useState('active'); // segments...
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +18,7 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [isSending, setIsSending] = useState(false);
     const [progress, setProgress] = useState({ current: 0, total: 0 });
+    const [showKeyboard, setShowKeyboard] = useState(false);
 
     // SEGMENTOS INTELIGENTES
     const segments = [
@@ -197,6 +200,7 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
                             placeholder="¿Qué quieres decirle a tus socios hoy?"
                             value={message}
                             onChange={e => setMessage(e.target.value)}
+                            onFocus={() => useScreenKeyboards && setShowKeyboard(true)}
                         />
                         <div style={tokensRowStyle}>
                             {['[Nombre]', '[Plan]', '[DiasRestantes]'].map(token => (
@@ -223,6 +227,14 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
                         )}
                     </div>
                 </div>
+
+                <AlphanumericKeyboard 
+                    isOpen={showKeyboard}
+                    onClose={() => setShowKeyboard(false)}
+                    value={message}
+                    onKeyPress={(key) => setMessage(prev => prev + key)}
+                    onDelete={() => setMessage(prev => prev.slice(0, -1))}
+                />
 
                 {/* 3. VISTA PREVIA SMART */}
                 <div style={previewPanelStyle}>

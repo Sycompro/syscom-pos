@@ -32,7 +32,16 @@ export async function POST(req) {
         const nextNum = (parseInt(lastCode.replace(/[^0-9]/g, ''), 10) + 1).toString().padStart(5, '0');
         const finalCodCli = `C${nextNum}`;
 
-        // 3. Registrar en Navasoft
+        // 3. Obtener defaults dinámicos (Evitar FK errors en empresas que no tienen V0001)
+        const defaultsRes = await pool.request().query(`
+            SELECT 
+                (SELECT TOP 1 codven FROM tbl01ven WHERE estado = 1) as defVen,
+                (SELECT TOP 1 codcdv FROM tbl01cdv) as defCdv
+        `);
+        const erpDefVen = defaultsRes.recordset[0]?.defVen || 'V0001';
+        const erpDefCdv = defaultsRes.recordset[0]?.defCdv || '01';
+
+        // 4. Registrar en Navasoft
         const isRuc = ruccli.length === 11;
         await pool.request()
             .input('codcli', sql.Char(6), finalCodCli)
@@ -42,18 +51,20 @@ export async function POST(req) {
             .input('phone', sql.VarChar(15), (phone || '').substring(0, 15))
             .input('birthdate', sql.DateTime, birthdate ? new Date(birthdate) : null)
             .input('address', sql.VarChar(80), (address || '').substring(0, 80))
+            .input('codven', sql.Char(5), erpDefVen)
+            .input('codcdv', sql.Char(2), erpDefCdv)
             .query(`
                 INSERT INTO mst01cli (
                     codcli, nomcli, ruccli, tipocl, codpai, coddocide, codcdv, 
                     estado, fecing, fecreg, codven, celcli, fecnac, dircli
                 )
                 VALUES (
-                    @codcli, @nomcli, @ruccli, 'B ', '01', @tipodoc, '01', 
-                    1, GETDATE(), GETDATE(), 'V0001', @phone, @birthdate, @address
+                    @codcli, @nomcli, @ruccli, 'B ', '01', @tipodoc, @codcdv, 
+                    1, GETDATE(), GETDATE(), @codven, @phone, @birthdate, @address
                 )
             `);
 
-        // 4. También registrar en la tabla interna de Railway (como respaldo)
+        // 5. También registrar en la tabla interna de Railway (como respaldo)
         try {
             await pool.request()
                 .input('doc', ruccli)

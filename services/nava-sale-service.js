@@ -54,6 +54,20 @@ class NavaSaleService {
       const erpPto = erpData.codpto.trim();
       const erpUsu = erpData.codusu.trim();
       const erpNroPla = erpData.nropla.trim();
+      const erpDefCdv = erpData.codcdv_nava || '01';
+
+      // 2.5 Obtener vendedor por defecto si no viene uno válido
+      let finalCodVen = codven || 'V0001';
+      const venRes = await transaction.request()
+        .input('cv', finalCodVen)
+        .query("SELECT codven FROM tbl01ven WHERE codven = @cv AND estado = 1");
+      
+      if (venRes.recordset.length === 0) {
+        const anyVen = await transaction.request().query("SELECT TOP 1 codven FROM tbl01ven WHERE estado = 1");
+        if (anyVen.recordset.length > 0) {
+            finalCodVen = anyVen.recordset[0].codven;
+        }
+      }
 
       // 3. Gestión de Correlativo
       const requestCor = new sql.Request(transaction);
@@ -116,7 +130,7 @@ class NavaSaleService {
       };
 
       // 5. Inserción de Cabecera (mst01fac)
-      const finalCodCli = (codcli && codcli !== 'NUEVO_ERP' ? codcli : 'C00001').substring(0, 6);
+      const finalCodCli = (codcli && codcli !== 'NUEVO_ERP' && codcli !== '000000' ? codcli : 'C00000').substring(0, 6);
       
       const formattedCompro = `${docType}/${nextNdocu.substring(nextNdocu.length - 6)}`;
 
@@ -147,9 +161,9 @@ class NavaSaleService {
         .input('codusu', sql.VarChar(10), (codusu || 'ADMIN').substring(0, 10))
         .input('flag', '0')
         .input('tfact', navaTfact)
-        .input('Codcdv', erpData.codcdv_nava || '01')
+        .input('Codcdv', erpDefCdv)
         .input('codvta', '01')
-        .input('codven', (codven || 'V0001').substring(0, 5))
+        .input('codven', finalCodVen.substring(0, 5))
         .input('codsub', '03')
         .input('cajrecib', isMixed ? 0 : (globalCodFdp === '01' ? Number((cashReceived || breakdown.total).toFixed(2)) : 0))
         .input('monrecib', 'S')
@@ -220,7 +234,7 @@ class NavaSaleService {
             .input('aigv', isTaxable ? 'S' : 'N')
             .input('cfac', docType.substring(0, 2))
             .input('nfac', nextNdocu.substring(0, 12))
-            .input('codven', (codven || 'V0001').substring(0, 5))
+            .input('codven', finalCodVen.substring(0, 5))
             .input('codpto', erpPto)
             .query(`
               INSERT INTO ${kddTable} (fecha, cdocu, ndocu, codn, nomb, refe, tmov, codi, cant, preu, dsct, tota, tcam, mone, cost, codglo, nomglo, aigv, cfac, nfac, codven, CodPto, CodTur, uvta, pigv, pcfle, pcemb)
@@ -257,7 +271,7 @@ class NavaSaleService {
         .input('ndocu', nextNdocu.substring(0, 12))
         .input('crefe', docType.substring(0, 2))
         .input('nrefe', nextNdocu.substring(0, 12))
-        .input('codcli', (codcli && codcli !== '000000' ? codcli : 'C00001').substring(0, 6))
+        .input('codcli', (codcli && codcli !== '000000' && codcli !== 'C00000' ? codcli : 'C00000').substring(0, 6))
         .input('nomcli', (nomcli && nomcli !== 'CLIENTE VARIOS' ? nomcli : 'VENTA CONTADO').substring(0, 60))
         .input('ruccli', (ruccli || '').substring(0, 11))
         .input('monto', sql.Decimal(18, 2), breakdown.total)
@@ -267,7 +281,7 @@ class NavaSaleService {
         .input('mone', 'S')
         .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
         .input('flag', '0')
-        .input('codven', (codven || 'V0001').substring(0, 5))
+        .input('codven', finalCodVen.substring(0, 5))
         .input('Codpto', erpPto)
         .input('codcdv', erpData.codcdv_nava || '01')
         .input('compro', '03/      ')
@@ -332,7 +346,7 @@ class NavaSaleService {
 
       let membershipInfo = null;
 
-      if (totalMembershipDays > 0 && finalCodCli !== 'C00001' && finalCodCli !== '000000') {
+      if (totalMembershipDays > 0 && finalCodCli !== 'C00000' && finalCodCli !== 'C00001') {
         logger.info(`[SaleService] Detectada venta de membresía (${totalMembershipDays} días) para cliente ${finalCodCli}`);
         
         const reqCli = new sql.Request(transaction);

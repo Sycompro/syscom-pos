@@ -51,6 +51,13 @@ export async function POST(request) {
             const { codpto: erpPto, nropla: erpNroPla, fecape } = apeRes.recordset[0];
             const planillaOficial = erpNroPla.trim().substring(0, 12);
 
+            // 1.5 Obtener vendedor por defecto dinámicamente
+            let defVen = 'V0001';
+            const venRes = await transaction.request().query("SELECT TOP 1 codven FROM tbl01ven WHERE estado = 1");
+            if (venRes.recordset.length > 0) {
+                defVen = venRes.recordset[0].codven;
+            }
+
             // 2. Control Interno (Arqueo)
             // Calculamos el siguiente ID de Arqueo para esta sesión
             const lastArqueoRes = await transaction.request()
@@ -155,7 +162,7 @@ export async function POST(request) {
                     .input('glosa', glosaOficial)
                     .input('codpto', erpPto)
                     .input('tcam', sql.Decimal(18, 4), tcamOficial)
-                    .input('codven', 'V0001')
+                    .input('codven', defVen)
                     .query(`
                         INSERT INTO mst01cob (
                             fecha, cdocu, ndocu, codcli, nomcli, mone, tcam, monto, nplan, compro, 
@@ -164,7 +171,7 @@ export async function POST(request) {
                         )
                         VALUES (
                             @fecha, @cdocu, @ndocu, 'C00000', @cliente, 'S', @tcam, @monto, @nplan, @compro, 
-                            GETDATE(), 'C', @codven, @codpto, '00', '000', 'V0001', 'I', @glosa,
+                            GETDATE(), 'C', @codven, @codpto, '00', '000', @codven, 'I', @glosa,
                             '1', '38', @ndocu, @ndocu, 'N', @fecha, GETDATE(), '01', 'E'
                         )
                     `);
@@ -191,7 +198,7 @@ export async function POST(request) {
                             .input('monto', sql.Decimal(18, 4), montoPart)
                             .input('cpago', cpago).input('npago', '            ')
                             .input('mone', 'S').input('tcam', 1)
-                            .input('codbco', codbco).input('codven', 'V0001')
+                            .input('codbco', codbco).input('codven', defVen)
                             .input('nplan', planillaOficial)
                             .input('valori', sql.Decimal(18, 4), montoPart)
                             .input('monori', 'S')

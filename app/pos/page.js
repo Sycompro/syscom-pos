@@ -172,7 +172,7 @@ export default function POSPage() {
     const [membershipStartDate, setMembershipStartDate] = useState(null);
     const [isRegularizing, setIsRegularizing] = useState(false);
     const [availableMethods, setAvailableMethods] = useState([]);
-    const [customer, setCustomer] = useState({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' });
+    const [customer, setCustomer] = useState({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
     const [customerSearch, setCustomerSearch] = useState('');
     const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
     const [printData, setPrintData] = useState(null);
@@ -563,7 +563,7 @@ export default function POSPage() {
                 body: JSON.stringify({
                     docType, pointOfSale: '01',
                     isMixed,
-                    codcli: customer.code === 'MANUAL' ? '000000' : customer.code,
+                    codcli: customer.code === 'MANUAL' ? 'C00000' : customer.code,
                     nomcli: customer.name,
                     ruccli: customer.ruc,
                     phone: customer.phone,
@@ -603,7 +603,7 @@ export default function POSPage() {
                 setCart([]);
                 setSearchTerm('');
                 setCustomerSearch('');
-                setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' });
+                setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
                 setPayments([]); // Limpiar pagos mixtos
                 setMembershipStartDate(null);
                 setIsRegularizing(false);
@@ -903,7 +903,7 @@ export default function POSPage() {
                                     <button
                                         onClick={() => {
                                             setCustomerSearch('');
-                                            setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' });
+                                            setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
                                         }}
                                         style={{ background: '#fff1f2', color: '#ef4444', border: 'none', borderRadius: '8px', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         title="Limpiar Cliente"
@@ -1164,7 +1164,7 @@ export default function POSPage() {
                             key="whatsapp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                             style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
                         >
-                            <WhatsappView />
+                            <WhatsappView useScreenKeyboards={useScreenKeyboards} />
                         </motion.div>
                     )}
                 </AnimatePresence>

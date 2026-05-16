@@ -2,7 +2,9 @@ import { MessageCircle, CheckCircle2, Copy, Save, ShieldCheck, Activity, Loader2
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
-export default function WhatsappView() {
+import AlphanumericKeyboard from './AlphanumericKeyboard';
+
+export default function WhatsappView({ useScreenKeyboards }) {
     const [settings, setSettings] = useState({ whatsapp_url: '', whatsapp_token: '' });
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -10,6 +12,7 @@ export default function WhatsappView() {
     const [showSaved, setShowSaved] = useState(false);
     const [connStatus, setConnStatus] = useState('unknown'); // unknown, checking, online, offline
     const [testing, setTesting] = useState(false);
+    const [activeInput, setActiveInput] = useState(null); // 'url' or 'token'
 
     useEffect(() => {
         loadAll();
@@ -141,6 +144,7 @@ export default function WhatsappView() {
                             onChange={e => setSettings({ ...settings, whatsapp_url: e.target.value })}
                             placeholder="https://qr-api-wps-production.up.railway.app"
                             style={inputStyle}
+                            onFocus={() => useScreenKeyboards && setActiveInput('url')}
                         />
                     </div>
 
@@ -153,12 +157,27 @@ export default function WhatsappView() {
                                 onChange={e => setSettings({ ...settings, whatsapp_token: e.target.value })}
                                 placeholder="Ingrese su token de seguridad..."
                                 style={{ ...inputStyle, paddingRight: '50px' }}
+                                onFocus={() => useScreenKeyboards && setActiveInput('token')}
                             />
                             <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>
                                 <ShieldCheck size={20} />
                             </div>
                         </div>
                     </div>
+
+                    <AlphanumericKeyboard 
+                        isOpen={activeInput !== null}
+                        onClose={() => setActiveInput(null)}
+                        value={activeInput === 'url' ? settings.whatsapp_url : settings.whatsapp_token}
+                        onKeyPress={(key) => {
+                            if (activeInput === 'url') setSettings(prev => ({ ...prev, whatsapp_url: prev.whatsapp_url + key }));
+                            else setSettings(prev => ({ ...prev, whatsapp_token: prev.whatsapp_token + key }));
+                        }}
+                        onDelete={() => {
+                            if (activeInput === 'url') setSettings(prev => ({ ...prev, whatsapp_url: prev.whatsapp_url.slice(0, -1) }));
+                            else setSettings(prev => ({ ...prev, whatsapp_token: prev.whatsapp_token.slice(0, -1) }));
+                        }}
+                    />
 
                     <div style={infoBoxStyle}>
                         <AlertCircle size={20} style={{ color: '#3b82f6', flexShrink: 0 }} />
