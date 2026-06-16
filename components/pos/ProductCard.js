@@ -9,14 +9,14 @@ export default function ProductCard({ product, onAdd }) {
             onClick={() => onAdd(product)}
             style={{
                 background: '#fff',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 border: '1px solid #e2e8f0',
-                padding: '16px',
+                padding: '10px',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px',
-                height: '170px',
+                gap: '6px',
+                height: '145px',
                 position: 'relative',
                 transition: 'all 0.2s ease',
                 overflow: 'hidden',
@@ -35,21 +35,21 @@ export default function ProductCard({ product, onAdd }) {
             {/* Icon + Name */}
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                 <div style={{
-                    width: '36px',
-                    height: '36px',
+                    width: '28px',
+                    height: '28px',
                     background: '#f1f5f9',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
                     color: '#94a3b8',
                 }}>
-                    <Package size={16} />
+                    <Package size={14} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                     <p style={{
-                        fontSize: '12px',
+                        fontSize: '11px',
                         fontWeight: 600,
                         color: '#1e293b',
                         lineHeight: '1.3',
@@ -60,7 +60,7 @@ export default function ProductCard({ product, onAdd }) {
                         margin: 0,
                     }}>{product.name}</p>
                     <p style={{
-                        fontSize: '10px',
+                        fontSize: '9px',
                         fontWeight: 700,
                         color: '#64748b',
                         marginTop: '2px',
@@ -72,16 +72,16 @@ export default function ProductCard({ product, onAdd }) {
             <div style={{
                 marginTop: 'auto',
                 borderTop: '1px solid #f1f5f9',
-                paddingTop: '10px',
+                paddingTop: '6px',
             }}>
                 {/* Stock info */}
                 <div style={{ 
-                    fontSize: '9px', 
+                    fontSize: '8px', 
                     fontWeight: 800, 
-                    padding: '2px 8px', 
+                    padding: '1px 6px', 
                     borderRadius: '6px',
                     display: 'inline-block',
-                    marginBottom: '6px',
+                    marginBottom: '4px',
                     background: inStock ? '#f0fdf4' : '#fef2f2',
                     color: inStock ? '#16a34a' : '#dc2626',
                     border: inStock ? '1px solid #dcfce7' : '1px solid #fee2e2'
@@ -90,23 +90,23 @@ export default function ProductCard({ product, onAdd }) {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a' }}>
-                        <span style={{ fontSize: '11px', color: '#64748b', marginRight: '4px' }}>S/</span>
+                    <div style={{ fontSize: '15px', fontWeight: 900, color: '#0f172a' }}>
+                        <span style={{ fontSize: '10px', color: '#64748b', marginRight: '4px' }}>S/</span>
                         {Number(product.price).toFixed(2)}
                     </div>
                     <div style={{
-                        width: '32px',
-                        height: '32px',
+                        width: '26px',
+                        height: '26px',
                         background: 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)',
                         color: '#4f46e5',
-                        borderRadius: '10px',
+                        borderRadius: '6px',
                         boxShadow: '0 2px 6px rgba(79, 70, 229, 0.15)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         transition: 'all 0.2s',
                     }}>
-                        <Plus size={16} strokeWidth={3} />
+                        <Plus size={12} strokeWidth={3} />
                     </div>
                 </div>
             </div>

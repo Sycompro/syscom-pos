@@ -20,7 +20,7 @@ export default function CustomSelect({ value, onChange, options, placeholder = "
     const selectedOption = options.find(opt => opt.value === value);
 
     return (
-        <div ref={containerRef} style={{ position: 'relative', width: '100%', minWidth: '240px' }}>
+        <div ref={containerRef} style={{ position: 'relative', width: '100%', minWidth: '180px' }}>
             <div 
                 onClick={() => setIsOpen(!isOpen)}
                 style={{ 
@@ -28,8 +28,8 @@ export default function CustomSelect({ value, onChange, options, placeholder = "
                     background: '#f8fafc', 
                     border: isOpen ? '2px solid #3b82f6' : '1px solid #e2e8f0', 
                     borderRadius: '10px', 
-                    padding: isOpen ? '9px 11px' : '10px 12px', 
-                    fontSize: '11px', 
+                    padding: isOpen ? '7px 9px' : '8px 10px', 
+                    fontSize: '10px', 
                     fontWeight: 800, 
                     cursor: 'pointer', 
                     color: '#1e293b',
@@ -76,9 +76,9 @@ export default function CustomSelect({ value, onChange, options, placeholder = "
                                     setIsOpen(false);
                                 }}
                                 style={{
-                                    padding: '10px 12px',
+                                    padding: '8px 10px',
                                     borderRadius: '8px',
-                                    fontSize: '11px',
+                                    fontSize: '10px',
                                     fontWeight: 700,
                                     cursor: 'pointer',
                                     display: 'flex',

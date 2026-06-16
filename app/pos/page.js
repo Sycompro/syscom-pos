@@ -757,22 +757,22 @@ export default function POSPage() {
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden' }}>
 
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
-                                <div style={{ background: '#fff', padding: '16px 24px', minHeight: '80px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        <div style={{ background: '#eff6ff', padding: '6px 12px', borderRadius: '8px', border: '1px solid #dbeafe' }}>
-                                            <p style={{ fontSize: '10px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
+                                <div style={{ background: '#fff', padding: '10px 16px', minHeight: '60px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe' }}>
+                                            <p style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
                                         </div>
                                         <div>
-                                            <h1 style={{ fontSize: '16px', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <h1 style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 {companySettings?.company?.legalName || companySettings?.company?.name || 'Cargando sede...'}
-                                                <span style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8' }}>• R.U.C. {companySettings?.company?.ruc || ''}</span>
+                                                <span style={{ fontSize: '10px', fontWeight: 600, color: '#94a3b8' }}>• R.U.C. {companySettings?.company?.ruc || ''}</span>
                                             </h1>
-                                            <p style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', margin: 0 }}>
+                                            <p style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', margin: 0 }}>
                                                 {companySettings?.company?.address || 'Dirección no configurada'}
                                             </p>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                         {/* MONITOR DE WHATSAPP */}
                                         {(waQueue.length > 0 || isProcessingWa) && (
                                             <div style={{ position: 'relative' }}>
@@ -839,21 +839,21 @@ export default function POSPage() {
                                         )}
 
                                         <div style={{ textAlign: 'right' }}>
-                                            <p style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Tipo Cambio</p>
-                                            <p style={{ fontSize: '12px', fontWeight: 900, color: '#3b82f6', margin: 0 }}>S/ {Number(exchangeRate || 1).toFixed(3)}</p>
+                                            <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Tipo Cambio</p>
+                                            <p style={{ fontSize: '11px', fontWeight: 900, color: '#3b82f6', margin: 0 }}>S/ {Number(exchangeRate || 1).toFixed(3)}</p>
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
-                                            <p style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Terminal</p>
-                                            <p style={{ fontSize: '12px', fontWeight: 900, color: '#1e293b', margin: 0 }}>{session?.user?.sedeId || '01'}</p>
+                                            <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Terminal</p>
+                                            <p style={{ fontSize: '11px', fontWeight: 900, color: '#1e293b', margin: 0 }}>{session?.user?.sedeId || '01'}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* LÍNEA 2: BARRA CLIENTE POS (PROFESIONAL) */}
-                                <div style={{ background: '#fff', padding: '12px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
 
                                     {/* Selector de Tipo DNI/RUC */}
-                                    <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '10px', padding: '3px', gap: '2px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '2px', gap: '2px', border: '1px solid #e2e8f0' }}>
                                         {['DNI', 'RUC'].map(type => (
                                             <button
                                                 key={type}
@@ -862,11 +862,11 @@ export default function POSPage() {
                                                     setCustomerSearch('');
                                                 }}
                                                 style={{
-                                                    padding: '6px 12px',
-                                                    borderRadius: '8px',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
                                                     border: 'none',
                                                     cursor: 'pointer',
-                                                    fontSize: '11px',
+                                                    fontSize: '10px',
                                                     fontWeight: 800,
                                                     background: searchType === type ? '#fff' : 'transparent',
                                                     color: searchType === type ? '#3b82f6' : '#64748b',
@@ -879,8 +879,8 @@ export default function POSPage() {
                                         ))}
                                     </div>
 
-                                    <div style={{ width: '200px', position: 'relative' }}>
-                                        <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={14} />
+                                    <div style={{ width: '160px', position: 'relative' }}>
+                                        <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={12} />
                                         <input
                                             type="text"
                                             inputMode="none" // Evita el teclado nativo en tablets
@@ -889,9 +889,9 @@ export default function POSPage() {
                                             onFocus={() => useScreenKeyboards && setShowNumpad(true)}
                                             onChange={handleCustomerSearch}
                                             maxLength={searchType === 'DNI' ? 8 : 11}
-                                            style={{ width: '100%', padding: '10px 12px 10px 36px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '13px', fontWeight: 700, outline: 'none' }}
+                                            style={{ width: '100%', padding: '8px 10px 8px 30px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '12px', fontWeight: 700, outline: 'none' }}
                                         />
-                                        {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '10px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={14} />}
+                                        {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '8px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={12} />}
                                         <NumericKeypad 
                                             isOpen={showNumpad} 
                                             onClose={() => setShowNumpad(false)} 
@@ -905,25 +905,25 @@ export default function POSPage() {
                                             setCustomerSearch('');
                                             setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
                                         }}
-                                        style={{ background: '#fff1f2', color: '#ef4444', border: 'none', borderRadius: '8px', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        style={{ background: '#fff1f2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         title="Limpiar Cliente"
                                     >
-                                        <X size={18} />
+                                        <X size={15} />
                                     </button>
                                     <button
                                         onClick={() => setShowManualModal(true)}
-                                        style={{ background: '#eff6ff', color: '#3b82f6', border: 'none', borderRadius: '8px', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        style={{ background: '#eff6ff', color: '#3b82f6', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         title="Registro Manual"
                                     >
-                                        <Plus size={18} />
+                                        <Plus size={15} />
                                     </button>
 
-                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '16px', borderLeft: '1px solid #f1f5f9', paddingLeft: '20px' }}>
+                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid #f1f5f9', paddingLeft: '16px' }}>
 
-                                        <div style={{ width: '120px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
-                                            <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Celular</p>
+                                        <div style={{ width: '100px', borderRight: '1px solid #f1f5f9', paddingRight: '12px' }}>
+                                            <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Celular</p>
                                             <div style={{ position: 'relative' }}>
-                                                <Phone size={10} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                                <Phone size={8} style={{ position: 'absolute', left: '6px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                                 <input
                                                     type="text"
                                                     inputMode="none"
@@ -932,7 +932,7 @@ export default function POSPage() {
                                                     onFocus={() => useScreenKeyboards && setShowPhoneNumpad(true)}
                                                     onChange={e => setCustomer({ ...customer, phone: e.target.value })}
                                                     maxLength={9}
-                                                    style={{ width: '100%', padding: '6px 8px 6px 24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '11px', fontWeight: 700, outline: 'none' }}
+                                                    style={{ width: '100%', padding: '4px 6px 4px 20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '10px', fontWeight: 700, outline: 'none' }}
                                                 />
                                                 <NumericKeypad 
                                                     isOpen={showPhoneNumpad} 
@@ -944,8 +944,8 @@ export default function POSPage() {
                                             </div>
                                         </div>
 
-                                        <div style={{ width: '140px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
-                                            <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>F. Nacimiento</p>
+                                        <div style={{ width: '120px', borderRight: '1px solid #f1f5f9', paddingRight: '12px' }}>
+                                            <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>F. Nacimiento</p>
                                             <CustomDatePicker
                                                 value={customer.birthdate}
                                                 onChange={(val) => setCustomer({ ...customer, birthdate: val })}
@@ -953,10 +953,10 @@ export default function POSPage() {
                                             />
                                         </div>
 
-                                        <div style={{ flex: 1, minWidth: '200px' }}>
-                                            <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
+                                        <div style={{ flex: 1, minWidth: '150px' }}>
+                                            <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <p style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
+                                                <p style={{ fontSize: '11px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
                                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                                     {customer.expirationDate && (
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, color: customer.daysRemaining > 0 ? '#10b981' : '#ef4444' }}>
@@ -971,9 +971,9 @@ export default function POSPage() {
                                 </div>
 
                                 {/* BARRA SUPERIOR POS (AHORA SEGUNDO) */}
-                                <div style={{ background: '#fff', padding: '12px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ flex: 1, position: 'relative' }}>
-                                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                        <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                         <input 
                                             type="text" 
                                             inputMode="none"
@@ -981,7 +981,7 @@ export default function POSPage() {
                                             value={searchTerm} 
                                             onChange={e => setSearchTerm(e.target.value)} 
                                             onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
-                                            style={{ width: '100%', padding: '10px 12px 10px 40px', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none' }} 
+                                            style={{ width: '100%', padding: '8px 10px 8px 32px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '12px' }} 
                                         />
                                         <AlphanumericKeyboard 
                                             isOpen={showSearchKeyboard}
@@ -991,7 +991,7 @@ export default function POSPage() {
                                             value={searchTerm}
                                         />
                                     </div>
-                                    <div style={{ minWidth: '240px' }}>
+                                    <div style={{ minWidth: '180px' }}>
                                         <CustomSelect
                                             value={selectedSalesperson}
                                             onChange={(val) => setSelectedSalesperson(val)}
@@ -999,9 +999,9 @@ export default function POSPage() {
                                             placeholder="Seleccionar Vendedor"
                                         />
                                     </div>
-                                    <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', gap: '4px' }}>
+                                    <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '6px', padding: '2px', gap: '2px' }}>
                                         {['03', '01', '65'].map(t => (
-                                            <button key={t} onClick={() => setDocType(t)} style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, background: docType === t ? '#fff' : 'transparent', color: docType === t ? '#3b82f6' : '#64748b' }}>
+                                            <button key={t} onClick={() => setDocType(t)} style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, background: docType === t ? '#fff' : 'transparent', color: docType === t ? '#3b82f6' : '#64748b' }}>
                                                 {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
                                             </button>
                                         ))}
@@ -1009,13 +1009,13 @@ export default function POSPage() {
                                 </div>
 
                                 {/* BARRA DE CATEGORÍAS RESTAURADA (AHORA TERCERO) */}
-                                <div style={{ flexShrink: 0, background: '#f8fafc', padding: '8px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
+                                <div style={{ flexShrink: 0, background: '#f8fafc', padding: '6px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '6px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
                                     {categories.map(cat => (
                                         <button
                                             key={cat.id}
                                             onClick={() => setSelectedCategory(cat.id)}
                                             style={{
-                                                padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 800, border: 'none', cursor: 'pointer',
+                                                padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, border: 'none', cursor: 'pointer',
                                                 background: selectedCategory === cat.id ? '#3b82f6' : '#fff',
                                                 color: selectedCategory === cat.id ? '#fff' : '#64748b',
                                                 boxShadow: '0 2px 4px rgba(0,0,0,0.04)', transition: 'all 0.2s'
@@ -1027,60 +1027,60 @@ export default function POSPage() {
                                 </div>
 
                                 {/* GRID PRODUCTOS */}
-                                <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '15px' }}>
-                                    {loading ? <p>Cargando...</p> : (products || []).map(p => <ProductCard key={p.id} product={p} onAdd={() => addToCart(p)} />)}
+                                <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px' }}>
+                                    {loading ? <p style={{ fontSize: '12px', padding: '10px' }}>Cargando...</p> : (products || []).map(p => <ProductCard key={p.id} product={p} onAdd={() => addToCart(p)} />)}
                                 </div>
                             </div>
 
                             {/* CARRITO POS */}
-                            <div style={{ width: '360px', background: '#fff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-                                <div style={{ padding: '16px 24px', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ background: '#3b82f6', color: '#fff', borderRadius: '12px', padding: '8px' }}>
-                                            <ShoppingCart size={20} />
+                            <div style={{ width: '300px', background: '#fff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ padding: '10px 16px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ background: '#3b82f6', color: '#fff', borderRadius: '8px', padding: '6px' }}>
+                                            <ShoppingCart size={16} />
                                         </div>
-                                        <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket ({(cart || []).length})</h2>
+                                        <h2 style={{ fontSize: '15px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket ({(cart || []).length})</h2>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                    <div style={{ display: 'flex', gap: '6px' }}>
                                         <button 
                                             disabled={cart.length === 0}
                                             onClick={applyGlobalDiscount} 
                                             style={{ 
-                                                background: '#f0fdf4', border: 'none', color: '#16a34a', borderRadius: '10px', padding: '8px', 
+                                                background: '#f0fdf4', border: 'none', color: '#16a34a', borderRadius: '8px', padding: '6px', 
                                                 cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
                                                 opacity: cart.length === 0 ? 0.5 : 1
                                             }} 
                                             title="Descuento Global"
                                         >
-                                            <Percent size={18} />
+                                            <Percent size={16} />
                                         </button>
                                         <button 
                                             disabled={cart.length === 0}
                                             onClick={() => setCart([])} 
                                             style={{ 
-                                                background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '10px', padding: '8px', 
+                                                background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '8px', padding: '6px', 
                                                 cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
                                                 opacity: cart.length === 0 ? 0.5 : 1
                                             }} 
                                             title="Vaciar Carrito"
                                         >
-                                            <Trash2 size={18} />
+                                            <Trash2 size={16} />
                                         </button>
-                                        <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '10px', padding: '8px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={18} /></button>
+                                        <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '8px', padding: '6px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={16} /></button>
                                     </div>
                                 </div>
 
                                 {/* OPCIÓN DE FECHA DE INICIO (REGULARIZACIÓN) */}
                                 <div style={{ 
-                                    padding: '12px 16px', 
+                                    padding: '8px 12px', 
                                     background: isRegularizing ? '#fffbeb' : '#fff', 
                                     borderBottom: '1px solid #f1f5f9',
                                     transition: 'all 0.3s'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <Calendar size={16} color={isRegularizing ? '#d97706' : '#94a3b8'} />
-                                            <span style={{ fontSize: '11px', fontWeight: 800, color: isRegularizing ? '#92400e' : '#64748b' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <Calendar size={14} color={isRegularizing ? '#d97706' : '#94a3b8'} />
+                                            <span style={{ fontSize: '10px', fontWeight: 800, color: isRegularizing ? '#92400e' : '#64748b' }}>
                                                 INICIO PERSONALIZADO
                                             </span>
                                         </div>

@@ -62,19 +62,19 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
         <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            gap: '8px',
             background: '#fff',
-            borderRadius: '16px',
+            borderRadius: '10px',
             border: '1px solid #eef2ff',
-            padding: '12px',
-            marginBottom: '8px',
+            padding: '8px',
+            marginBottom: '6px',
             boxShadow: '0 4px 6px rgba(0,0,0,0.02)',
             transition: 'all 0.2s'
         }}>
             {/* Control de Cantidad */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
                 <button onClick={() => onUpdateQty(item.id, 1)} style={qtyBtnStyle} title="Aumentar">
-                    <Plus size={10} strokeWidth={3} />
+                    <Plus size={8} strokeWidth={3} />
                 </button>
                 <div style={{ position: 'relative' }}>
                     <input 
@@ -89,8 +89,8 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
                             }
                         }}
                         style={{ 
-                            fontSize: '15px', fontWeight: 900, color: '#4f46e5', 
-                            width: '32px', textAlign: 'center', border: 'none', 
+                            fontSize: '13px', fontWeight: 900, color: '#4f46e5', 
+                            width: '24px', textAlign: 'center', border: 'none', 
                             background: 'transparent', outline: 'none' 
                         }}
                     />
@@ -103,20 +103,20 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
                     />
                 </div>
                 <button onClick={() => onUpdateQty(item.id, -1)} style={qtyBtnStyle} title="Disminuir">
-                    <Minus size={10} strokeWidth={3} />
+                    <Minus size={8} strokeWidth={3} />
                 </button>
             </div>
 
             {/* Info del Producto */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ 
-                    fontSize: '12px', fontWeight: 700, color: '#1e293b', lineHeight: 1.3, margin: 0,
+                    fontSize: '11px', fontWeight: 700, color: '#1e293b', lineHeight: 1.3, margin: 0,
                     display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' 
                 }}>
                     {item.name}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>S/</span>
+                    <span style={{ fontSize: '10px', color: '#94a3b8' }}>S/</span>
                     <div style={{ position: 'relative' }}>
                         <input 
                             type="text"
@@ -130,8 +130,8 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
                                 }
                             }}
                             style={{ 
-                                fontSize: '11px', fontWeight: 700, color: '#64748b', 
-                                width: '60px', border: 'none', borderBottom: '1px dashed #cbd5e1',
+                                fontSize: '10px', fontWeight: 700, color: '#64748b', 
+                                width: '45px', border: 'none', borderBottom: '1px dashed #cbd5e1',
                                 background: 'transparent', outline: 'none', padding: '0 2px'
                             }}
                         />
@@ -147,15 +147,15 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
             </div>
 
             {/* Subtotal y Eliminar */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
-                <span style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
+                <span style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a' }}>
                     S/ {(item.price * item.quantity).toFixed(2)}
                 </span>
                 <button 
                     onClick={() => onRemove(item.id)} 
                     style={{
                         background: '#fef2f2', border: 'none', color: '#ef4444', 
-                        cursor: 'pointer', borderRadius: '8px', padding: '6px', 
+                        cursor: 'pointer', borderRadius: '6px', padding: '4px', 
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'all 0.2s'
                     }}
@@ -163,7 +163,7 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
                     onMouseLeave={e => e.currentTarget.style.background = '#fef2f2'}
                     title="Quitar de la lista"
                 >
-                    <X size={14} strokeWidth={3} />
+                    <X size={12} strokeWidth={3} />
                 </button>
             </div>
         </div>
@@ -171,9 +171,9 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
 }
 
 const qtyBtnStyle = {
-    width: '24px',
-    height: '24px',
-    borderRadius: '8px',
+    width: '20px',
+    height: '20px',
+    borderRadius: '6px',
     background: '#f8fafc',
     border: '1px solid #e2e8f0',
     display: 'flex',

@@ -105,7 +105,7 @@ export default function PaymentSection({
                         cursor: cartEmpty ? 'not-allowed' : 'pointer'
                     }}
                 >
-                    <Split size={14} /> {showMixed ? 'Volver a Simple' : 'Pago Mixto'}
+                    <Split size={12} /> {showMixed ? 'Volver a Simple' : 'Pago Mixto'}
                 </button>
             </div>
 
@@ -130,7 +130,7 @@ export default function PaymentSection({
                                 opacity: cartEmpty ? 0.5 : 1,
                                 cursor: cartEmpty ? 'not-allowed' : 'pointer',
                             }}>
-                            <Icon size={14} />
+                            <Icon size={12} />
                             <span style={methodNameStyle}>{m.name}</span>
                         </button>
                     );
@@ -142,7 +142,7 @@ export default function PaymentSection({
                 <div style={mixedPanelStyle}>
                     <p style={{ ...labelStyle, marginBottom: '8px', color: '#64748b' }}>Efectivo Recibido</p>
                     <div style={inputGroupStyle}>
-                        <Banknote size={18} style={{ color: '#10b981', alignSelf: 'center' }} />
+                        <Banknote size={15} style={{ color: '#10b981', alignSelf: 'center' }} />
                         <div style={{ flex: 1, position: 'relative' }}>
                             <input
                                 type="text"
@@ -151,7 +151,7 @@ export default function PaymentSection({
                                 value={cashReceived}
                                 onChange={e => setCashReceived(e.target.value)}
                                 onFocus={() => useScreenKeyboards && setShowCashNumpad(true)}
-                                style={{ ...inputStyle, width: '100%', fontSize: '18px', fontWeight: 800, color: '#10b981' }}
+                                style={{ ...inputStyle, width: '100%', fontSize: '15px', fontWeight: 800, color: '#10b981' }}
                             />
                             <NumericKeypad 
                                 isOpen={showCashNumpad}
@@ -194,7 +194,7 @@ export default function PaymentSection({
                             />
                         </div>
                         <button onClick={addPayment} style={addBtnStyle} disabled={!selectedMethod}>
-                            <Plus size={18} />
+                            <Plus size={15} />
                         </button>
                     </div>
 
@@ -205,7 +205,7 @@ export default function PaymentSection({
                                     <span style={{ fontWeight: 700 }}>{p.name}</span>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span style={{ fontWeight: 900 }}>S/ {p.amount.toFixed(2)}</span>
-                                        <button onClick={() => removePayment(i)} style={deleteBtnStyle}><Trash2 size={14} /></button>
+                                        <button onClick={() => removePayment(i)} style={deleteBtnStyle}><Trash2 size={12} /></button>
                                     </div>
                                 </div>
                             ))}
@@ -246,30 +246,30 @@ export default function PaymentSection({
                     transform: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? 'none' : 'translateY(-1px)',
                 }}
             >
-                {loading ? <Loader2 className="animate-spin" size={20} /> : <>Finalizar Venta <ArrowRight size={18} /></>}
+                {loading ? <Loader2 className="animate-spin" size={16} /> : <>Finalizar Venta <ArrowRight size={15} /></>}
             </button>
         </div>
     );
 }
 
 // Estilos
-const containerStyle = { flexShrink: 0, background: '#fff', borderTop: '1px solid #e2e8f0', padding: '16px' };
-const headerActionStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' };
-const labelStyle = { fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 };
-const modeBtnStyle = { background: 'none', border: 'none', fontSize: '10px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' };
-const gridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '12px' };
-const methodBtnStyle = { display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 12px', borderRadius: '12px', border: '2px solid', fontSize: '11px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' };
+const containerStyle = { flexShrink: 0, background: '#fff', borderTop: '1px solid #e2e8f0', padding: '10px' };
+const headerActionStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' };
+const labelStyle = { fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 };
+const modeBtnStyle = { background: 'none', border: 'none', fontSize: '9px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' };
+const gridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '8px' };
+const methodBtnStyle = { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', borderRadius: '8px', border: '2px solid', fontSize: '10px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' };
 const methodNameStyle = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const mixedPanelStyle = { background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', borderRadius: '16px', padding: '12px', marginBottom: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' };
-const inputGroupStyle = { display: 'flex', gap: '8px', marginBottom: '8px' };
-const inputStyle = { flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none' };
-const addBtnStyle = { background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '0 12px', cursor: 'pointer' };
-const paymentsListStyle = { display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid #e2e8f0', paddingTop: '8px' };
-const paymentRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#1e293b' };
+const mixedPanelStyle = { background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', borderRadius: '12px', padding: '8px', marginBottom: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' };
+const inputGroupStyle = { display: 'flex', gap: '6px', marginBottom: '6px' };
+const inputStyle = { flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', outline: 'none' };
+const addBtnStyle = { background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', padding: '0 8px', cursor: 'pointer' };
+const paymentsListStyle = { display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid #e2e8f0', paddingTop: '6px' };
+const paymentRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#1e293b' };
 const deleteBtnStyle = { background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer' };
-const totalsBoxStyle = { background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '16px', padding: '14px', marginBottom: '12px', border: '1px solid #e2e8f0', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' };
-const summaryRowStyle = { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginBottom: '4px' };
-const totalRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '8px', borderTop: '1px solid #e2e8f0' };
-const totalLabelStyle = { fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' };
-const totalValueStyle = { fontSize: '24px', fontWeight: 900, lineHeight: 1 };
-const finalizeBtnStyle = { width: '100%', border: 'none', borderRadius: '14px', padding: '16px', fontSize: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' };
+const totalsBoxStyle = { background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '12px', padding: '10px', marginBottom: '8px', border: '1px solid #e2e8f0', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' };
+const summaryRowStyle = { display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748b', marginBottom: '2px' };
+const totalRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '6px', borderTop: '1px solid #e2e8f0' };
+const totalLabelStyle = { fontSize: '9px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' };
+const totalValueStyle = { fontSize: '18px', fontWeight: 900, lineHeight: 1 };
+const finalizeBtnStyle = { width: '100%', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' };
