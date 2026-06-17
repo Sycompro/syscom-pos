@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
-import PromotionsView from './PromotionsView';
+
 import CustomDatePicker from './CustomDatePicker';
 import AlphanumericKeyboard from './AlphanumericKeyboard';
 import NumericKeypad from './NumericKeypad';
@@ -55,50 +55,9 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
         }
     }, [toast.show]);
 
-    // ESTADOS PARA PESTAÑAS Y CUMPLEAÑOS
-    const [activeTab, setActiveTab] = useState('memberships'); 
-    const [birthdays, setBirthdays] = useState([]);
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-    const [loadingBirthdays, setLoadingBirthdays] = useState(false);
-
-    // Limpiar filtros al cambiar de pestaña
     useEffect(() => {
-        setSearchTerm('');
-        setFilterStatus('all');
-        setFilterSede('my');
-        setPlanSearchTerm('');
-        setEditingMember(null);
-        setSelectedMemberWA(null);
-        setShowWAModal(false);
-    }, [activeTab]);
-
-    const monthNames = [
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
-
-    useEffect(() => {
-        if (activeTab === 'memberships') {
-            fetchMemberships();
-        } else {
-            fetchBirthdays();
-        }
-    }, [searchTerm, filterStatus, filterSede, activeTab, selectedMonth]);
-
-    const fetchBirthdays = async () => {
-        setLoadingBirthdays(true);
-        try {
-            const res = await fetch(`/api/memberships/birthdays?month=${selectedMonth}`);
-            const data = await res.json();
-            if (data.success) {
-                setBirthdays(data.birthdays || []);
-            }
-        } catch (e) {
-            console.error("Error al cargar cumpleaños:", e);
-        } finally {
-            setLoadingBirthdays(false);
-        }
-    };
+        fetchMemberships();
+    }, [searchTerm, filterStatus, filterSede]);
 
     useEffect(() => {
         const t = setTimeout(() => fetchPlans(), 300);
@@ -165,37 +124,15 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
             <div style={headerContainerStyle}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
-                        {activeTab === 'memberships' ? 'Membresías' : activeTab === 'birthdays' ? 'Cumpleaños' : 'Promociones'}
+                        Membresías
                     </h1>
                     <p style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
-                        {activeTab === 'memberships' ? 'Seguimiento y renovación' : activeTab === 'birthdays' ? 'Eventos del mes' : 'Gestión de ofertas'}
+                        Seguimiento y renovación
                     </p>
-                </div>
-
-                <div style={tabsWrapperStyle}>
-                    <button 
-                        onClick={() => setActiveTab('memberships')}
-                        style={{ ...tabStyle, ...(activeTab === 'memberships' ? activeTabActiveStyle : {}) }}
-                    >
-                        <Users size={14} /> Membresías
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('promotions')}
-                        style={{ ...tabStyle, ...(activeTab === 'promotions' ? activeTabActiveStyle : {}) }}
-                    >
-                        <RefreshCw size={14} /> Promociones
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('birthdays')}
-                        style={{ ...tabStyle, ...(activeTab === 'birthdays' ? birthdayTabActiveStyle : {}) }}
-                    >
-                        <Calendar size={14} /> Cumpleaños
-                    </button>
                 </div>
             </div>
 
-            {activeTab === 'memberships' ? (
-                <>
+            <>
                     {/* RESUMEN DE ESTADOS (Compacto) */}
                     <div style={statsCompactGridStyle}>
                         <StatCard 
@@ -500,108 +437,6 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                         </div>
                     </div>
                 </>
-            ) : activeTab === 'birthdays' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                        <select 
-                            value={selectedMonth}
-                            onChange={(e) => setSelectedMonth(e.target.value)}
-                            style={monthSelectStyle}
-                        >
-                            {monthNames.map((m, i) => (
-                                <option key={i+1} value={i+1}>{m}</option>
-                            ))}
-                        </select>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>
-                            {birthdays.length} socios cumplen en {monthNames[selectedMonth-1]}
-                        </span>
-                    </div>
-
-                    <div style={birthdayGridStyle}>
-                        {loadingBirthdays ? (
-                            <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#94a3b8' }}>Consultando cumpleaños...</div>
-                        ) : birthdays.length === 0 ? (
-                            <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#94a3b8' }}>No hay cumpleaños registrados para este mes.</div>
-                        ) : birthdays.map((b, i) => {
-                            const isToday = b.birthDay === new Date().getDate() && b.birthMonth === (new Date().getMonth() + 1);
-                            return (
-                                <motion.div 
-                                    key={b.codcli}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    style={{ 
-                                        ...birthdayCardStyle,
-                                        background: isToday ? '#fff1f2' : '#fff',
-                                        borderColor: isToday ? '#fda4af' : '#f1f5f9'
-                                    }}
-                                >
-                                    {/* Fecha Calendario */}
-                                    <div style={{ ...calendarDateStyle, background: isToday ? '#f43f5e' : '#94a3b8' }}>
-                                        <div style={{ fontSize: '18px', fontWeight: 900 }}>{b.birthDay}</div>
-                                        <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>{monthNames[b.birthMonth-1].substring(0,3)}</div>
-                                    </div>
-
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontWeight: 800, fontSize: '13px', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {b.nomcli}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#f43f5e' }}>{b.age} años</span>
-                                            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#cbd5e1' }} />
-                                            <span style={{ fontSize: '12px', color: '#64748b' }}>{b.birthDay} de {monthNames[b.birthMonth-1].toLowerCase()}</span>
-                                        </div>
-                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <MessageCircle size={12} /> {b.phone || 'Sin teléfono'}
-                                        </div>
-                                        {isToday && (
-                                            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', color: '#f43f5e', fontSize: '11px', fontWeight: 800 }}>
-                                                <RefreshCw size={12} className="animate-spin" /> ¡Cumpleaños hoy!
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <button 
-                                            onClick={() => {
-                                                setSelectedMemberWA({ id: b.codcli, name: b.nomcli, phone: b.phone });
-                                                setShowWAModal(true);
-                                            }}
-                                            style={{ ...birthdayActionBtnStyle, background: isToday ? '#f43f5e' : '#f1f5f9', color: isToday ? '#fff' : '#64748b' }}
-                                        >
-                                            <MessageCircle size={16} />
-                                        </button>
-                                        <button 
-                                            onClick={() => {
-                                                setEditingMember({
-                                                    id: b.codcli,
-                                                    nomcli: b.nomcli,
-                                                    celcli: b.phone,
-                                                    email: b.email || '',
-                                                    direccion: b.address || '',
-                                                    fecnac: b.fecnac ? b.fecnac.split('T')[0] : ''
-                                                });
-                                            }}
-                                            style={{ ...birthdayActionBtnStyle, background: '#f8fafc', color: '#94a3b8' }}
-                                            title="Editar datos"
-                                        >
-                                            <User size={16} />
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-                </div>
-            ) : (
-                <PromotionsView 
-                    members={members}
-                    onSendBulk={onQueueWhatsApp}
-                    companyName={companyName}
-                    onNotify={(msg, type) => setToast({ show: true, message: msg, type })}
-                    useScreenKeyboards={useScreenKeyboards}
-                />
-            )}
 
 
 
@@ -860,8 +695,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                                             if (data.success) {
                                                 setToast({ show: true, message: 'Datos del socio actualizados en el ERP', type: 'success' });
                                                 setEditingMember(null);
-                                                fetchMembers(); // Refrescar lista
-                                                if (activeTab === 'birthdays') fetchBirthdays();
+                                                fetchMemberships(); // Refrescar lista
                                             } else {
                                                 setToast({ show: true, message: 'Error: ' + data.error, type: 'error' });
                                             }

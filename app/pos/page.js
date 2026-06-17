@@ -29,6 +29,7 @@ import CloseCashModal from '@/components/pos/CloseCashModal';
 import MembershipsView from '@/components/pos/MembershipsView';
 import WhatsappView from '@/components/pos/WhatsappView';
 import CustomersView from '@/components/pos/CustomersView';
+import PromotionsView from '@/components/pos/PromotionsView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
@@ -52,6 +53,28 @@ export default function POSPage() {
     const [showWaAlerts, setShowWaAlerts] = useState(false);
     const [posLogo, setPosLogo] = useState('logocia01.jpg');
     const [companySettings, setCompanySettings] = useState(null);
+
+    // Estados para cargar miembros en Promociones
+    const [membersForPromotions, setMembersForPromotions] = useState([]);
+    const [loadingMembersForPromotions, setLoadingMembersForPromotions] = useState(false);
+
+    useEffect(() => {
+        if (activeTab === 'promotions') {
+            const fetchMembersForPromotions = async () => {
+                setLoadingMembersForPromotions(true);
+                try {
+                    const res = await fetch('/api/memberships/list?q=&status=Todos&sede=');
+                    const data = await res.json();
+                    setMembersForPromotions(data.members || []);
+                } catch (err) {
+                    console.error('Error fetching members for promotions:', err);
+                } finally {
+                    setLoadingMembersForPromotions(false);
+                }
+            };
+            fetchMembersForPromotions();
+        }
+    }, [activeTab]);
 
     useEffect(() => {
         if (companySettings?.company?.logo) {
@@ -838,6 +861,7 @@ export default function POSPage() {
                             <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 {activeTab === 'pos' ? 'Punto de Venta' : 
                                  activeTab === 'memberships' ? 'Membresías' : 
+                                 activeTab === 'promotions' ? 'Promociones' : 
                                  activeTab === 'customers' ? 'Clientes' : 
                                  activeTab === 'whatsapp' ? 'Config WhatsApp' : 'POS'}
                             </span>
@@ -1262,6 +1286,28 @@ export default function POSPage() {
                         </motion.div>
                     )}
 
+                    {activeTab === 'promotions' && (
+                        <motion.div
+                            key="promotions" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
+                        >
+                            {loadingMembersForPromotions ? (
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#64748b', fontSize: '12px', fontWeight: 600 }}>
+                                    <Loader2 className="animate-spin" size={24} style={{ color: '#3b82f6', marginRight: '8px' }} />
+                                    Cargando socios para promociones...
+                                </div>
+                            ) : (
+                                <PromotionsView 
+                                    members={membersForPromotions}
+                                    onSendBulk={addToWaQueue}
+                                    companyName={companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
+                                    onNotify={showAlert}
+                                    useScreenKeyboards={useScreenKeyboards}
+                                />
+                            )}
+                        </motion.div>
+                    )}
+
                     {activeTab === 'customers' && (
                         <motion.div
                             key="customers" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
@@ -1283,6 +1329,9 @@ export default function POSPage() {
                                 }}
                                 onOpenRegisterModal={() => setShowManualModal(true)}
                                 onAlert={showAlert}
+                                onQueueWhatsApp={addToWaQueue}
+                                companyName={companySettings?.company?.commercialName || companySettings?.company?.name}
+                                useScreenKeyboards={useScreenKeyboards}
                             />
                         </motion.div>
                     )}
