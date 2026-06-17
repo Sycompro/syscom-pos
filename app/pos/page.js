@@ -805,6 +805,49 @@ export default function POSPage() {
             </AnimatePresence>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {/* Cabecera Global Móvil para celulares */}
+                {isMobileDevice && (
+                    <div style={{ 
+                        background: '#fff', 
+                        height: '50px', 
+                        borderBottom: '1px solid #e2e8f0', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        padding: '0 16px',
+                        justifyContent: 'space-between',
+                        flexShrink: 0
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button 
+                                onClick={() => setShowMobileMenu(true)} 
+                                style={{ 
+                                    border: 'none', 
+                                    background: 'transparent', 
+                                    padding: '6px', 
+                                    color: '#475569', 
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#f1f5f9'
+                                }}
+                            >
+                                <Menu size={18} />
+                            </button>
+                            <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                {activeTab === 'pos' ? 'Punto de Venta' : 
+                                 activeTab === 'memberships' ? 'Membresías' : 
+                                 activeTab === 'customers' ? 'Clientes' : 
+                                 activeTab === 'whatsapp' ? 'Config WhatsApp' : 'POS'}
+                            </span>
+                        </div>
+                        <div style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe', textTransform: 'uppercase' }}>
+                            {companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
+                        </div>
+                    </div>
+                )}
+
                 <AnimatePresence mode="wait">
                     {activeTab === 'pos' && (
                         <motion.div
@@ -815,29 +858,10 @@ export default function POSPage() {
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden' }}>
 
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
-                                <div style={{ background: '#fff', padding: '10px 16px', minHeight: '60px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        {isMobileDevice && (
-                                            <button 
-                                                onClick={() => setShowMobileMenu(true)} 
-                                                style={{ 
-                                                    border: 'none', 
-                                                    background: 'transparent', 
-                                                    padding: '6px', 
-                                                    marginRight: '4px',
-                                                    color: '#475569', 
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    borderRadius: '8px',
-                                                    backgroundColor: '#f1f5f9'
-                                                }}
-                                            >
-                                                <Menu size={18} />
-                                            </button>
-                                        )}
-                                        <div style={{ background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe' }}>
+                                {!isMobileDevice && (
+                                    <div style={{ background: '#fff', padding: '10px 16px', minHeight: '60px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe' }}>
                                             <p style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
                                         </div>
                                         <div>
@@ -926,6 +950,7 @@ export default function POSPage() {
                                         </div>
                                     </div>
                                 </div>
+                                )}
 
                                 {/* LÍNEA 2: BARRA CLIENTE POS (PROFESIONAL) */}
                                 <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
