@@ -229,6 +229,7 @@ export default function POSPage() {
     const [cashReceived, setCashReceived] = useState('');
     const [isMobileDevice, setIsMobileDevice] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [showMobileCart, setShowMobileCart] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -628,6 +629,7 @@ export default function POSPage() {
                 setLastMembershipInfo(result.membershipInfo);
                 setOrderSuccess(result.ndocu);
                 setCart([]);
+                setShowMobileCart(false);
                 setSearchTerm('');
                 setCustomerSearch('');
                 setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
@@ -760,6 +762,132 @@ export default function POSPage() {
         );
     }
 
+    const renderCartContent = (isDrawerMode = false) => {
+        return (
+            <div style={{ width: isDrawerMode ? '100%' : '300px', height: '100%', background: '#fff', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '10px 16px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {isDrawerMode && (
+                            <button 
+                                onClick={() => setShowMobileCart(false)}
+                                style={{ 
+                                    background: '#f1f5f9', border: 'none', color: '#64748b', 
+                                    borderRadius: '8px', padding: '6px', cursor: 'pointer', marginRight: '6px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                        <div style={{ background: '#3b82f6', color: '#fff', borderRadius: '8px', padding: '6px' }}>
+                            <ShoppingCart size={16} />
+                        </div>
+                        <h2 style={{ fontSize: '15px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket ({(cart || []).length})</h2>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                        <button 
+                            disabled={cart.length === 0}
+                            onClick={applyGlobalDiscount} 
+                            style={{ 
+                                background: '#f0fdf4', border: 'none', color: '#16a34a', borderRadius: '8px', padding: '6px', 
+                                cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+                                opacity: cart.length === 0 ? 0.5 : 1
+                            }} 
+                            title="Descuento Global"
+                        >
+                            <Percent size={16} />
+                        </button>
+                        <button 
+                            disabled={cart.length === 0}
+                            onClick={() => setCart([])} 
+                            style={{ 
+                                background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '8px', padding: '6px', 
+                                cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+                                opacity: cart.length === 0 ? 0.5 : 1
+                            }} 
+                            title="Vaciar Carrito"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                        <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '8px', padding: '6px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={16} /></button>
+                    </div>
+                </div>
+
+                {/* OPCIÓN DE FECHA DE INICIO (REGULARIZACIÓN) */}
+                <div style={{ 
+                    padding: '8px 12px', 
+                    background: isRegularizing ? '#fffbeb' : '#fff', 
+                    borderBottom: '1px solid #f1f5f9',
+                    transition: 'all 0.3s'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Calendar size={14} color={isRegularizing ? '#d97706' : '#94a3b8'} />
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: isRegularizing ? '#92400e' : '#64748b' }}>
+                                INICIO PERSONALIZADO
+                            </span>
+                        </div>
+                        <div 
+                            onClick={() => {
+                                setIsRegularizing(!isRegularizing);
+                                if (!membershipStartDate) setMembershipStartDate(formatDate(new Date()));
+                            }}
+                            style={{
+                                width: '36px', height: '18px', borderRadius: '18px',
+                                background: isRegularizing ? '#d97706' : '#e2e8f0',
+                                padding: '2px', cursor: 'pointer', display: 'flex',
+                                alignItems: 'center', justifyContent: isRegularizing ? 'flex-end' : 'flex-start'
+                            }}
+                        >
+                            <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#fff' }} />
+                        </div>
+                    </div>
+                    
+                    {isRegularizing && (
+                        <div style={{ marginTop: '10px' }}>
+                            <p style={{ fontSize: '10px', color: '#b45309', marginBottom: '6px', fontWeight: 700 }}>
+                                * La membresía iniciará el:
+                            </p>
+                            <CustomDatePicker 
+                                value={membershipStartDate || formatDate(new Date())} 
+                                onChange={setMembershipStartDate}
+                                compact={true}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
+                    {(cart || []).map(item => (
+                        <CartItem
+                            key={item.id}
+                            item={item}
+                            onUpdateQty={updateQuantity}
+                            onRemove={removeFromCart}
+                            onUpdatePrice={updatePrice}
+                            useScreenKeyboards={useScreenKeyboards}
+                        />
+                    ))}
+                </div>
+                <PaymentSection 
+                    total={total} 
+                    availableMethods={availableMethods} 
+                    payments={payments}
+                    setPayments={setPayments}
+                    onFinalize={handleFinalizeSale} 
+                    loading={isFinalizing} 
+                    cartEmpty={(cart || []).length === 0} 
+                    onAlert={showAlert}
+                    showMixed={showMixed}
+                    setShowMixed={setShowMixed}
+                    cashReceived={cashReceived}
+                    setCashReceived={setCashReceived}
+                    useScreenKeyboards={useScreenKeyboards}
+                />
+            </div>
+        );
+    };
+
     return (
         <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#f1f5f9', overflow: 'hidden' }}>
             {/* Sidebar para PC / Tablet */}
@@ -874,7 +1002,8 @@ export default function POSPage() {
 
                 <AnimatePresence mode="wait">
                     {activeTab === 'pos' && (
-                        <motion.div
+                        <>
+                            <motion.div
                             key="pos" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
                             style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
                         >
@@ -1159,118 +1288,114 @@ export default function POSPage() {
                                 </div>
                             </div>
 
-                            {/* CARRITO POS */}
-                            <div style={{ width: '300px', background: '#fff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-                                <div style={{ padding: '10px 16px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div style={{ background: '#3b82f6', color: '#fff', borderRadius: '8px', padding: '6px' }}>
-                                            <ShoppingCart size={16} />
-                                        </div>
-                                        <h2 style={{ fontSize: '15px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket ({(cart || []).length})</h2>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '6px' }}>
-                                        <button 
-                                            disabled={cart.length === 0}
-                                            onClick={applyGlobalDiscount} 
-                                            style={{ 
-                                                background: '#f0fdf4', border: 'none', color: '#16a34a', borderRadius: '8px', padding: '6px', 
-                                                cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
-                                                opacity: cart.length === 0 ? 0.5 : 1
-                                            }} 
-                                            title="Descuento Global"
-                                        >
-                                            <Percent size={16} />
-                                        </button>
-                                        <button 
-                                            disabled={cart.length === 0}
-                                            onClick={() => setCart([])} 
-                                            style={{ 
-                                                background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '8px', padding: '6px', 
-                                                cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
-                                                opacity: cart.length === 0 ? 0.5 : 1
-                                            }} 
-                                            title="Vaciar Carrito"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                        <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '8px', padding: '6px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={16} /></button>
-                                    </div>
-                                </div>
+                            {/* CARRITO POS (SÓLO EN DESKTOP) */}
+                            {!isMobileDevice && renderCartContent(false)}
+                        </motion.div>
 
-                                {/* OPCIÓN DE FECHA DE INICIO (REGULARIZACIÓN) */}
-                                <div style={{ 
-                                    padding: '8px 12px', 
-                                    background: isRegularizing ? '#fffbeb' : '#fff', 
-                                    borderBottom: '1px solid #f1f5f9',
-                                    transition: 'all 0.3s'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <Calendar size={14} color={isRegularizing ? '#d97706' : '#94a3b8'} />
-                                            <span style={{ fontSize: '10px', fontWeight: 800, color: isRegularizing ? '#92400e' : '#64748b' }}>
-                                                INICIO PERSONALIZADO
-                                            </span>
-                                        </div>
-                                        <div 
-                                            onClick={() => {
-                                                setIsRegularizing(!isRegularizing);
-                                                if (!membershipStartDate) setMembershipStartDate(formatDate(new Date()));
-                                            }}
+                        {/* BOTÓN FLOTANTE (FAB) Y DRAWER PARA CELULARES */}
+                        {isMobileDevice && (
+                            <>
+                                {/* Botón Flotante */}
+                                <AnimatePresence>
+                                    {!showMobileCart && (
+                                        <motion.button
+                                            initial={{ scale: 0, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0, opacity: 0 }}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => setShowMobileCart(true)}
                                             style={{
-                                                width: '36px', height: '18px', borderRadius: '18px',
-                                                background: isRegularizing ? '#d97706' : '#e2e8f0',
-                                                padding: '2px', cursor: 'pointer', display: 'flex',
-                                                alignItems: 'center', justifyContent: isRegularizing ? 'flex-end' : 'flex-start'
+                                                position: 'fixed',
+                                                bottom: '24px',
+                                                right: '24px',
+                                                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                                color: '#fff',
+                                                border: 'none',
+                                                borderRadius: '50px',
+                                                padding: '12px 20px',
+                                                boxShadow: '0 10px 25px rgba(29, 78, 216, 0.4), 0 4px 10px rgba(0,0,0,0.1)',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '10px',
+                                                zIndex: 900,
+                                                fontWeight: 'bold',
+                                                fontSize: '14px'
                                             }}
                                         >
-                                            <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#fff' }} />
-                                        </div>
-                                    </div>
-                                    
-                                    {isRegularizing && (
-                                        <div style={{ marginTop: '10px' }}>
-                                            <p style={{ fontSize: '10px', color: '#b45309', marginBottom: '6px', fontWeight: 700 }}>
-                                                * La membresía iniciará el:
-                                            </p>
-                                            <CustomDatePicker 
-                                                value={membershipStartDate || formatDate(new Date())} 
-                                                onChange={setMembershipStartDate}
-                                                compact={true}
-                                            />
+                                            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                                <ShoppingCart size={18} />
+                                                {cart.length > 0 && (
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        top: '-8px',
+                                                        right: '-8px',
+                                                        background: '#ef4444',
+                                                        color: '#fff',
+                                                        borderRadius: '50%',
+                                                        width: '18px',
+                                                        height: '18px',
+                                                        fontSize: '10px',
+                                                        fontWeight: 900,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        border: '2px solid #3b82f6',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                                    }}>
+                                                        {cart.length}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span>S/ {Number(total || 0).toFixed(2)}</span>
+                                        </motion.button>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Drawer Deslizante */}
+                                <AnimatePresence>
+                                    {showMobileCart && (
+                                        <div 
+                                            onClick={() => setShowMobileCart(false)}
+                                            style={{
+                                                position: 'fixed',
+                                                top: 0,
+                                                left: 0,
+                                                right: 0,
+                                                bottom: 0,
+                                                background: 'rgba(15, 23, 42, 0.5)',
+                                                backdropFilter: 'blur(4px)',
+                                                zIndex: 1000,
+                                                display: 'flex',
+                                                justifyContent: 'flex-end'
+                                            }}
+                                        >
+                                            <motion.div
+                                                initial={{ x: '100%' }}
+                                                animate={{ x: 0 }}
+                                                exit={{ x: '100%' }}
+                                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={{
+                                                    width: '90%',
+                                                    maxWidth: '450px',
+                                                    height: '100%',
+                                                    background: '#fff',
+                                                    boxShadow: '-10px 0 30px rgba(0,0,0,0.15)',
+                                                    display: 'flex',
+                                                    flexDirection: 'column'
+                                                }}
+                                            >
+                                                {renderCartContent(true)}
+                                            </motion.div>
                                         </div>
                                     )}
-                                </div>
-
-                                <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-                                    {(cart || []).map(item => (
-                                        <CartItem
-                                            key={item.id}
-                                            item={item}
-                                            onUpdateQty={updateQuantity}
-                                            onRemove={removeFromCart}
-                                            onUpdatePrice={updatePrice}
-                                            useScreenKeyboards={useScreenKeyboards}
-                                        />
-                                    ))}
-                                </div>
-                                    <PaymentSection 
-                                        total={total} 
-                                        availableMethods={availableMethods} 
-                                        payments={payments}
-                                        setPayments={setPayments}
-                                        onFinalize={handleFinalizeSale} 
-                                        loading={isFinalizing} 
-                                        cartEmpty={(cart || []).length === 0} 
-                                        onAlert={showAlert}
-                                        showMixed={showMixed}
-                                        setShowMixed={setShowMixed}
-                                        cashReceived={cashReceived}
-                                        setCashReceived={setCashReceived}
-                                        useScreenKeyboards={useScreenKeyboards}
-                                    />
-                            </div>
-                        </motion.div>
-                    )}
+                                </AnimatePresence>
+                            </>
+                        )}
+                    </>
+                )}
 
                     {activeTab === 'memberships' && (
                         <motion.div
