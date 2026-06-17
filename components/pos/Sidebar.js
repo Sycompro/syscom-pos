@@ -151,40 +151,71 @@ export default function Sidebar({
 
                 <div 
                     onClick={() => setActiveTab('customers')}
-                    style={getNavBtnStyle(activeTab === 'customers')}
+                    style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays')}
                     title={isExpanded ? "" : "Gestión de Clientes"}
                 >
                     <Contact size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Clientes</span>}
                 </div>
                 
-                {/* Subapartado de Cumpleaños (Desplegable dinámico y sin icono) */}
+                {/* Subapartados de Clientes (Desplegables dinámicos y sin iconos) */}
                 {isExpanded && (activeTab === 'customers' || activeTab === 'birthdays') && (
-                    <div 
-                        onClick={() => setActiveTab('birthdays')}
-                        style={{
-                            width: 'calc(100% - 16px)',
-                            height: '34px',
-                            background: activeTab === 'birthdays' ? 'rgba(59,130,246,0.1)' : 'transparent',
-                            borderRadius: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-start',
-                            paddingLeft: '36px',
-                            color: activeTab === 'birthdays' ? '#3b82f6' : '#64748b',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease-in-out',
-                            marginTop: '-2px',
-                            marginBottom: '2px'
-                        }}
-                    >
-                        <span style={{ 
-                            fontSize: '11px', 
-                            fontWeight: activeTab === 'birthdays' ? 900 : 700, 
-                            whiteSpace: 'nowrap' 
-                        }}>
-                            Cumpleaños
-                        </span>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                        {/* Subapartado 1: Clientes */}
+                        <div 
+                            onClick={() => setActiveTab('customers')}
+                            style={{
+                                width: 'calc(100% - 16px)',
+                                height: '34px',
+                                background: activeTab === 'customers' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '36px',
+                                color: activeTab === 'customers' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: activeTab === 'customers' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Clientes
+                            </span>
+                        </div>
+
+                        {/* Subapartado 2: Cumpleaños */}
+                        <div 
+                            onClick={() => setActiveTab('birthdays')}
+                            style={{
+                                width: 'calc(100% - 16px)',
+                                height: '34px',
+                                background: activeTab === 'birthdays' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '36px',
+                                color: activeTab === 'birthdays' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: activeTab === 'birthdays' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Cumpleaños
+                            </span>
+                        </div>
                     </div>
                 )}
 
