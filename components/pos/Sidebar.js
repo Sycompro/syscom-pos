@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -8,7 +8,19 @@ export default function Sidebar({
     isMobileMode = false, onCloseMobileMenu 
 }) {
     const [isExpandedInternal, setIsExpandedInternal] = useState(false);
+    const [isCustomersExpanded, setIsCustomersExpanded] = useState(
+        activeTab === 'customers' || activeTab === 'birthdays'
+    );
+
     const isExpanded = isMobileMode ? true : isExpandedInternal;
+
+    useEffect(() => {
+        if (activeTab === 'customers' || activeTab === 'birthdays') {
+            setIsCustomersExpanded(true);
+        } else {
+            setIsCustomersExpanded(false);
+        }
+    }, [activeTab]);
 
     const asideStyle = {
         width: isExpanded ? '200px' : '56px',
@@ -150,7 +162,7 @@ export default function Sidebar({
                 </div>
 
                 <div 
-                    onClick={() => setActiveTab('customers')}
+                    onClick={() => setIsCustomersExpanded(prev => !prev)}
                     style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays')}
                     title={isExpanded ? "" : "Gestión de Clientes"}
                 >
@@ -159,7 +171,7 @@ export default function Sidebar({
                 </div>
                 
                 {/* Subapartados de Clientes (Desplegables dinámicos y sin iconos) */}
-                {isExpanded && (activeTab === 'customers' || activeTab === 'birthdays') && (
+                {isExpanded && isCustomersExpanded && (
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
                         {/* Subapartado 1: Clientes */}
                         <div 
