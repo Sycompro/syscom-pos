@@ -1,9 +1,14 @@
 'use client';
 import { useState } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X } from 'lucide-react';
 
-export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, onToggleFullscreen, isFullscreen, activeTab, setActiveTab }) {
-    const [isExpanded, setIsExpanded] = useState(false);
+export default function Sidebar({ 
+    onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, 
+    onToggleFullscreen, isFullscreen, activeTab, setActiveTab,
+    isMobileMode = false, onCloseMobileMenu 
+}) {
+    const [isExpandedInternal, setIsExpandedInternal] = useState(false);
+    const isExpanded = isMobileMode ? true : isExpandedInternal;
 
     const asideStyle = {
         width: isExpanded ? '200px' : '56px',
@@ -16,9 +21,10 @@ export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onO
         gap: '4px',
         flexShrink: 0,
         zIndex: 40,
-        transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: isExpanded ? '4px 0 25px rgba(15, 23, 42, 0.08)' : 'none',
+        transition: isMobileMode ? 'none' : 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: isExpanded && !isMobileMode ? '4px 0 25px rgba(15, 23, 42, 0.08)' : 'none',
         overflow: 'hidden',
+        height: isMobileMode ? '100%' : 'auto'
     };
 
     // Estilo del logo
@@ -29,7 +35,7 @@ export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onO
         borderRadius: '10px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: isExpanded ? 'flex-start' : 'center',
+        justifyContent: 'space-between',
         padding: isExpanded ? '0 10px' : '0',
         marginBottom: '12px',
         gap: '8px',
@@ -94,14 +100,24 @@ export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onO
 
     return (
         <aside 
-            onMouseEnter={() => setIsExpanded(true)}
-            onMouseLeave={() => setIsExpanded(false)}
+            onMouseEnter={() => !isMobileMode && setIsExpandedInternal(true)}
+            onMouseLeave={() => !isMobileMode && setIsExpandedInternal(false)}
             style={asideStyle}
         >
             {/* Logo */}
             <div style={logoContainerStyle}>
-                <Zap size={15} style={{ color: '#fff', fill: '#fff', flexShrink: 0 }} />
-                {isExpanded && <span style={logoTextStyle}>SYSCOM POS</span>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                    <Zap size={15} style={{ color: '#fff', fill: '#fff', flexShrink: 0 }} />
+                    {isExpanded && <span style={logoTextStyle}>SYSCOM POS</span>}
+                </div>
+                {isMobileMode && onCloseMobileMenu && (
+                    <button 
+                        onClick={onCloseMobileMenu}
+                        style={{ border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        <X size={15} />
+                    </button>
+                )}
             </div>
 
             {/* Acciones principales - Menu Limpio */}
@@ -145,17 +161,19 @@ export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onO
 
             {/* Bottom icons */}
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginTop: 'auto' }}>
-                <button 
-                    onClick={onToggleFullscreen} 
-                    title={isExpanded ? "" : (isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa")} 
-                    style={{ 
-                        ...getBottomBtnStyle(isFullscreen ? '#3b82f6' : '#475569'), 
-                        background: isFullscreen ? '#eff6ff' : 'transparent' 
-                    }}
-                >
-                    {isFullscreen ? <Minimize size={15} style={{ flexShrink: 0 }} /> : <Maximize size={15} style={{ flexShrink: 0 }} />}
-                    {isExpanded && <span style={labelTextStyle}>{isFullscreen ? "Salir Completa" : "Pantalla Completa"}</span>}
-                </button>
+                {!isMobileMode && (
+                    <button 
+                        onClick={onToggleFullscreen} 
+                        title={isExpanded ? "" : (isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa")} 
+                        style={{ 
+                            ...getBottomBtnStyle(isFullscreen ? '#3b82f6' : '#475569'), 
+                            background: isFullscreen ? '#eff6ff' : 'transparent' 
+                        }}
+                    >
+                        {isFullscreen ? <Minimize size={15} style={{ flexShrink: 0 }} /> : <Maximize size={15} style={{ flexShrink: 0 }} />}
+                        {isExpanded && <span style={labelTextStyle}>{isFullscreen ? "Salir Completa" : "Pantalla Completa"}</span>}
+                    </button>
+                )}
                 <button onClick={onOpenHistory} title={isExpanded ? "" : "Historial de Ventas"} style={getBottomBtnStyle()}>
                     <History size={15} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Historial</span>}

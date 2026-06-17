@@ -8,7 +8,7 @@ import {
     ChevronRight, Loader2, UserPlus, ShieldCheck, Trash2,
     LayoutGrid, Clock, Settings, LogOut, ShoppingBag, Zap, Sparkles, Package,
     Lock, Phone, Users, ArrowRight, Receipt, Percent, Calculator, 
-    BellRing, Smartphone, RefreshCw, AlertCircle, Calendar
+    BellRing, Smartphone, RefreshCw, AlertCircle, Calendar, Menu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Maximize, Minimize } from 'lucide-react';
@@ -204,6 +204,8 @@ export default function POSPage() {
     const [lastMembershipInfo, setLastMembershipInfo] = useState(null);
     const [showMixed, setShowMixed] = useState(false);
     const [cashReceived, setCashReceived] = useState('');
+    const [isMobileDevice, setIsMobileDevice] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -211,6 +213,7 @@ export default function POSPage() {
             const mobile = window.innerWidth < 1280;
             setIsMobile(mobile);
             if (!mobile) setCartVisible(true);
+            setIsMobileDevice(window.innerWidth < 768);
         };
         checkSize();
         window.addEventListener('resize', checkSize);
@@ -736,16 +739,70 @@ export default function POSPage() {
 
     return (
         <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#f1f5f9', overflow: 'hidden' }}>
-            <Sidebar
-                onSignOut={() => signOut()}
-                onOpenCloseCash={() => setShowCloseModal(true)}
-                onOpenHistory={() => setShowHistoryModal(true)}
-                onOpenSettings={() => setShowSettingsModal(true)} 
-                onToggleFullscreen={toggleFullscreen}
-                isFullscreen={isFullscreen}
-                activeTab={activeTab} 
-                setActiveTab={setActiveTab} 
-            />
+            {/* Sidebar para PC / Tablet */}
+            {!isMobileDevice && (
+                <Sidebar
+                    onSignOut={() => signOut()}
+                    onOpenCloseCash={() => setShowCloseModal(true)}
+                    onOpenHistory={() => setShowHistoryModal(true)}
+                    onOpenSettings={() => setShowSettingsModal(true)} 
+                    onToggleFullscreen={toggleFullscreen}
+                    isFullscreen={isFullscreen}
+                    activeTab={activeTab} 
+                    setActiveTab={setActiveTab} 
+                />
+            )}
+
+            {/* Sidebar flotante para celulares (Drawer) */}
+            <AnimatePresence>
+                {isMobileDevice && showMobileMenu && (
+                    <div 
+                        onClick={() => setShowMobileMenu(false)}
+                        style={{ 
+                            position: 'fixed', 
+                            top: 0, 
+                            left: 0, 
+                            right: 0, 
+                            bottom: 0, 
+                            background: 'rgba(15, 23, 42, 0.4)', 
+                            backdropFilter: 'blur(3px)',
+                            zIndex: 100, 
+                            display: 'flex'
+                        }}
+                    >
+                        <motion.div 
+                            initial={{ x: -200 }}
+                            animate={{ x: 0 }}
+                            exit={{ x: -200 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            onClick={(e) => e.stopPropagation()} 
+                            style={{ 
+                                width: '200px', 
+                                height: '100%', 
+                                display: 'flex', 
+                                flexDirection: 'column',
+                                boxShadow: '10px 0 30px rgba(0,0,0,0.15)'
+                            }}
+                        >
+                            <Sidebar
+                                onSignOut={() => signOut()}
+                                onOpenCloseCash={() => setShowCloseModal(true)}
+                                onOpenHistory={() => setShowHistoryModal(true)}
+                                onOpenSettings={() => setShowSettingsModal(true)} 
+                                onToggleFullscreen={toggleFullscreen}
+                                isFullscreen={isFullscreen}
+                                activeTab={activeTab} 
+                                setActiveTab={(tab) => {
+                                    setActiveTab(tab);
+                                    setShowMobileMenu(false); // Cerrar automáticamente en móvil al navegar
+                                }} 
+                                isMobileMode={true}
+                                onCloseMobileMenu={() => setShowMobileMenu(false)}
+                            />
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <AnimatePresence mode="wait">
@@ -760,6 +817,26 @@ export default function POSPage() {
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
                                 <div style={{ background: '#fff', padding: '10px 16px', minHeight: '60px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        {isMobileDevice && (
+                                            <button 
+                                                onClick={() => setShowMobileMenu(true)} 
+                                                style={{ 
+                                                    border: 'none', 
+                                                    background: 'transparent', 
+                                                    padding: '6px', 
+                                                    marginRight: '4px',
+                                                    color: '#475569', 
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    borderRadius: '8px',
+                                                    backgroundColor: '#f1f5f9'
+                                                }}
+                                            >
+                                                <Menu size={18} />
+                                            </button>
+                                        )}
                                         <div style={{ background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe' }}>
                                             <p style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
                                         </div>
