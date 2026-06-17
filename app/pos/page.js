@@ -230,6 +230,8 @@ export default function POSPage() {
     const [isMobileDevice, setIsMobileDevice] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showMobileCart, setShowMobileCart] = useState(false);
+    const [showMobilePhoneModal, setShowMobilePhoneModal] = useState(false);
+    const [showMobileBirthdateModal, setShowMobileBirthdateModal] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -1175,57 +1177,113 @@ export default function POSPage() {
                                         <Plus size={15} />
                                     </button>
 
-                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid #f1f5f9', paddingLeft: '16px' }}>
+                                    {isMobileDevice && (
+                                        <>
+                                            {/* Botón Celular Móvil */}
+                                            <button
+                                                onClick={() => setShowMobilePhoneModal(true)}
+                                                style={{
+                                                    width: '32px', height: '32px', borderRadius: '6px', border: '1px solid #e2e8f0',
+                                                    background: customer.phone ? '#ecfdf5' : '#fff',
+                                                    borderColor: customer.phone ? '#a7f3d0' : '#e2e8f0',
+                                                    color: customer.phone ? '#10b981' : '#64748b',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                                    position: 'relative'
+                                                }}
+                                                title="Celular del Cliente"
+                                            >
+                                                <Phone size={14} />
+                                                {customer.phone && (
+                                                    <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+                                                )}
+                                            </button>
 
-                                        <div style={{ width: '100px', borderRight: '1px solid #f1f5f9', paddingRight: '12px' }}>
-                                            <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Celular</p>
-                                            <div style={{ position: 'relative' }}>
-                                                <Phone size={8} style={{ position: 'absolute', left: '6px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                                <input
-                                                    type="text"
-                                                    inputMode="none"
-                                                    placeholder="999..."
-                                                    value={customer.phone || ''}
-                                                    onFocus={() => useScreenKeyboards && setShowPhoneNumpad(true)}
-                                                    onChange={e => setCustomer({ ...customer, phone: e.target.value })}
-                                                    maxLength={9}
-                                                    style={{ width: '100%', padding: '4px 6px 4px 20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '10px', fontWeight: 700, outline: 'none' }}
-                                                />
-                                                <NumericKeypad 
-                                                    isOpen={showPhoneNumpad} 
-                                                    onClose={() => setShowPhoneNumpad(false)} 
-                                                    onKeyPress={handlePhoneNumpadKeyPress} 
-                                                    onDelete={handlePhoneNumpadDelete} 
-                                                    value={customer.phone || ''}
+                                            {/* Botón Cumpleaños Móvil */}
+                                            <button
+                                                onClick={() => setShowMobileBirthdateModal(true)}
+                                                style={{
+                                                    width: '32px', height: '32px', borderRadius: '6px', border: '1px solid #e2e8f0',
+                                                    background: customer.birthdate ? '#eff6ff' : '#fff',
+                                                    borderColor: customer.birthdate ? '#bfdbfe' : '#e2e8f0',
+                                                    color: customer.birthdate ? '#3b82f6' : '#64748b',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                                    position: 'relative'
+                                                }}
+                                                title="Fecha de Nacimiento"
+                                            >
+                                                <Calendar size={14} />
+                                                {customer.birthdate && (
+                                                    <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6' }} />
+                                                )}
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {!isMobileDevice && (
+                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid #f1f5f9', paddingLeft: '16px' }}>
+                                            <div style={{ width: '100px', borderRight: '1px solid #f1f5f9', paddingRight: '12px' }}>
+                                                <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Celular</p>
+                                                <div style={{ position: 'relative' }}>
+                                                    <Phone size={8} style={{ position: 'absolute', left: '6px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                                    <input
+                                                        type="text"
+                                                        inputMode="none"
+                                                        placeholder="999..."
+                                                        value={customer.phone || ''}
+                                                        onFocus={() => useScreenKeyboards && setShowPhoneNumpad(true)}
+                                                        onChange={e => setCustomer({ ...customer, phone: e.target.value })}
+                                                        maxLength={9}
+                                                        style={{ width: '100%', padding: '4px 6px 4px 20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '10px', fontWeight: 700, outline: 'none' }}
+                                                    />
+                                                    <NumericKeypad 
+                                                        isOpen={showPhoneNumpad} 
+                                                        onClose={() => setShowPhoneNumpad(false)} 
+                                                        onKeyPress={handlePhoneNumpadKeyPress} 
+                                                        onDelete={handlePhoneNumpadDelete} 
+                                                        value={customer.phone || ''}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div style={{ width: '120px', borderRight: '1px solid #f1f5f9', paddingRight: '12px' }}>
+                                                <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>F. Nacimiento</p>
+                                                <CustomDatePicker
+                                                    value={customer.birthdate}
+                                                    onChange={(val) => setCustomer({ ...customer, birthdate: val })}
+                                                    compact={true}
                                                 />
                                             </div>
-                                        </div>
 
-                                        <div style={{ width: '120px', borderRight: '1px solid #f1f5f9', paddingRight: '12px' }}>
-                                            <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>F. Nacimiento</p>
-                                            <CustomDatePicker
-                                                value={customer.birthdate}
-                                                onChange={(val) => setCustomer({ ...customer, birthdate: val })}
-                                                compact={true}
-                                            />
-                                        </div>
-
-                                        <div style={{ flex: 1, minWidth: '150px' }}>
-                                            <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <p style={{ fontSize: '11px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
-                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                    {customer.expirationDate && (
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, color: customer.daysRemaining > 0 ? '#10b981' : '#ef4444' }}>
-                                                            <Clock size={10} />
-                                                            Vence: {new Date(customer.expirationDate).toLocaleDateString()} ({customer.daysRemaining}d)
-                                                        </div>
-                                                    )}
+                                            <div style={{ flex: 1, minWidth: '150px' }}>
+                                                <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <p style={{ fontSize: '11px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
+                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                        {customer.expirationDate && (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, color: customer.daysRemaining > 0 ? '#10b981' : '#ef4444' }}>
+                                                                <Clock size={10} />
+                                                                Vence: {new Date(customer.expirationDate).toLocaleDateString()} ({customer.daysRemaining}d)
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
+
+                                {/* Resumen del cliente en móvil */}
+                                {isMobileDevice && (
+                                    <div style={{ padding: '6px 16px', background: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Cliente:</span>
+                                        <span style={{ fontSize: '11px', fontWeight: 900, color: '#1e293b' }}>{customer.name}</span>
+                                        {customer.expirationDate && (
+                                            <span style={{ fontSize: '9px', fontWeight: 700, color: customer.daysRemaining > 0 ? '#10b981' : '#ef4444', marginLeft: 'auto' }}>
+                                                Vence: {new Date(customer.expirationDate).toLocaleDateString()} ({customer.daysRemaining}d)
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* BARRA SUPERIOR POS (AHORA SEGUNDO) */}
                                 <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1248,14 +1306,41 @@ export default function POSPage() {
                                             value={searchTerm}
                                         />
                                     </div>
-                                    <div style={{ minWidth: '180px' }}>
-                                        <CustomSelect
-                                            value={selectedSalesperson}
-                                            onChange={(val) => setSelectedSalesperson(val)}
-                                            options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
-                                            placeholder="Seleccionar Vendedor"
-                                        />
-                                    </div>
+                                    {!isMobileDevice ? (
+                                        <div style={{ minWidth: '180px' }}>
+                                            <CustomSelect
+                                                value={selectedSalesperson}
+                                                onChange={(val) => setSelectedSalesperson(val)}
+                                                options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
+                                                placeholder="Seleccionar Vendedor"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div style={{ 
+                                            position: 'relative', width: '32px', height: '32px', borderRadius: '6px', 
+                                            border: '1px solid #e2e8f0', background: selectedSalesperson ? '#eff6ff' : '#fff', 
+                                            borderColor: selectedSalesperson ? '#bfdbfe' : '#e2e8f0',
+                                            color: selectedSalesperson ? '#3b82f6' : '#64748b', 
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                            flexShrink: 0
+                                        }} title="Seleccionar Vendedor">
+                                            <User size={14} />
+                                            <select
+                                                value={selectedSalesperson}
+                                                onChange={(e) => setSelectedSalesperson(e.target.value)}
+                                                style={{
+                                                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                                    opacity: 0, cursor: 'pointer', zIndex: 10
+                                                }}
+                                            >
+                                                {salespeople.map(v => (
+                                                    <option key={v.id} value={v.id}>
+                                                        {v.name.trim()}
+                                                     </option>
+                                                 ))}
+                                             </select>
+                                         </div>
+                                     )}
                                     <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '6px', padding: '2px', gap: '2px' }}>
                                         {['03', '01', '65'].map(t => (
                                             <button key={t} onClick={() => setDocType(t)} style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, background: docType === t ? '#fff' : 'transparent', color: docType === t ? '#3b82f6' : '#64748b' }}>
