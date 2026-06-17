@@ -285,7 +285,7 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                                     </thead>
                                     <tbody>
                                         {customers.map(c => (
-                                            <tr key={c.codcli} style={trStyle}>
+                                            <tr key={c.codcli} style={trBodyStyle}>
                                                 <td style={tdStyle}><span style={codeBadgeStyle}>{c.codcli}</span></td>
                                                 <td style={{ ...tdStyle, fontWeight: 750, color: '#0f172a' }}>{c.nomcli}</td>
                                                 <td style={tdStyle}>{c.ruccli}</td>
