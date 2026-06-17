@@ -1782,7 +1782,7 @@ export default function POSPage() {
                                 width: '100%',
                                 maxWidth: '360px',
                                 boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                                overflow: 'hidden'
+                                overflow: 'visible'
                             }}
                             onClick={(e) => e.stopPropagation()}
                         >
@@ -1809,6 +1809,7 @@ export default function POSPage() {
                                         value={customer.birthdate}
                                         onChange={(val) => setCustomer({ ...customer, birthdate: val })}
                                         label="Seleccionar Fecha"
+                                        inline={true}
                                     />
                                 </div>
 

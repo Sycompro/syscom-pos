@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 
-export default function CustomDatePicker({ value, onChange, label }) {
-    const [show, setShow] = useState(false);
+export default function CustomDatePicker({ value, onChange, label, inline = false }) {
+    const [show, setShow] = useState(inline);
     const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
     
     const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -38,7 +38,9 @@ export default function CustomDatePicker({ value, onChange, label }) {
         const m = String(newDate.getMonth() + 1).padStart(2, '0');
         const d = String(newDate.getDate()).padStart(2, '0');
         onChange(`${y}-${m}-${d}`);
-        setShow(false);
+        if (!inline) {
+            setShow(false);
+        }
     };
 
     const handleYearChange = (e) => {
@@ -53,20 +55,22 @@ export default function CustomDatePicker({ value, onChange, label }) {
         setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1));
     };
 
-    return (
-        <div style={{ position: 'relative', width: '100%' }}>
-            {label && <label style={labelStyle}>{label}</label>}
-            <div onClick={() => setShow(!show)} style={inputStyle}>
-                <CalendarIcon size={14} style={{ color: '#94a3b8' }} />
-                <span style={{ color: value ? '#0f172a' : '#cbd5e1', fontWeight: 600 }}>
-                    {value || 'fecha'}
-                </span>
-            </div>
+    const containerStyle = inline ? {
+        position: 'relative',
+        background: '#fff',
+        borderRadius: '16px',
+        padding: '12px',
+        width: '100%',
+        boxSizing: 'border-box'
+    } : calendarPopupStyle;
 
-            {show && (
-                <div style={calendarPopupStyle}>
+    if (inline) {
+        return (
+            <div style={{ width: '100%' }}>
+                {label && <label style={labelStyle}>{label}</label>}
+                <div style={containerStyle}>
                     <div style={calendarHeaderStyle}>
-                        <button onClick={() => changeMonth(-1)} style={navBtnStyle}><ChevronLeft size={16} /></button>
+                        <button type="button" onClick={() => changeMonth(-1)} style={navBtnStyle}><ChevronLeft size={16} /></button>
                         
                         <div style={{ display: 'flex', gap: '4px' }}>
                             <select 
@@ -86,7 +90,73 @@ export default function CustomDatePicker({ value, onChange, label }) {
                             </select>
                         </div>
 
-                        <button onClick={() => changeMonth(1)} style={navBtnStyle}><ChevronRight size={16} /></button>
+                        <button type="button" onClick={() => changeMonth(1)} style={navBtnStyle}><ChevronRight size={16} /></button>
+                    </div>
+
+                    <div style={weekDaysStyle}>
+                        {days.map(d => <div key={d} style={weekDayItemStyle}>{d}</div>)}
+                    </div>
+
+                    <div style={daysGridStyle}>
+                        {generateDays().map((d, i) => {
+                            const isSelected = d && value === `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                            return (
+                                <div 
+                                    key={i} 
+                                    onClick={() => handleSelect(d)}
+                                    style={{
+                                        ...dayItemStyle,
+                                        cursor: d ? 'pointer' : 'default',
+                                        background: isSelected ? '#3b82f6' : 'transparent',
+                                        color: isSelected ? '#fff' : (d ? '#1e293b' : 'transparent'),
+                                        fontWeight: isSelected ? '800' : '600',
+                                        fontSize: '11px'
+                                    }}
+                                >
+                                    {d}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ position: 'relative', width: '100%' }}>
+            {label && <label style={labelStyle}>{label}</label>}
+            <div onClick={() => setShow(!show)} style={inputStyle}>
+                <CalendarIcon size={14} style={{ color: '#94a3b8' }} />
+                <span style={{ color: value ? '#0f172a' : '#cbd5e1', fontWeight: 600 }}>
+                    {value || 'fecha'}
+                </span>
+            </div>
+
+            {show && (
+                <div style={containerStyle}>
+                    <div style={calendarHeaderStyle}>
+                        <button type="button" onClick={() => changeMonth(-1)} style={navBtnStyle}><ChevronLeft size={16} /></button>
+                        
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                            <select 
+                                value={viewDate.getMonth()} 
+                                onChange={handleMonthChange}
+                                style={selectHeaderStyle}
+                            >
+                                {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
+                            </select>
+                            
+                            <select 
+                                value={viewDate.getFullYear()} 
+                                onChange={handleYearChange}
+                                style={selectHeaderStyle}
+                            >
+                                {years.map(y => <option key={y} value={y}>{y}</option>)}
+                            </select>
+                        </div>
+
+                        <button type="button" onClick={() => changeMonth(1)} style={navBtnStyle}><ChevronRight size={16} /></button>
                     </div>
 
                     <div style={weekDaysStyle}>
