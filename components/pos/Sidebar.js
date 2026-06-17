@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Calendar } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag } from 'lucide-react';
 
 export default function Sidebar({ 
     onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, 
@@ -158,21 +158,35 @@ export default function Sidebar({
                     {isExpanded && <span style={labelTextStyle}>Clientes</span>}
                 </div>
                 
-                {/* Subapartado de Cumpleaños */}
-                <div 
-                    onClick={() => setActiveTab('birthdays')}
-                    style={{
-                        ...getNavBtnStyle(activeTab === 'birthdays'),
-                        paddingLeft: isExpanded ? '28px' : '0',
-                        height: isExpanded ? '34px' : '40px',
-                        gap: isExpanded ? '8px' : '0',
-                        marginTop: isExpanded ? '-4px' : '0'
-                    }}
-                    title={isExpanded ? "" : "Cumpleaños"}
-                >
-                    <Calendar size={15} style={{ flexShrink: 0 }} />
-                    {isExpanded && <span style={{ ...labelTextStyle, fontSize: '10px', marginLeft: '6px', color: activeTab === 'birthdays' ? '#3b82f6' : '#64748b' }}>Cumpleaños</span>}
-                </div>
+                {/* Subapartado de Cumpleaños (Desplegable dinámico y sin icono) */}
+                {isExpanded && (activeTab === 'customers' || activeTab === 'birthdays') && (
+                    <div 
+                        onClick={() => setActiveTab('birthdays')}
+                        style={{
+                            width: 'calc(100% - 16px)',
+                            height: '34px',
+                            background: activeTab === 'birthdays' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-start',
+                            paddingLeft: '36px',
+                            color: activeTab === 'birthdays' ? '#3b82f6' : '#64748b',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease-in-out',
+                            marginTop: '-2px',
+                            marginBottom: '2px'
+                        }}
+                    >
+                        <span style={{ 
+                            fontSize: '11px', 
+                            fontWeight: activeTab === 'birthdays' ? 900 : 700, 
+                            whiteSpace: 'nowrap' 
+                        }}>
+                            Cumpleaños
+                        </span>
+                    </div>
+                )}
 
                 <div 
                     onClick={() => setActiveTab('whatsapp')}
