@@ -19,6 +19,17 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
     const [isSending, setIsSending] = useState(false);
     const [progress, setProgress] = useState({ current: 0, total: 0 });
     const [showKeyboard, setShowKeyboard] = useState(false);
+    const [windowWidth, setWindowWidth] = useState(1280);
+
+    useEffect(() => {
+        setWindowWidth(window.innerWidth);
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const isMobileView = windowWidth < 768;
+    const isTabletView = windowWidth >= 768 && windowWidth < 1280;
 
     // SEGMENTOS INTELIGENTES
     const segments = [
@@ -116,15 +127,103 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
         processChunk(0);
     };
 
+    // Estilos dinámicos y responsivos calculados en tiempo de ejecución
+    const responsiveContainerStyle = {
+        ...containerStyle,
+        padding: isMobileView ? '16px' : '30px',
+        height: isMobileView ? 'auto' : '100%',
+        overflowY: isMobileView ? 'visible' : 'hidden',
+        gap: isMobileView ? '16px' : '25px',
+    };
+
+    const responsiveDashboardHeaderStyle = {
+        ...dashboardHeaderStyle,
+        flexDirection: isMobileView ? 'column' : 'row',
+        alignItems: isMobileView ? 'flex-start' : 'center',
+        gap: isMobileView ? '12px' : '20px',
+    };
+
+    const responsiveImpactCardStyle = {
+        ...impactCardStyle,
+        width: isMobileView ? '100%' : 'auto',
+    };
+
+    const responsiveMainLayoutStyle = {
+        ...mainLayoutStyle,
+        display: isMobileView ? 'flex' : 'grid',
+        flexDirection: isMobileView ? 'column' : 'row',
+        gridTemplateColumns: isMobileView 
+            ? '1fr' 
+            : (isTabletView ? '260px 1fr' : '300px 1fr 300px'),
+        overflow: isMobileView ? 'visible' : 'hidden',
+        gap: isMobileView ? '20px' : '25px',
+        flex: isMobileView ? 'initial' : 1
+    };
+
+    const responsiveSidePanelStyle = {
+        ...sidePanelStyle,
+        width: '100%',
+    };
+
+    const responsiveSegmentsGridStyle = {
+        ...segmentsGridStyle,
+        display: 'grid',
+        gridTemplateColumns: isMobileView ? '1fr 1fr' : '1fr',
+        gap: isMobileView ? '8px' : '10px',
+    };
+
+    const responsiveSegmentCardStyle = {
+        ...segmentCardStyle,
+        padding: isMobileView ? '8px 12px' : '12px 16px',
+        gap: isMobileView ? '10px' : '15px',
+    };
+
+    const responsiveCenterPanelStyle = {
+        ...centerPanelStyle,
+        padding: isMobileView ? '16px' : '30px',
+        borderRadius: isMobileView ? '20px' : '32px',
+        height: isMobileView ? 'auto' : '100%',
+        boxShadow: isMobileView ? '0 10px 15px -3px rgba(0,0,0,0.05)' : '0 20px 25px -5px rgba(0,0,0,0.05)',
+    };
+
+    const responsiveEditorWrapperStyle = {
+        ...editorWrapperStyle,
+        flex: isMobileView ? 'initial' : 1,
+    };
+
+    const responsiveMainTextareaStyle = {
+        ...mainTextareaStyle,
+        minHeight: isMobileView ? '150px' : 'auto',
+        flex: isMobileView ? 'initial' : 1,
+        padding: isMobileView ? '15px' : '25px',
+    };
+
+    const responsiveMainSendBtnStyle = {
+        ...mainSendBtnStyle,
+        height: isMobileView ? '54px' : '65px',
+        fontSize: isMobileView ? '14px' : '16px',
+    };
+
+    const responsivePreviewPanelStyle = {
+        ...previewPanelStyle,
+        width: '100%',
+        marginTop: isMobileView ? '15px' : '0',
+    };
+
+    const responsiveIphoneMockupStyle = {
+        ...iphoneMockupStyle,
+        margin: isMobileView ? '0 auto' : '0',
+    };
+
     return (
-        <div style={containerStyle}>
+        <div style={responsiveContainerStyle}>
             {/* CABECERA DASHBOARD */}
-            <div style={dashboardHeaderStyle}>
+            <div style={responsiveDashboardHeaderStyle}>
                 <div>
                     <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 900, color: '#1e293b' }}>Marketing Inteligente</h2>
                     <p style={{ margin: 0, color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Potencia tus ventas y recupera socios de forma automática.</p>
                 </div>
-                <div style={impactCardStyle}>
+                <div style={responsiveImpactCardStyle}>
                     <div style={impactIconStyle}><TrendingUp size={20} color="#10b981" /></div>
                     <div>
                         <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b' }}>ALCANCE ESTIMADO</div>
@@ -133,18 +232,18 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
                 </div>
             </div>
 
-            <div style={mainLayoutStyle}>
+            <div style={responsiveMainLayoutStyle}>
                 
                 {/* 1. SELECCIÓN DE SEGMENTO */}
-                <div style={sidePanelStyle}>
+                <div style={responsiveSidePanelStyle}>
                     <div style={labelStyle}>1. ELEGIR AUDIENCIA</div>
-                    <div style={segmentsGridStyle}>
+                    <div style={responsiveSegmentsGridStyle}>
                         {segments.map(s => (
                             <button 
                                 key={s.id} 
                                 onClick={() => setTarget(s.id)}
                                 style={{
-                                    ...segmentCardStyle,
+                                    ...responsiveSegmentCardStyle,
                                     borderColor: target === s.id ? s.color : '#f1f5f9',
                                     background: target === s.id ? `${s.color}08` : '#fff'
                                 }}
@@ -177,17 +276,23 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
                 </div>
 
                 {/* 2. COMPOSICIÓN DEL MENSAJE */}
-                <div style={centerPanelStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={responsiveCenterPanelStyle}>
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: isMobileView ? 'flex-start' : 'center',
+                        flexDirection: isMobileView ? 'column' : 'row',
+                        gap: isMobileView ? '10px' : '0'
+                    }}>
                         <div style={labelStyle}>2. REDACTAR CAMPAÑA</div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                             <button onClick={() => { setMessage(''); setSelectedTemplate(null); }} style={aiBtnStyle} title="Limpiar Mensaje"><Trash2 size={14} /> Limpiar</button>
                             <button onClick={() => handleMagicWand('fun')} style={aiBtnStyle} title="Tono Divertido"><Wand2 size={14} /> Divertido</button>
                             <button onClick={() => handleMagicWand('formal')} style={aiBtnStyle} title="Tono Formal"><Zap size={14} /> Profesional</button>
                         </div>
                     </div>
 
-                    <div style={editorWrapperStyle}>
+                    <div style={responsiveEditorWrapperStyle}>
                         <div style={templatesRowStyle}>
                             {templates.map(t => (
                                 <button key={t.id} onClick={() => { setSelectedTemplate(t.id); setMessage(t.text); }} style={{ ...miniTemplateBtnStyle, background: selectedTemplate === t.id ? '#1e293b' : '#fff', color: selectedTemplate === t.id ? '#fff' : '#64748b' }}>
@@ -196,7 +301,7 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
                             ))}
                         </div>
                         <textarea 
-                            style={mainTextareaStyle} 
+                            style={responsiveMainTextareaStyle} 
                             placeholder="¿Qué quieres decirle a tus socios hoy?"
                             value={message}
                             onChange={e => setMessage(e.target.value)}
@@ -219,7 +324,7 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
                                 <div style={progressBgStyle}><motion.div animate={{ width: `${(progress.current/progress.total)*100}%` }} style={progressFillStyle} /></div>
                             </div>
                         ) : (
-                            <button onClick={handleSend} style={mainSendBtnStyle}>
+                            <button onClick={handleSend} style={responsiveMainSendBtnStyle}>
                                 <Megaphone size={20} />
                                 LANZAR CAMPAÑA AHORA
                                 <ArrowRight size={20} />
@@ -237,18 +342,20 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
                 />
 
                 {/* 3. VISTA PREVIA SMART */}
-                <div style={previewPanelStyle}>
-                    <div style={labelStyle}>VISTA PREVIA</div>
-                    <div style={iphoneMockupStyle}>
-                        <div style={iphoneHeaderStyle} />
-                        <div style={whatsappContentStyle}>
-                            <div style={waBubbleStyle}>
-                                {message ? message.replace('[Nombre]', 'Juan').replace('[Plan]', 'Rutina 1 Mes').replace('[DiasRestantes]', '3') : 'Tu mensaje aparecerá aquí...'}
-                                <div style={waTimeStyle}>10:15 AM ✓✓</div>
+                {!isTabletView && (
+                    <div style={responsivePreviewPanelStyle}>
+                        <div style={labelStyle}>VISTA PREVIA</div>
+                        <div style={responsiveIphoneMockupStyle}>
+                            <div style={iphoneHeaderStyle} />
+                            <div style={whatsappContentStyle}>
+                                <div style={waBubbleStyle}>
+                                    {message ? message.replace('[Nombre]', 'Juan').replace('[Plan]', 'Rutina 1 Mes').replace('[DiasRestantes]', '3') : 'Tu mensaje aparecerá aquí...'}
+                                    <div style={waTimeStyle}>10:15 AM ✓✓</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
 
             </div>
         </div>
@@ -279,7 +386,7 @@ const miniTemplateBtnStyle = { display: 'flex', alignItems: 'center', gap: '8px'
 
 const mainTextareaStyle = { flex: 1, width: '100%', padding: '25px', borderRadius: '24px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '15px', lineHeight: '1.6', color: '#1e293b', outline: 'none', resize: 'none' };
 
-const tokensRowStyle = { display: 'flex', gap: '10px' };
+const tokensRowStyle = { display: 'flex', gap: '10px', flexWrap: 'wrap' };
 const tokenTagStyle = { padding: '6px 12px', borderRadius: '8px', background: '#eff6ff', color: '#3b82f6', fontSize: '11px', fontWeight: 800, cursor: 'pointer' };
 
 const aiBtnStyle = { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 700, color: '#64748b', cursor: 'pointer' };
