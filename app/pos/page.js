@@ -28,6 +28,7 @@ import SalesHistoryModal from '@/components/pos/SalesHistoryModal';
 import CloseCashModal from '@/components/pos/CloseCashModal';
 import MembershipsView from '@/components/pos/MembershipsView';
 import WhatsappView from '@/components/pos/WhatsappView';
+import CustomersView from '@/components/pos/CustomersView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
@@ -1155,6 +1156,31 @@ export default function POSPage() {
                                 onQueueWhatsApp={addToWaQueue}
                                 companyName={companySettings?.company?.commercialName || companySettings?.company?.name}
                                 useScreenKeyboards={useScreenKeyboards}
+                            />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'customers' && (
+                        <motion.div
+                            key="customers" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
+                        >
+                            <CustomersView 
+                                onSelectCustomer={(client) => {
+                                    setCustomer({
+                                        name: client.nomcli,
+                                        ruc: client.ruccli,
+                                        code: client.codcli,
+                                        address: client.dircli,
+                                        phone: client.celcli,
+                                        birthdate: client.fecnac,
+                                        expirationDate: client.fecfinpres,
+                                        isNew: false
+                                    });
+                                    setActiveTab('pos');
+                                }}
+                                onOpenRegisterModal={() => setShowManualModal(true)}
+                                onAlert={showAlert}
                             />
                         </motion.div>
                     )}

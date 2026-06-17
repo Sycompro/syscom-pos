@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact } from 'lucide-react';
 
 export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, onToggleFullscreen, isFullscreen, activeTab, setActiveTab }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -122,6 +122,15 @@ export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory, onO
                 >
                     <Users size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Membresías</span>}
+                </div>
+
+                <div 
+                    onClick={() => setActiveTab('customers')}
+                    style={getNavBtnStyle(activeTab === 'customers')}
+                    title={isExpanded ? "" : "Gestión de Clientes"}
+                >
+                    <Contact size={18} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Clientes</span>}
                 </div>
 
                 <div 
