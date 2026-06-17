@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Calendar } from 'lucide-react';
 
 export default function Sidebar({ 
     onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, 
