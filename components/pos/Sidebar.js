@@ -35,7 +35,7 @@ export default function Sidebar({
         borderRadius: '10px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: isExpanded ? 'space-between' : 'center',
         padding: isExpanded ? '0 10px' : '0',
         marginBottom: '12px',
         gap: '8px',
@@ -106,7 +106,7 @@ export default function Sidebar({
         >
             {/* Logo */}
             <div style={logoContainerStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: isExpanded ? 'flex-start' : 'center', width: isExpanded ? 'auto' : '100%', gap: '8px', overflow: 'hidden' }}>
                     <Zap size={15} style={{ color: '#fff', fill: '#fff', flexShrink: 0 }} />
                     {isExpanded && <span style={logoTextStyle}>SYSCOM POS</span>}
                 </div>
