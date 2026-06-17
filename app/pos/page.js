@@ -991,6 +991,7 @@ export default function POSPage() {
                                  activeTab === 'memberships' ? 'Membresías' : 
                                  activeTab === 'promotions' ? 'Promociones' : 
                                  activeTab === 'customers' ? 'Clientes' : 
+                                 activeTab === 'birthdays' ? 'Cumpleaños' : 
                                  activeTab === 'whatsapp' ? 'Config WhatsApp' : 'POS'}
                             </span>
                         </div>
@@ -1433,12 +1434,13 @@ export default function POSPage() {
                         </motion.div>
                     )}
 
-                    {activeTab === 'customers' && (
+                    {(activeTab === 'customers' || activeTab === 'birthdays') && (
                         <motion.div
                             key="customers" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                             style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
                         >
                             <CustomersView 
+                                activeTab={activeTab}
                                 onSelectCustomer={(client) => {
                                     setCustomer({
                                         name: client.nomcli,

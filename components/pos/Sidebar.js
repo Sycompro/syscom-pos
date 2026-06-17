@@ -157,6 +157,22 @@ export default function Sidebar({
                     <Contact size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Clientes</span>}
                 </div>
+                
+                {/* Subapartado de Cumpleaños */}
+                <div 
+                    onClick={() => setActiveTab('birthdays')}
+                    style={{
+                        ...getNavBtnStyle(activeTab === 'birthdays'),
+                        paddingLeft: isExpanded ? '28px' : '0',
+                        height: isExpanded ? '34px' : '40px',
+                        gap: isExpanded ? '8px' : '0',
+                        marginTop: isExpanded ? '-4px' : '0'
+                    }}
+                    title={isExpanded ? "" : "Cumpleaños"}
+                >
+                    <Calendar size={15} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={{ ...labelTextStyle, fontSize: '10px', marginLeft: '6px', color: activeTab === 'birthdays' ? '#3b82f6' : '#64748b' }}>Cumpleaños</span>}
+                </div>
 
                 <div 
                     onClick={() => setActiveTab('whatsapp')}

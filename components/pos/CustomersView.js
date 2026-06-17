@@ -4,7 +4,7 @@ import { Search, Plus, UserPlus, ShoppingCart, Edit, MessageCircle, Mail, MapPin
 import { motion } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
 
-export default function CustomersView({ onSelectCustomer, onOpenRegisterModal, onAlert, onQueueWhatsApp, companyName }) {
+export default function CustomersView({ activeTab = 'customers', onSelectCustomer, onOpenRegisterModal, onAlert, onQueueWhatsApp, companyName }) {
     const [customers, setCustomers] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
@@ -14,9 +14,8 @@ export default function CustomersView({ onSelectCustomer, onOpenRegisterModal, o
     const [editingCustomer, setEditingCustomer] = useState(null);
     const [editForm, setEditForm] = useState({ nomcli: '', celcli: '', email: '', direccion: '', fecnac: '' });
     const [saving, setSaving] = useState(false);
-
-    // Estados para sub-pestañas y cumpleaños
-    const [activeTab, setActiveTab] = useState('customers'); // 'customers' o 'birthdays'
+ 
+    // Estados para cumpleaños
     const [birthdays, setBirthdays] = useState([]);
     const [loadingBirthdays, setLoadingBirthdays] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -172,20 +171,7 @@ export default function CustomersView({ onSelectCustomer, onOpenRegisterModal, o
                     </p>
                 </div>
 
-                <div style={tabsWrapperStyle}>
-                    <button 
-                        onClick={() => setActiveTab('customers')}
-                        style={{ ...tabStyle, ...(activeTab === 'customers' ? activeTabActiveStyle : {}) }}
-                    >
-                        <Users size={14} /> Clientes
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('birthdays')}
-                        style={{ ...tabStyle, ...(activeTab === 'birthdays' ? birthdayTabActiveStyle : {}) }}
-                    >
-                        <Calendar size={14} /> Cumpleaños
-                    </button>
-                </div>
+
 
                 {activeTab === 'customers' && (
                     <button onClick={onOpenRegisterModal} style={addBtnStyle}>
