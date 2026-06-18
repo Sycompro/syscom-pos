@@ -138,14 +138,36 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
         return () => window.removeEventListener('resize', checkSize);
     }, []);
 
+    const [creditFilter, setCreditFilter] = useState('credit'); // 'credit', 'debt', 'all'
+
+    const sendPaymentReminder = (c) => {
+        if (!c.celcli) return;
+        const message = `Hola ${c.nomcli}, te saludamos de ${companyName || 'nuestra empresa'}. Te recordamos que cuentas con una deuda de S/ ${c.deuda.toFixed(2)} pendiente de pago. Tu límite de crédito disponible es S/ ${c.disponible.toFixed(2)}. Quedamos atentos para registrar tu abono. ¡Muchas gracias!`;
+        if (onQueueWhatsApp) {
+            onQueueWhatsApp(c.celcli, message);
+            onAlert('Éxito', 'Recordatorio de pago enviado a la cola de WhatsApp', 'success');
+        } else {
+            const cleanPhone = c.celcli.replace(/[^0-9]/g, '');
+            const formattedPhone = cleanPhone.startsWith('51') ? cleanPhone : `51${cleanPhone}`;
+            window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+    };
+
     // Cargar clientes iniciales o realizar búsqueda con debounce
     useEffect(() => {
         const fetchCustomers = async () => {
             setLoading(true);
             try {
-                const url = searchQuery.trim().length > 0 
-                    ? `/api/customers?q=${encodeURIComponent(searchQuery)}`
-                    : '/api/customers';
+                let url = '/api/customers?';
+                const params = new URLSearchParams();
+                if (searchQuery.trim().length > 0) {
+                    params.append('q', searchQuery);
+                }
+                if (activeTab === 'credits') {
+                    params.append('filter', creditFilter);
+                }
+                url += params.toString();
+
                 const res = await fetch(url);
                 const data = await res.json();
                 if (data.success) {
@@ -166,7 +188,7 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
         }, 300); // Debounce de 300ms
 
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, creditFilter, activeTab]);
 
     // Manejar apertura de modal de edición
     const handleEditClick = (c) => {
@@ -424,6 +446,207 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                         )}
                     </div>
                 </>
+            ) : activeTab === 'credits' ? (
+                <div style={{ ...listContainerStyle, display: 'flex', flexDirection: 'column', gap: '12px' }} className="no-scrollbar">
+                    {/* Tarjetas KPI */}
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '4px', flexShrink: 0 }}>
+                        <div style={{ flex: 1, minWidth: '140px', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1px solid #bfdbfe', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px', boxShadow: '0 4px 12px rgba(59,130,246,0.05)' }}>
+                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Límite Autorizado</span>
+                            <span style={{ fontSize: '20px', fontWeight: 900, color: '#1e40af' }}>S/ {customers.reduce((sum, c) => sum + (c.mcredi || 0), 0).toFixed(2)}</span>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '140px', background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)', border: '1px solid #fca5a5', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px', boxShadow: '0 4px 12px rgba(239,68,68,0.05)' }}>
+                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Deuda Total (Socio)</span>
+                            <span style={{ fontSize: '20px', fontWeight: 900, color: '#991b1b' }}>S/ {customers.reduce((sum, c) => sum + (c.deuda || 0), 0).toFixed(2)}</span>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '140px', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px', boxShadow: '0 4px 12px rgba(34,197,94,0.05)' }}>
+                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Crédito Disponible</span>
+                            <span style={{ fontSize: '20px', fontWeight: 900, color: '#166534' }}>S/ {customers.reduce((sum, c) => sum + (c.disponible || 0), 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    {/* Filtros de Crédito y Barra de Búsqueda */}
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
+                        <div style={{ ...searchBarContainerStyle, flex: 1, marginBottom: 0 }}>
+                            <Search size={16} style={{ color: '#94a3b8', marginRight: '8px' }} />
+                            <input
+                                type="text"
+                                placeholder="Buscar cliente por Nombre o Documento..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={searchInputStyle}
+                            />
+                            {loading && <Loader2 className="animate-spin" size={16} style={{ color: '#3b82f6' }} />}
+                        </div>
+                        
+                        <div style={{ display: 'flex', background: '#e2e8f0', borderRadius: '10px', padding: '3px', gap: '2px', border: '1px solid #cbd5e1' }}>
+                            {[
+                                { id: 'credit', label: 'Autorizados' },
+                                { id: 'debt', label: 'Con Deuda' },
+                                { id: 'all', label: 'Todos' }
+                            ].map(filterOpt => (
+                                <button
+                                    key={filterOpt.id}
+                                    onClick={() => setCreditFilter(filterOpt.id)}
+                                    style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: creditFilter === filterOpt.id ? '#fff' : 'transparent',
+                                        color: creditFilter === filterOpt.id ? '#0f172a' : '#64748b',
+                                        fontSize: '11px',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s',
+                                        boxShadow: creditFilter === filterOpt.id ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                                    }}
+                                >
+                                    {filterOpt.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Grilla / Listado */}
+                    {loading && customers.length === 0 ? (
+                        <div style={centerStateStyle}>
+                            <Loader2 className="animate-spin" size={32} style={{ color: '#3b82f6', marginBottom: '10px' }} />
+                            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Cargando datos de crédito...</span>
+                        </div>
+                    ) : customers.length === 0 ? (
+                        <div style={centerStateStyle}>
+                            <CreditCard size={32} style={{ color: '#94a3b8', marginBottom: '10px' }} />
+                            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>No se encontraron registros de crédito</span>
+                        </div>
+                    ) : isMobile ? (
+                        // Vista Móvil
+                        <div style={cardsGridStyle}>
+                            {customers.map(c => (
+                                <div key={c.codcli} style={cardStyle}>
+                                    <div style={cardHeaderStyle}>
+                                        <span style={codeBadgeStyle}>{c.codcli}</span>
+                                        <span style={docTextStyle}>DNI/RUC: {c.ruccli}</span>
+                                    </div>
+                                    <h3 style={cardNameStyle}>{c.nomcli}</h3>
+                                    
+                                    <div style={{ ...cardBodyStyle, borderBottom: 'none', marginBottom: 0, gap: '6px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                            <span style={{ color: '#64748b', fontWeight: 600 }}>Límite de Crédito:</span>
+                                            <span style={{ color: '#0f172a', fontWeight: 800 }}>S/ {c.mcredi.toFixed(2)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                            <span style={{ color: '#64748b', fontWeight: 600 }}>Deuda Actual:</span>
+                                            <span style={{ color: c.deuda > 0 ? '#ef4444' : '#0f172a', fontWeight: 800 }}>S/ {c.deuda.toFixed(2)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                            <span style={{ color: '#64748b', fontWeight: 600 }}>Disponible:</span>
+                                            <span style={{ color: c.disponible > 0 ? '#10b981' : '#64748b', fontWeight: 800 }}>S/ {c.disponible.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ ...cardActionsStyle, borderTop: '1px solid #f1f5f9', paddingTop: '8px', marginTop: '4px' }}>
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedCreditCustomer(c);
+                                                fetchCreditStatus(c.codcli);
+                                            }} 
+                                            style={{ ...actionBtnStyle, background: '#eff6ff', color: '#2563eb' }}
+                                            title="Ver Estado de Cuenta / Cobrar"
+                                        >
+                                            <Clock size={13} /> <span>Cobrar</span>
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedCreditCustomer(c);
+                                                fetchCreditStatus(c.codcli);
+                                                setTimeout(() => {
+                                                    setIsEditingCredit(true);
+                                                    setNewCreditLimit(c.mcredi.toString());
+                                                }, 500);
+                                            }} 
+                                            style={{ ...actionBtnStyle, background: '#f1f5f9', color: '#475569' }}
+                                            title="Editar Límite"
+                                        >
+                                            <Edit size={13} /> <span>Límite</span>
+                                        </button>
+                                        {c.deuda > 0 && (
+                                            <button 
+                                                onClick={() => sendPaymentReminder(c)} 
+                                                style={{ ...actionBtnStyle, background: '#f0fdf4', color: '#16a34a' }}
+                                                title="Enviar Recordatorio por WhatsApp"
+                                            >
+                                                <MessageCircle size={13} /> <span>Cobrar WA</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        // Vista Desktop
+                        <div style={tableWrapperStyle}>
+                            <table style={tableStyle}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ ...thStyle, borderRadius: '12px 0 0 12px' }}>Código</th>
+                                        <th style={thStyle}>Nombre / Razón Social</th>
+                                        <th style={thStyle}>DNI / RUC</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Límite Autorizado</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Deuda Total</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Crédito Disponible</th>
+                                        <th style={{ ...thStyle, borderRadius: '0 12px 12px 0', textAlign: 'center' }}>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {customers.map(c => (
+                                        <tr key={c.codcli} style={trBodyStyle}>
+                                            <td style={tdStyle}><span style={codeBadgeStyle}>{c.codcli}</span></td>
+                                            <td style={{ ...tdStyle, fontWeight: 750, color: '#0f172a' }}>{c.nomcli}</td>
+                                            <td style={tdStyle}>{c.ruccli}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800 }}>S/ {c.mcredi.toFixed(2)}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, color: c.deuda > 0 ? '#ef4444' : '#334155' }}>S/ {c.deuda.toFixed(2)}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, color: c.disponible > 0 ? '#10b981' : '#64748b' }}>S/ {c.disponible.toFixed(2)}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'center' }}>
+                                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSelectedCreditCustomer(c);
+                                                            fetchCreditStatus(c.codcli);
+                                                        }} 
+                                                        style={{ ...tableActionBtnStyle, background: '#eff6ff', color: '#2563eb' }}
+                                                        title="Ver Cuenta Corriente / Cobrar"
+                                                    >
+                                                        <Clock size={13} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSelectedCreditCustomer(c);
+                                                            fetchCreditStatus(c.codcli);
+                                                            setIsEditingCredit(true);
+                                                            setNewCreditLimit(c.mcredi.toString());
+                                                        }} 
+                                                        style={{ ...tableActionBtnStyle, background: '#f1f5f9', color: '#475569' }}
+                                                        title="Editar Límite de Crédito"
+                                                    >
+                                                        <Edit size={13} />
+                                                    </button>
+                                                    {c.deuda > 0 && (
+                                                        <button 
+                                                            onClick={() => sendPaymentReminder(c)} 
+                                                            style={{ ...tableActionBtnStyle, background: '#f0fdf4', color: '#16a34a' }}
+                                                            title="Enviar Recordatorio por WhatsApp"
+                                                        >
+                                                            <MessageCircle size={13} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             ) : (
                 /* Vista de Cumpleaños */
                 <div style={{ ...listContainerStyle, display: 'flex', flexDirection: 'column', gap: '12px' }} className="no-scrollbar">

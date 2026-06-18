@@ -1014,6 +1014,7 @@ export default function POSPage() {
                                  activeTab === 'promotions' ? 'Promociones' : 
                                  activeTab === 'customers' ? 'Clientes' : 
                                  activeTab === 'birthdays' ? 'Cumpleaños' : 
+                                 activeTab === 'credits' ? 'Gestión de Créditos' :
                                  activeTab === 'expenses' ? 'Egresos' :
                                  activeTab === 'general-cash' ? 'Caja General' :
                                  activeTab === 'whatsapp' ? 'Config WhatsApp' : 
@@ -1580,7 +1581,7 @@ export default function POSPage() {
                         </motion.div>
                     )}
 
-                    {(activeTab === 'customers' || activeTab === 'birthdays') && (
+                    {(activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits') && (
                         <motion.div
                             key="customers" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                             style={{ flex: 1, display: 'flex', overflow: 'hidden' }}

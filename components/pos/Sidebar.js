@@ -9,7 +9,7 @@ export default function Sidebar({
 }) {
     const [isExpandedInternal, setIsExpandedInternal] = useState(false);
     const [isCustomersExpanded, setIsCustomersExpanded] = useState(
-        activeTab === 'customers' || activeTab === 'birthdays'
+        activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits'
     );
     const [isFinanceExpanded, setIsFinanceExpanded] = useState(
         activeTab === 'expenses' || activeTab === 'general-cash'
@@ -18,7 +18,7 @@ export default function Sidebar({
     const isExpanded = isMobileMode ? true : isExpandedInternal;
 
     useEffect(() => {
-        if (activeTab === 'customers' || activeTab === 'birthdays') {
+        if (activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits') {
             setIsCustomersExpanded(true);
         } else {
             setIsCustomersExpanded(false);
@@ -262,6 +262,34 @@ export default function Sidebar({
                                 whiteSpace: 'nowrap' 
                             }}>
                                 Cumpleaños
+                            </span>
+                        </div>
+
+                        {/* Subapartado 3: Créditos */}
+                        <div 
+                            onClick={() => setActiveTab('credits')}
+                            style={{
+                                width: 'calc(100% - 16px)',
+                                height: '34px',
+                                background: activeTab === 'credits' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '36px',
+                                color: activeTab === 'credits' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: activeTab === 'credits' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Créditos
                             </span>
                         </div>
                     </div>
