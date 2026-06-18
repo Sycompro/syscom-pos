@@ -30,6 +30,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
     const [planSearchTerm, setPlanSearchTerm] = useState('');
     const [isExtension, setIsExtension] = useState(false);
     const [expandedMember, setExpandedMember] = useState(null);
+    const [activeDropdown, setActiveDropdown] = useState(null);
     
     // Estados para teclados en pantalla
     const [showSearchKeyboard, setShowSearchKeyboard] = useState(false);
@@ -63,6 +64,16 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
         const t = setTimeout(() => fetchPlans(), 300);
         return () => clearTimeout(t);
     }, [planSearchTerm]);
+
+    useEffect(() => {
+        const handleCloseDropdown = () => {
+            setActiveDropdown(null);
+        };
+        if (activeDropdown) {
+            document.addEventListener('click', handleCloseDropdown);
+            return () => document.removeEventListener('click', handleCloseDropdown);
+        }
+    }, [activeDropdown]);
 
     const fetchMemberships = async () => {
         setLoading(true);
@@ -289,80 +300,226 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                                             {member.price ? `S/${parseFloat(member.price).toFixed(2)}` : '-'}
                                         </div>
 
-                                        <div style={{ flex: 1, display: 'flex', gap: '10px', color: '#94a3b8', alignItems: 'center' }}>
-                                            <RefreshCw 
-                                                size={16} 
-                                                style={{ 
-                                                    ...actionIconStyle, 
-                                                    color: member.status === 'Vencido' ? '#3b82f6' : '#cbd5e1',
-                                                    opacity: member.status === 'Vencido' ? 1 : 0.5
-                                                }} 
-                                                title="Renovar"
-                                                onClick={() => {
-                                                    if (member.status !== 'Vencido') {
-                                                        setToast({ show: true, message: 'Esta membresía aún está vigente. Use "Extender" para añadir tiempo.', type: 'error' });
-                                                        return;
-                                                    }
-                                                    setIsExtension(false);
-                                                    setRenewingMember(member);
-                                                }}
-                                            />
-                                            <MessageCircle 
-                                                size={16} 
-                                                style={{ ...actionIconStyle, color: '#10b981' }} 
-                                                title="Enviar WhatsApp"
+                                        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setSelectedMemberWA(member);
-                                                    setWaForceCategory(null); // Normal en tabla
-                                                    setShowWAModal(true);
+                                                    setActiveDropdown(activeDropdown === member.id ? null : member.id);
                                                 }}
-                                            />
-                                            <Calendar 
-                                                size={16} 
-                                                style={{ 
-                                                    ...actionIconStyle, 
-                                                    color: (member.status === 'Activo' || member.status === 'Por vencer') ? '#10b981' : '#cbd5e1',
-                                                    opacity: (member.status === 'Activo' || member.status === 'Por vencer') ? 1 : 0.5
-                                                }} 
-                                                title="Extender"
-                                                onClick={() => {
-                                                    if (member.status === 'Vencido') {
-                                                        setToast({ show: true, message: 'Esta membresía ya expiró. Use "Renovar" para iniciar un nuevo periodo.', type: 'error' });
-                                                        return;
-                                                    }
-                                                    setIsExtension(true);
-                                                    setRenewingMember(member);
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    color: '#94a3b8',
+                                                    cursor: 'pointer',
+                                                    padding: '6px',
+                                                    borderRadius: '8px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    transition: 'all 0.2s',
+                                                    outline: 'none'
                                                 }}
-                                            />
-                                            <Clock 
-                                                size={16} 
-                                                style={{ 
-                                                    ...actionIconStyle, 
-                                                    color: (expandedMember === member.id || member.historyCount > 1) ? '#8b5cf6' : '#cbd5e1',
-                                                    opacity: (expandedMember === member.id || member.historyCount > 1) ? 1 : 0.4
-                                                }} 
-                                                title={member.historyCount > 1 ? "Ver historial de extensiones" : "Sin historial previo"}
-                                                onClick={() => fetchHistory(member)}
-                                            />
-                                            <User 
-                                                size={16} 
-                                                style={{ ...actionIconStyle, color: '#3b82f6' }} 
-                                                title="Editar Perfil"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditingMember({
-                                                        id: member.id,
-                                                        nomcli: member.name,
-                                                        celcli: member.phone,
-                                                        email: member.email || '',
-                                                        direccion: member.address || '',
-                                                        fecnac: member.birthDate || ''
-                                                    });
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = '#f1f5f9';
+                                                    e.currentTarget.style.color = '#475569';
                                                 }}
-                                            />
-                                            <Trash2 size={16} style={{ ...actionIconStyle, color: '#fca5a5' }} />
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = 'none';
+                                                    e.currentTarget.style.color = '#94a3b8';
+                                                }}
+                                            >
+                                                <MoreVertical size={20} />
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {activeDropdown === member.id && (
+                                                    <motion.div 
+                                                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                        transition={{ duration: 0.15 }}
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: '100%',
+                                                            right: 0,
+                                                            background: '#ffffff',
+                                                            borderRadius: '12px',
+                                                            border: '1px solid #e2e8f0',
+                                                            boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04)',
+                                                            zIndex: 100,
+                                                            minWidth: '150px',
+                                                            padding: '6px',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '2px',
+                                                            pointerEvents: 'auto'
+                                                        }}
+                                                    >
+                                                        {/* Opción Renovar */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveDropdown(null);
+                                                                if (member.status !== 'Vencido') {
+                                                                    setToast({ show: true, message: 'Esta membresía aún está vigente. Use "Extender" para añadir tiempo.', type: 'error' });
+                                                                    return;
+                                                                }
+                                                                setIsExtension(false);
+                                                                setRenewingMember(member);
+                                                            }}
+                                                            style={{
+                                                                ...dropdownItemStyle,
+                                                                opacity: member.status === 'Vencido' ? 1 : 0.6
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#f8fafc';
+                                                                e.currentTarget.style.color = '#0f172a';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = 'none';
+                                                                e.currentTarget.style.color = '#475569';
+                                                            }}
+                                                        >
+                                                            <RefreshCw size={14} style={{ color: member.status === 'Vencido' ? '#3b82f6' : '#94a3b8' }} />
+                                                            <span>Renovar</span>
+                                                        </button>
+
+                                                        {/* Opción Extender */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveDropdown(null);
+                                                                if (member.status === 'Vencido') {
+                                                                    setToast({ show: true, message: 'Esta membresía ya expiró. Use "Renovar" para iniciar un nuevo periodo.', type: 'error' });
+                                                                    return;
+                                                                }
+                                                                setIsExtension(true);
+                                                                setRenewingMember(member);
+                                                            }}
+                                                            style={{
+                                                                ...dropdownItemStyle,
+                                                                opacity: (member.status === 'Activo' || member.status === 'Por vencer') ? 1 : 0.6
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#f8fafc';
+                                                                e.currentTarget.style.color = '#0f172a';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = 'none';
+                                                                e.currentTarget.style.color = '#475569';
+                                                            }}
+                                                        >
+                                                            <Calendar size={14} style={{ color: (member.status === 'Activo' || member.status === 'Por vencer') ? '#10b981' : '#94a3b8' }} />
+                                                            <span>Extender</span>
+                                                        </button>
+
+                                                        {/* Opción WhatsApp */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveDropdown(null);
+                                                                setSelectedMemberWA(member);
+                                                                setWaForceCategory(null);
+                                                                setShowWAModal(true);
+                                                            }}
+                                                            style={dropdownItemStyle}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#f8fafc';
+                                                                e.currentTarget.style.color = '#0f172a';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = 'none';
+                                                                e.currentTarget.style.color = '#475569';
+                                                            }}
+                                                        >
+                                                            <MessageCircle size={14} style={{ color: '#10b981' }} />
+                                                            <span>WhatsApp</span>
+                                                        </button>
+
+                                                        {/* Opción Historial */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveDropdown(null);
+                                                                fetchHistory(member);
+                                                            }}
+                                                            style={{
+                                                                ...dropdownItemStyle,
+                                                                opacity: (member.historyCount > 1) ? 1 : 0.6
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#f8fafc';
+                                                                e.currentTarget.style.color = '#0f172a';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = 'none';
+                                                                e.currentTarget.style.color = '#475569';
+                                                            }}
+                                                        >
+                                                            <Clock size={14} style={{ color: '#8b5cf6' }} />
+                                                            <span>Historial</span>
+                                                        </button>
+
+                                                        {/* Opción Editar Perfil */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveDropdown(null);
+                                                                setEditingMember({
+                                                                    id: member.id,
+                                                                    nomcli: member.name,
+                                                                    celcli: member.phone,
+                                                                    email: member.email || '',
+                                                                    direccion: member.address || '',
+                                                                    fecnac: member.birthDate || ''
+                                                                });
+                                                            }}
+                                                            style={dropdownItemStyle}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#f8fafc';
+                                                                e.currentTarget.style.color = '#0f172a';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = 'none';
+                                                                e.currentTarget.style.color = '#475569';
+                                                            }}
+                                                        >
+                                                            <User size={14} style={{ color: '#3b82f6' }} />
+                                                            <span>Editar Perfil</span>
+                                                        </button>
+
+                                                        {/* Divisor */}
+                                                        <div style={{ height: '1px', background: '#f1f5f9', margin: '4px 6px' }} />
+
+                                                        {/* Opción Eliminar */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveDropdown(null);
+                                                                // Lógica de eliminar (basura)
+                                                            }}
+                                                            style={{
+                                                                ...dropdownItemStyle,
+                                                                color: '#ef4444'
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#fef2f2';
+                                                                e.currentTarget.style.color = '#ef4444';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = 'none';
+                                                                e.currentTarget.style.color = '#ef4444';
+                                                            }}
+                                                        >
+                                                            <Trash2 size={14} style={{ color: '#fca5a5' }} />
+                                                            <span>Eliminar</span>
+                                                        </button>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
+
+
                                     </motion.div>
 
                                     {/* Panel Desplegable de Historial */}
@@ -852,6 +1009,24 @@ const getExpStyle = (status) => ({
 const daysLeftStyle = { fontSize: '10px', color: '#94a3b8', marginTop: '1px' };
 
 const actionIconStyle = { cursor: 'pointer', transition: 'color 0.2s' };
+
+const dropdownItemStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    width: '100%',
+    padding: '8px 12px',
+    background: 'none',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#475569',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'all 0.15s ease',
+    outline: 'none'
+};
 
 const loadingStyle = { padding: '30px', textAlign: 'center', color: '#64748b', fontSize: '13px' };
 
