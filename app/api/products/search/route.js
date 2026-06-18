@@ -26,16 +26,16 @@ export async function GET(request) {
     const stockField = getStockColumnName(warehouse);
     const prdTable = getStockTableName(warehouse);
     
-    // 2. Construir la cláusula WHERE para filtros (Búsqueda + Categoría)
-    let filters = "estado = 1";
+    // 2. Construir la cláusula WHERE para filtros (Búsqueda + Categoría usando alias p01 de la maestra)
+    let filters = "p01.estado = 1";
     if (query) {
-        filters += ` AND (descr LIKE '%${query}%' OR codi LIKE '%${query}%' OR codf LIKE '%${query}%')`;
+        filters += ` AND (p01.descr LIKE '%${query}%' OR p01.codi LIKE '%${query}%' OR p01.codf LIKE '%${query}%')`;
     }
     if (category && category !== 'Todos' && category !== 'all') {
-        filters += ` AND LTRIM(RTRIM(codcat)) = RIGHT('${category}', 2) AND LEFT(codi, 2) = LEFT('${category}', 2)`;
+        filters += ` AND LTRIM(RTRIM(p01.codcat)) = RIGHT('${category}', 2) AND LEFT(p01.codi, 2) = LEFT('${category}', 2)`;
     }
 
-    // 3. Consulta INTELIGENTE (Espejo de psventa.exe)
+    // 3. Consulta INTELIGENTE (Espejo homologado de psventa.exe)
     console.log(`[DEBUG/Products] Sede: ${sedeId}, Warehouse: ${warehouse}, Table: ${prdTable}, Col: ${stockField}`);
 
     let sqlQuery = "";
@@ -43,12 +43,12 @@ export async function GET(request) {
         // En Almacén 01, la verdad siempre es prd0101.stoc
         sqlQuery = `
             SELECT TOP 50 
-                RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
-                RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
-                stoc as stock, RTRIM(Usr_003) as membershipDays
-            FROM prd0101
+                RTRIM(p01.codi) as id, RTRIM(p01.codf) as userCode, RTRIM(p01.descr) as name, 
+                RTRIM(p01.marc) as brand, RTRIM(p01.umed) as unit, p01.pvns as price, 
+                p01.stoc as stock, RTRIM(p01.Usr_003) as membershipDays
+            FROM prd0101 p01 WITH(nolock)
             WHERE ${filters}
-            ORDER BY descr ASC
+            ORDER BY p01.descr ASC
         `;
     } else {
         sqlQuery = `
@@ -58,22 +58,24 @@ export async function GET(request) {
             IF @table_exists > 0
                 BEGIN
                     SELECT TOP 50 
-                        RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
-                        RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
-                        stoc as stock, RTRIM(Usr_003) as membershipDays
-                    FROM ${prdTable}
+                        RTRIM(p01.codi) as id, RTRIM(p01.codf) as userCode, RTRIM(p01.descr) as name, 
+                        RTRIM(p01.marc) as brand, RTRIM(p01.umed) as unit, 
+                        CASE WHEN ISNULL(p02.pvns, 0) = 0 THEN p01.pvns ELSE p02.pvns END as price, 
+                        ISNULL(p02.stoc, 0) as stock, RTRIM(p01.Usr_003) as membershipDays
+                    FROM ${prdTable} p02 WITH(nolock)
+                    INNER JOIN prd0101 p01 WITH(nolock) ON p01.codi = p02.codi
                     WHERE ${filters}
-                    ORDER BY descr ASC
+                    ORDER BY p01.descr ASC
                 END
             ELSE
                 BEGIN
                     SELECT TOP 50 
-                        RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
-                        RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
-                        ISNULL(${stockField}, 0) as stock, RTRIM(Usr_003) as membershipDays
-                    FROM prd0101
+                        RTRIM(p01.codi) as id, RTRIM(p01.codf) as userCode, RTRIM(p01.descr) as name, 
+                        RTRIM(p01.marc) as brand, RTRIM(p01.umed) as unit, p01.pvns as price, 
+                        ISNULL(p01.${stockField}, 0) as stock, RTRIM(p01.Usr_003) as membershipDays
+                    FROM prd0101 p01 WITH(nolock)
                     WHERE ${filters}
-                    ORDER BY descr ASC
+                    ORDER BY p01.descr ASC
                 END
         `;
     }

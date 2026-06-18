@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package } from 'lucide-react';
 
 export default function Sidebar({ 
     onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, 
@@ -168,6 +168,15 @@ export default function Sidebar({
                 >
                     <Tag size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Promociones</span>}
+                </div>
+
+                <div 
+                    onClick={() => setActiveTab('products')}
+                    style={getNavBtnStyle(activeTab === 'products')}
+                    title={isExpanded ? "" : "Productos"}
+                >
+                    <Package size={18} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Productos</span>}
                 </div>
 
                 <div 

@@ -32,6 +32,7 @@ import CustomersView from '@/components/pos/CustomersView';
 import PromotionsView from '@/components/pos/PromotionsView';
 import GeneralCashView from '@/components/pos/GeneralCashView';
 import ExpensesView from '@/components/pos/ExpensesView';
+import ProductsView from '@/components/pos/ProductsView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
@@ -1590,6 +1591,15 @@ export default function POSPage() {
                                 key={expenseRefreshTrigger}
                                 onAddExpense={() => setShowExpenseModal(true)}
                             />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'products' && (
+                        <motion.div
+                            key="products" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
+                        >
+                            <ProductsView />
                         </motion.div>
                     )}
                 </AnimatePresence>
