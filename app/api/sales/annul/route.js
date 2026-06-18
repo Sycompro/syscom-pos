@@ -57,6 +57,46 @@ export async function POST(request) {
                 .input('ndocu', sql.Char(12), ndocu)
                 .query("UPDATE mst01ccc SET flag = '*' WHERE cdocu = @cdocu AND ndocu = @ndocu");
 
+            // 2.5 Reversión de cobros/amortizaciones asociadas al documento anulado
+            // Buscar en dtl01cob si existen recibos de pago que referencian este documento
+            const cobrosRes = await transaction.request()
+                .input('crefe', sql.Char(2), cdocu)
+                .input('nrefe', sql.Char(12), ndocu)
+                .query(`
+                    SELECT DISTINCT d.cdocu AS cobCdocu, d.ndocu AS cobNdocu, d.monto AS cobMonto
+                    FROM dtl01cob d
+                    INNER JOIN mst01cob m ON m.cdocu = d.cdocu AND m.ndocu = d.ndocu
+                    WHERE d.crefe = @crefe AND d.nrefe = @nrefe AND ISNULL(m.flaganu, 0) = 0
+                `);
+
+            const cobrosAnulados = cobrosRes.recordset.length;
+
+            if (cobrosAnulados > 0) {
+                console.log(`[Annul] Detectados ${cobrosAnulados} cobro(s) asociados al doc ${cdocu}-${ndocu}. Procediendo a anularlos.`);
+
+                for (const cobro of cobrosRes.recordset) {
+                    // A. Marcar el recibo de cobro como anulado en mst01cob
+                    await transaction.request()
+                        .input('cobCdocu', sql.Char(2), cobro.cobCdocu)
+                        .input('cobNdocu', sql.Char(12), cobro.cobNdocu)
+                        .query(`UPDATE mst01cob SET flaganu = 1 WHERE cdocu = @cobCdocu AND ndocu = @cobNdocu`);
+
+                    // B. Marcar los movimientos de abono en dtl01ccc relacionados a este recibo
+                    await transaction.request()
+                        .input('cobCdocu', sql.Char(2), cobro.cobCdocu)
+                        .input('cobNdocu', sql.Char(12), cobro.cobNdocu)
+                        .input('crefe', sql.Char(2), cdocu)
+                        .input('nrefe', sql.Char(12), ndocu)
+                        .query(`
+                            UPDATE dtl01ccc SET abono = 0 
+                            WHERE cdocu = @cobCdocu AND ndocu = @cobNdocu 
+                            AND crefe = @crefe AND nrefe = @nrefe AND tmov = 'A'
+                        `);
+
+                    console.log(`[Annul] Cobro ${cobro.cobCdocu}-${cobro.cobNdocu} (S/ ${cobro.cobMonto}) anulado.`);
+                }
+            }
+
             // 3. Reversión de Stock Dinámica
             const itemsRes = await transaction.request()
                 .input('cdocu', sql.Char(2), cdocu)
@@ -106,7 +146,13 @@ export async function POST(request) {
                 `);
 
             await transaction.commit();
-            return NextResponse.json({ success: true, message: 'Anulación completa procesada' });
+            return NextResponse.json({ 
+                success: true, 
+                message: cobrosAnulados > 0 
+                    ? `Anulación completa. Se revirtieron ${cobrosAnulados} cobro(s) asociado(s).`
+                    : 'Anulación completa procesada',
+                cobrosRevertidos: cobrosAnulados
+            });
 
         } catch (err) {
             await transaction.rollback();
