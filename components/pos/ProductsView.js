@@ -37,13 +37,28 @@ export default function ProductsView() {
 
   const isMobileView = windowWidth < 768;
 
-  // Categorías fijas en base a la lógica del ERP
-  const categories = [
-    { id: 'all', name: 'Todos los Artículos' },
-    { id: '01', name: 'Membresías' },
-    { id: '02', name: 'Suplementos y Productos' },
-    { id: '03', name: 'Servicios / Entrenamientos' }
-  ];
+  // Categorías dinámicas consultadas del ERP
+  const [categories, setCategories] = useState([
+    { id: 'all', name: 'Todos los Artículos' }
+  ]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/products/categories');
+        if (res.ok) {
+          const data = await res.json();
+          setCategories([
+            { id: 'all', name: 'Todos los Artículos' },
+            ...data
+          ]);
+        }
+      } catch (err) {
+        console.error('[ProductsView] Error loading categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Cargar productos desde la API
   const fetchProducts = async () => {
