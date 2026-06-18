@@ -10,7 +10,7 @@ export async function POST(req) {
         const session = await getServerSession(authOptions);
         if (!session?.user?.company) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-        const { nomcli, ruccli, phone, birthdate, address } = await req.json();
+        const { nomcli, ruccli, phone, birthdate, address, docType } = await req.json();
         const pool = await getConnection(session.user.company);
         
         // 1. Verificar si ya existe por RUC/DNI (Doble check)
@@ -42,12 +42,23 @@ export async function POST(req) {
         const erpDefCdv = defaultsRes.recordset[0]?.defCdv || '01';
 
         // 4. Registrar en Navasoft
-        const isRuc = ruccli.length === 11;
+        let finalCodDocIde = '01'; // Default DNI
+        if (docType === 'CE' || docType === '04') {
+            finalCodDocIde = '04';
+        } else if (docType === 'RUC' || docType === '06') {
+            finalCodDocIde = '06';
+        } else if (docType === 'DNI' || docType === '01') {
+            finalCodDocIde = '01';
+        } else {
+            // Fallback por longitud
+            finalCodDocIde = ruccli.length === 11 ? '06' : '01';
+        }
+
         await pool.request()
             .input('codcli', sql.Char(6), finalCodCli)
             .input('nomcli', sql.VarChar(60), (nomcli || 'NUEVO CLIENTE').substring(0, 60))
             .input('ruccli', sql.Char(11), ruccli.substring(0, 11))
-            .input('tipodoc', isRuc ? '06' : '01')
+            .input('tipodoc', sql.Char(2), finalCodDocIde)
             .input('phone', sql.VarChar(15), (phone || '').substring(0, 15))
             .input('birthdate', sql.DateTime, birthdate ? new Date(birthdate) : null)
             .input('address', sql.VarChar(80), (address || '').substring(0, 80))

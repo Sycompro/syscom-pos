@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import CustomSelect from './CustomSelect';
+
 
 export default function CustomDatePicker({ value, onChange, label, inline = false }) {
     const [show, setShow] = useState(inline);
@@ -73,21 +75,21 @@ export default function CustomDatePicker({ value, onChange, label, inline = fals
                         <button type="button" onClick={() => changeMonth(-1)} style={navBtnStyle}><ChevronLeft size={16} /></button>
                         
                         <div style={{ display: 'flex', gap: '4px' }}>
-                            <select 
+                            <CustomSelect 
                                 value={viewDate.getMonth()} 
                                 onChange={handleMonthChange}
-                                style={selectHeaderStyle}
-                            >
-                                {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
-                            </select>
+                                options={months.map((m, i) => ({ value: i, label: m }))}
+                                style={{ ...selectHeaderStyle, minWidth: '85px' }}
+                                dropdownWidth="110px"
+                            />
                             
-                            <select 
+                            <CustomSelect 
                                 value={viewDate.getFullYear()} 
                                 onChange={handleYearChange}
-                                style={selectHeaderStyle}
-                            >
-                                {years.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
+                                options={years.map(y => ({ value: y, label: String(y) }))}
+                                style={{ ...selectHeaderStyle, minWidth: '70px' }}
+                                dropdownWidth="90px"
+                            />
                         </div>
 
                         <button type="button" onClick={() => changeMonth(1)} style={navBtnStyle}><ChevronRight size={16} /></button>
@@ -139,21 +141,21 @@ export default function CustomDatePicker({ value, onChange, label, inline = fals
                         <button type="button" onClick={() => changeMonth(-1)} style={navBtnStyle}><ChevronLeft size={16} /></button>
                         
                         <div style={{ display: 'flex', gap: '4px' }}>
-                            <select 
+                            <CustomSelect 
                                 value={viewDate.getMonth()} 
                                 onChange={handleMonthChange}
-                                style={selectHeaderStyle}
-                            >
-                                {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
-                            </select>
+                                options={months.map((m, i) => ({ value: i, label: m }))}
+                                style={{ ...selectHeaderStyle, minWidth: '85px' }}
+                                dropdownWidth="110px"
+                            />
                             
-                            <select 
+                            <CustomSelect 
                                 value={viewDate.getFullYear()} 
                                 onChange={handleYearChange}
-                                style={selectHeaderStyle}
-                            >
-                                {years.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
+                                options={years.map(y => ({ value: y, label: String(y) }))}
+                                style={{ ...selectHeaderStyle, minWidth: '70px' }}
+                                dropdownWidth="90px"
+                            />
                         </div>
 
                         <button type="button" onClick={() => changeMonth(1)} style={navBtnStyle}><ChevronRight size={16} /></button>
@@ -198,7 +200,7 @@ const inputStyle = {
 };
 const calendarPopupStyle = { position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 500, background: '#fff', borderRadius: '16px', padding: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', border: '1px solid #f1f5f9', width: '240px' };
 const calendarHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' };
-const selectHeaderStyle = { border: 'none', background: '#f1f5f9', borderRadius: '6px', padding: '4px 6px', fontSize: '11px', fontWeight: 800, color: '#0f172a', outline: 'none', cursor: 'pointer' };
+const selectHeaderStyle = { border: 'none', background: '#f1f5f9', borderRadius: '6px', padding: '0 4px 0 8px', fontSize: '11px', fontWeight: 800, color: '#0f172a', outline: 'none', cursor: 'pointer', height: '24px' };
 const navBtnStyle = { background: '#f8fafc', border: 'none', width: '24px', height: '24px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' };
 const weekDaysStyle = { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: '8px' };
 const weekDayItemStyle = { fontSize: '9px', fontWeight: 800, color: '#94a3b8', textAlign: 'center' };

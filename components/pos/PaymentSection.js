@@ -1,22 +1,44 @@
 'use client';
-import { Banknote, CreditCard, Smartphone, ArrowRight, Plus, Trash2, Split, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { Banknote, CreditCard, Smartphone, ArrowRight, Plus, Trash2, Split, Loader2, Clock, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import NumericKeypad from './NumericKeypad';
 
 export default function PaymentSection({ 
     total, availableMethods, payments, setPayments, onFinalize, 
     loading, cartEmpty, onAlert,
     showMixed, setShowMixed, cashReceived, setCashReceived,
-    useScreenKeyboards
+    useScreenKeyboards, selectedCustomer
 }) {
     const [tempAmount, setTempAmount] = useState('');
     const [selectedMethod, setSelectedMethod] = useState(null);
     const [showCashNumpad, setShowCashNumpad] = useState(false);
     const [showMixedNumpad, setShowMixedNumpad] = useState(false);
 
+    const [creditInfo, setCreditInfo] = useState(null);
+    const [loadingCredit, setLoadingCredit] = useState(false);
+
+    const hasCredit = selectedCustomer && selectedCustomer.mcredi > 0 && selectedCustomer.code !== 'C00000';
+
+    useEffect(() => {
+        if (hasCredit) {
+            setLoadingCredit(true);
+            fetch(`/api/customers/credit-status?codcli=${selectedCustomer.code}`)
+                .then(res => res.json())
+                .then(json => {
+                    if (json.success) {
+                        setCreditInfo(json.data);
+                    }
+                })
+                .catch(err => console.error('Error fetching customer credit status in payment:', err))
+                .finally(() => setLoadingCredit(false));
+        } else {
+            setCreditInfo(null);
+        }
+    }, [selectedCustomer, hasCredit]);
+
     const subtotal = total / 1.18;
     const igv = total - subtotal;
-    const ICONS = { 1: Banknote, 2: CreditCard, 3: Smartphone };
+    const ICONS = { 1: Banknote, 2: CreditCard, 3: Smartphone, 'CR': Clock };
 
     const paidAmount = payments.reduce((acc, p) => acc + p.amount, 0);
     const remaining = total - paidAmount;
@@ -29,6 +51,10 @@ export default function PaymentSection({
         const amt = parseFloat(tempAmount) || remaining;
         if (amt <= 0 || !selectedMethod) return;
         if (amt > remaining + 0.01) return onAlert('Error de Pago', 'El monto ingresado supera el saldo pendiente del ticket.', 'warning');
+
+        if (selectedMethod.id === 'CR' && creditInfo && amt > creditInfo.available) {
+            return onAlert('Crédito Insuficiente', `El monto (S/ ${amt.toFixed(2)}) supera el crédito disponible del socio (S/ ${creditInfo.available.toFixed(2)}).`, 'warning');
+        }
 
         const newPayment = {
             id: selectedMethod.id,
@@ -47,6 +73,10 @@ export default function PaymentSection({
     };
 
     const handleSimpleMethod = (m) => {
+        if (m.id === 'CR' && creditInfo && total > creditInfo.available) {
+            return onAlert('Crédito Insuficiente', `El total de la venta (S/ ${total.toFixed(2)}) supera el crédito disponible del socio (S/ ${creditInfo.available.toFixed(2)}). Intente un pago mixto o sugiera amortizar deudas.`, 'warning');
+        }
+
         setPayments([{
             id: m.id,
             type: m.type,
@@ -82,13 +112,32 @@ export default function PaymentSection({
         setTempAmount(prev => prev.slice(0, -1));
     };
 
-    const handleFinalizeWithChange = () => {
+    const handleFinalizeWithChange = (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        if (loading) return;
         onFinalize({
             cashReceived: parseFloat(cashReceived) || total,
             changeGiven: change,
             isMixed: showMixed
         });
     };
+
+    useEffect(() => {
+        if (!showMixed && payments.length === 1 && payments[0].amount !== total) {
+            setPayments([{
+                ...payments[0],
+                amount: total
+            }]);
+        }
+    }, [total, showMixed, payments, setPayments]);
+
+    const showCreditOption = hasCredit && !showMixed;
+    const finalMethods = showCreditOption
+        ? [...availableMethods, { id: 'CR', type: 2, name: 'CRÉDITO' }]
+        : availableMethods;
+
+    const creditPayment = payments.find(p => p.id === 'CR');
+    const isCreditLimitExceeded = creditPayment && creditInfo && creditPayment.amount > creditInfo.available;
 
     return (
         <div style={containerStyle}>
@@ -111,8 +160,8 @@ export default function PaymentSection({
 
             {/* Area de Selección */}
             <div style={gridStyle}>
-                {availableMethods.map(m => {
-                    const Icon = ICONS[m.type] || Banknote;
+                {finalMethods.map(m => {
+                    const Icon = ICONS[m.id] || ICONS[m.type] || Banknote;
                     const isSelectedInSimple = !showMixed && payments.length === 1 && payments[0].id === m.id;
                     const isSelectedInMixed = showMixed && selectedMethod?.id === m.id;
                     const isActive = isSelectedInSimple || isSelectedInMixed;
@@ -234,16 +283,35 @@ export default function PaymentSection({
                 </div>
             </div>
 
+            {isCreditLimitExceeded && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    background: '#fef2f2',
+                    border: '1px solid #fca5a5',
+                    borderRadius: '8px',
+                    color: '#b91c1c',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    marginBottom: '8px'
+                }}>
+                    <AlertCircle size={14} />
+                    <span>Límite de crédito excedido. Disponible: S/ {creditInfo.available.toFixed(2)}</span>
+                </div>
+            )}
+
             <button
-                disabled={cartEmpty || loading || (showMixed && Math.abs(remaining) > 0.01) || (!showMixed && payments.length === 0)}
+                disabled={cartEmpty || loading || (showMixed && Math.abs(remaining) > 0.01) || (!showMixed && payments.length === 0) || isCreditLimitExceeded}
                 onClick={handleFinalizeWithChange}
                 style={{
                     ...finalizeBtnStyle,
-                    background: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? '#e2e8f0' : 'linear-gradient(135deg, #4f46e5 0%, #a855f7 100%)',
-                    color: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? '#94a3b8' : '#fff',
-                    boxShadow: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? 'none' : '0 8px 20px rgba(168, 85, 247, 0.3)',
-                    cursor: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? 'not-allowed' : 'pointer',
-                    transform: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? 'none' : 'translateY(-1px)',
+                    background: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0) || isCreditLimitExceeded) ? '#e2e8f0' : 'linear-gradient(135deg, #4f46e5 0%, #a855f7 100%)',
+                    color: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0) || isCreditLimitExceeded) ? '#94a3b8' : '#fff',
+                    boxShadow: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0) || isCreditLimitExceeded) ? 'none' : '0 8px 20px rgba(168, 85, 247, 0.3)',
+                    cursor: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0) || isCreditLimitExceeded) ? 'not-allowed' : 'pointer',
+                    transform: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0) || isCreditLimitExceeded) ? 'none' : 'translateY(-1px)',
                 }}
             >
                 {loading ? <Loader2 className="animate-spin" size={16} /> : <>Finalizar Venta <ArrowRight size={15} /></>}

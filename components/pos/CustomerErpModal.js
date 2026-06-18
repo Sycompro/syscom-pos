@@ -9,7 +9,8 @@ export default function CustomerErpModal({ isOpen, onClose, initialData, onSave 
         nomcli: '',
         phone: '',
         birthdate: '',
-        address: ''
+        address: '',
+        docType: ''
     });
     const [loading, setLoading] = useState(false);
 
@@ -20,7 +21,8 @@ export default function CustomerErpModal({ isOpen, onClose, initialData, onSave 
                 nomcli: initialData.name || '',
                 phone: initialData.phone || '',
                 birthdate: initialData.birthdate || '',
-                address: initialData.address || ''
+                address: initialData.address || '',
+                docType: initialData.docType || ''
             });
         }
     }, [initialData, isOpen]);

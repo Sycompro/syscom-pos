@@ -34,6 +34,7 @@ import GeneralCashView from '@/components/pos/GeneralCashView';
 import ExpensesView from '@/components/pos/ExpensesView';
 import ProductsView from '@/components/pos/ProductsView';
 import DashboardView from '@/components/pos/DashboardView';
+import SalesView from '@/components/pos/SalesView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
@@ -213,7 +214,8 @@ export default function POSPage() {
     const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [showErpModal, setShowErpModal] = useState(false);
     const [erpModalData, setErpModalData] = useState(null);
-    const [searchType, setSearchType] = useState('DNI'); // 'DNI' o 'RUC'
+    const [searchType, setSearchType] = useState('DNI'); // 'DNI', 'RUC' o 'CE'
+    const [showCEKeyboard, setShowCEKeyboard] = useState(false);
     const [manualDoc, setManualDoc] = useState('');
     const [orderSuccess, setOrderSuccess] = useState(null);
     const [exchangeRate, setExchangeRate] = useState(1);
@@ -324,47 +326,59 @@ export default function POSPage() {
         finally { setLoading(false); }
     };
 
+    const executeCustomerSearch = async (val) => {
+        if (!val || val.length < (searchType === 'CE' ? 5 : 8)) return;
+        setIsSearchingCustomer(true);
+        try {
+            const res = await fetch(`/api/customers/search?q=${val}&docType=${searchType}`);
+            const { data } = await res.json();
+            if (data) {
+                if (data.isNew && (data.source === 'EXTERNAL' || data.source === 'MANUAL_CE')) {
+                    setErpModalData({
+                        ruc: data.ruccli,
+                        name: data.nomcli || '',
+                        address: data.address || '',
+                        phone: data.phone || '',
+                        birthdate: data.birthdate || '',
+                        docType: searchType
+                    });
+                    setShowErpModal(true);
+                } else {
+                    setCustomer({
+                        name: data.nomcli,
+                        ruc: data.ruccli || data.nrodni,
+                        code: data.codcli,
+                        address: data.address,
+                        phone: data.phone || '',
+                        birthdate: data.birthdate || '',
+                        expirationDate: data.fecfinpres,
+                        daysRemaining: data.daysRemaining,
+                        isNew: data.isNew,
+                        mcredi: data.mcredi
+                    });
+                }
+            } else {
+                setManualDoc(val);
+                setCustomer({ name: 'NO ENCONTRADO', ruc: val, code: 'MANUAL', isNew: true, phone: '', birthdate: '' });
+            }
+        } catch (err) { console.error('Error searching customer', err); }
+        finally { setIsSearchingCustomer(false); }
+    };
+
     const handleCustomerSearch = async (e) => {
-        const val = e.target.value.replace(/[^0-9]/g, '');
+        let val = e.target.value;
+        if (searchType === 'CE') {
+            val = val.replace(/[^a-zA-Z0-9]/g, '');
+        } else {
+            val = val.replace(/[^0-9]/g, '');
+        }
         setCustomerSearch(val);
 
-        const targetLength = searchType === 'DNI' ? 8 : 11;
+        if (searchType === 'RUC' && val.length === 11) setDocType('01');
 
-        if (val.length === 11) setDocType('01');
-        if (val.length === targetLength) {
-            setIsSearchingCustomer(true);
-            try {
-                const res = await fetch(`/api/customers/search?q=${val}`);
-                const { data } = await res.json();
-                if (data) {
-                    if (data.isNew && data.source === 'EXTERNAL') {
-                        setErpModalData({
-                            ruc: data.ruccli,
-                            name: data.nomcli,
-                            address: data.address,
-                            phone: data.phone || '',
-                            birthdate: data.birthdate || ''
-                        });
-                        setShowErpModal(true);
-                    } else {
-                        setCustomer({
-                            name: data.nomcli,
-                            ruc: data.ruccli || data.nrodni,
-                            code: data.codcli,
-                            address: data.address,
-                            phone: data.phone || '',
-                            birthdate: data.birthdate || '',
-                            expirationDate: data.fecfinpres,
-                            daysRemaining: data.daysRemaining,
-                            isNew: data.isNew
-                        });
-                    }
-                } else {
-                    setManualDoc(val);
-                    setCustomer({ name: 'NO ENCONTRADO', ruc: val, code: 'MANUAL', isNew: true, phone: '', birthdate: '' });
-                }
-            } catch (err) { console.error('Error searching customer', err); }
-            finally { setIsSearchingCustomer(false); }
+        const targetLength = searchType === 'DNI' ? 8 : (searchType === 'RUC' ? 11 : null);
+        if (targetLength && val.length === targetLength) {
+            await executeCustomerSearch(val);
         }
     };
 
@@ -375,10 +389,9 @@ export default function POSPage() {
             if (newVal.length === limit) {
                 setTimeout(() => setShowNumpad(false), 100);
             }
-            if (newVal.length >= 8) {
+            if (newVal.length === limit) {
                 setTimeout(() => {
-                    const e = { target: { value: newVal } };
-                    handleCustomerSearch(e);
+                    executeCustomerSearch(newVal);
                 }, 10);
             }
             return newVal;
@@ -388,12 +401,6 @@ export default function POSPage() {
     const handleNumpadDelete = () => {
         setCustomerSearch(prev => {
             const newVal = prev.slice(0, -1);
-            if (newVal.length >= 8) {
-                setTimeout(() => {
-                    const e = { target: { value: newVal } };
-                    handleCustomerSearch(e);
-                }, 10);
-            }
             return newVal;
         });
     };
@@ -574,7 +581,8 @@ export default function POSPage() {
             ruc: member.ruc || member.phone || '',
             code: member.id || member.codcli,
             phone: member.phone || '',
-            isNew: false
+            isNew: false,
+            mcredi: member.mcredi || 0
         });
 
         // 3. Cambiar a la pestaña POS y abrir el modal de pago
@@ -583,6 +591,7 @@ export default function POSPage() {
     };
 
     const handleFinalizeSale = async (paymentInfo = {}) => {
+        if (isFinalizing) return;
         if (!cart.length || !idApeCaj) return;
 
         // Validación Fiscal: Factura requiere RUC
@@ -894,6 +903,7 @@ export default function POSPage() {
                     cashReceived={cashReceived}
                     setCashReceived={setCashReceived}
                     useScreenKeyboards={useScreenKeyboards}
+                    selectedCustomer={customer}
                 />
             </div>
         );
@@ -1006,7 +1016,8 @@ export default function POSPage() {
                                  activeTab === 'birthdays' ? 'Cumpleaños' : 
                                  activeTab === 'expenses' ? 'Egresos' :
                                  activeTab === 'general-cash' ? 'Caja General' :
-                                 activeTab === 'whatsapp' ? 'Config WhatsApp' : 'POS'}
+                                 activeTab === 'whatsapp' ? 'Config WhatsApp' : 
+                                 activeTab === 'sales' ? 'Historial Ventas' : 'POS'}
                             </span>
                         </div>
                         <div style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe', textTransform: 'uppercase' }}>
@@ -1123,14 +1134,17 @@ export default function POSPage() {
                                 {/* LÍNEA 2: BARRA CLIENTE POS (PROFESIONAL) */}
                                 <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
 
-                                    {/* Selector de Tipo DNI/RUC */}
+                                    {/* Selector de Tipo DNI/RUC/CE */}
                                     <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '2px', gap: '2px', border: '1px solid #e2e8f0' }}>
-                                        {['DNI', 'RUC'].map(type => (
+                                        {['DNI', 'RUC', 'CE'].map(type => (
                                             <button
                                                 key={type}
                                                 onClick={() => {
                                                     setSearchType(type);
                                                     setCustomerSearch('');
+                                                    setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
+                                                    setShowNumpad(false);
+                                                    setShowCEKeyboard(false);
                                                 }}
                                                 style={{
                                                     padding: '4px 8px',
@@ -1155,21 +1169,55 @@ export default function POSPage() {
                                         <input
                                             type="text"
                                             inputMode="none" // Evita el teclado nativo en tablets
-                                            placeholder={searchType === 'DNI' ? "8 dígitos..." : "11 dígitos..."}
+                                            placeholder={searchType === 'DNI' ? "8 dígitos..." : searchType === 'RUC' ? "11 dígitos..." : "CE..."}
                                             value={customerSearch}
-                                            onFocus={() => useScreenKeyboards && setShowNumpad(true)}
+                                            onFocus={() => {
+                                                if (useScreenKeyboards) {
+                                                    if (searchType === 'CE') {
+                                                        setShowCEKeyboard(true);
+                                                    } else {
+                                                        setShowNumpad(true);
+                                                    }
+                                                }
+                                            }}
                                             onChange={handleCustomerSearch}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    executeCustomerSearch(customerSearch);
+                                                }
+                                            }}
                                             maxLength={searchType === 'DNI' ? 8 : 11}
                                             style={{ width: '100%', padding: '8px 10px 8px 30px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '12px', fontWeight: 700, outline: 'none' }}
                                         />
                                         {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '8px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={12} />}
-                                        <NumericKeypad 
-                                            isOpen={showNumpad} 
-                                            onClose={() => setShowNumpad(false)} 
-                                            onKeyPress={handleNumpadKeyPress} 
-                                            onDelete={handleNumpadDelete} 
-                                            value={customerSearch}
-                                        />
+                                        
+                                        {searchType === 'CE' ? (
+                                            <AlphanumericKeyboard 
+                                                isOpen={showCEKeyboard}
+                                                onClose={() => {
+                                                    setShowCEKeyboard(false);
+                                                    if (customerSearch.length >= 5) {
+                                                        executeCustomerSearch(customerSearch);
+                                                    }
+                                                }}
+                                                onKeyPress={(key) => {
+                                                    setCustomerSearch(prev => {
+                                                        const limit = 11;
+                                                        return (prev + key).toUpperCase().slice(0, limit);
+                                                    });
+                                                }}
+                                                onDelete={() => setCustomerSearch(prev => prev.slice(0, -1))}
+                                                value={customerSearch}
+                                            />
+                                        ) : (
+                                            <NumericKeypad 
+                                                isOpen={showNumpad} 
+                                                onClose={() => setShowNumpad(false)} 
+                                                onKeyPress={handleNumpadKeyPress} 
+                                                onDelete={handleNumpadDelete} 
+                                                value={customerSearch}
+                                            />
+                                        )}
                                     </div>
                                     <button
                                         onClick={() => {
@@ -1505,6 +1553,7 @@ export default function POSPage() {
                                 onQueueWhatsApp={addToWaQueue}
                                 companyName={companySettings?.company?.commercialName || companySettings?.company?.name}
                                 useScreenKeyboards={useScreenKeyboards}
+                                idApeCaj={idApeCaj}
                             />
                         </motion.div>
                     )}
@@ -1611,6 +1660,20 @@ export default function POSPage() {
                             style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
                         >
                             <DashboardView />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'sales' && (
+                        <motion.div
+                            key="sales" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
+                        >
+                            <SalesView 
+                                onPrint={handlePrint}
+                                onQueueWhatsApp={addToWaQueue}
+                                useScreenKeyboards={useScreenKeyboards}
+                                company={session?.user?.company}
+                            />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -2216,7 +2279,8 @@ export default function POSPage() {
                         code: newCli.code,
                         phone: newCli.phone,
                         birthdate: newCli.birthdate,
-                        isNew: false
+                        isNew: false,
+                        mcredi: newCli.mcredi || 0
                     });
                     setCustomerSearch(newCli.ruccli);
                 }}

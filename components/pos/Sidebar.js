@@ -162,6 +162,15 @@ export default function Sidebar({
                 </div>
                 
                 <div 
+                    onClick={() => setActiveTab('sales')}
+                    style={getNavBtnStyle(activeTab === 'sales')}
+                    title={isExpanded ? "" : "Historial de Ventas"}
+                >
+                    <History size={18} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Historial Ventas</span>}
+                </div>
+                
+                <div 
                     onClick={() => setActiveTab('memberships')}
                     style={getNavBtnStyle(activeTab === 'memberships')}
                     title={isExpanded ? "" : "Gestión de Membresías"}

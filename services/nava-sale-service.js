@@ -54,7 +54,7 @@ class NavaSaleService {
       const erpPto = erpData.codpto.trim();
       const erpUsu = erpData.codusu.trim();
       const erpNroPla = erpData.nropla.trim();
-      const erpDefCdv = erpData.codcdv_nava || '01';
+      const finalCodcdv = globalSelPago === 2 ? '02' : (erpData.codcdv_nava || '01');
 
       // 2.5 Obtener vendedor por defecto si no viene uno válido
       let finalCodVen = codven || 'V0001';
@@ -161,7 +161,7 @@ class NavaSaleService {
         .input('codusu', sql.VarChar(10), (codusu || 'ADMIN').substring(0, 10))
         .input('flag', '0')
         .input('tfact', navaTfact)
-        .input('Codcdv', erpDefCdv)
+        .input('Codcdv', finalCodcdv)
         .input('codvta', '01')
         .input('codven', finalCodVen.substring(0, 5))
         .input('codsub', '03')
@@ -283,7 +283,7 @@ class NavaSaleService {
         .input('flag', '0')
         .input('codven', finalCodVen.substring(0, 5))
         .input('Codpto', erpPto)
-        .input('codcdv', erpData.codcdv_nava || '01')
+        .input('codcdv', finalCodcdv)
         .input('compro', '03/      ')
         .input('codsub', '03')
         .input('cuenta', '12121     ')

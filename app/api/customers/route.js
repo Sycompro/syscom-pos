@@ -34,7 +34,8 @@ export async function GET(request) {
                         telcli, 
                         email, 
                         fecnac,
-                        fecfinpres
+                        fecfinpres,
+                        ISNULL(mcredi, 0) as mcredi
                     FROM mst01cli
                     WHERE nomcli LIKE @query
                        OR ruccli LIKE @query
@@ -56,7 +57,8 @@ export async function GET(request) {
                         telcli, 
                         email, 
                         fecnac,
-                        fecfinpres
+                        fecfinpres,
+                        ISNULL(mcredi, 0) as mcredi
                     FROM mst01cli
                     ORDER BY nomcli ASC
                 `);
@@ -71,7 +73,8 @@ export async function GET(request) {
             celcli: (c.celcli || c.telcli || '').toString().trim(),
             email: (c.email || '').toString().trim(),
             fecnac: c.fecnac ? new Date(c.fecnac).toISOString().split('T')[0] : '',
-            fecfinpres: c.fecfinpres && c.fecfinpres.getFullYear() > 1900 ? c.fecfinpres.toISOString() : null
+            fecfinpres: c.fecfinpres && c.fecfinpres.getFullYear() > 1900 ? c.fecfinpres.toISOString() : null,
+            mcredi: Number(c.mcredi) || 0
         }));
 
         return NextResponse.json({ success: true, data: customers });

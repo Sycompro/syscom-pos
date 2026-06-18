@@ -5,6 +5,7 @@ import {
   Users, DollarSign, Receipt, Percent, Award, Clock, ArrowUpRight 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import CustomSelect from './CustomSelect';
 
 export default function DashboardView() {
   const [data, setData] = useState(null);
@@ -204,19 +205,27 @@ export default function DashboardView() {
         {/* Barra de Filtros Porcelain */}
         <div style={isMobileView ? filtersMobileStyle : filtersStyle}>
           {/* Selector de Sede */}
-          <div style={selectWrapperStyle}>
-            <Building2 size={14} color="#64748b" />
-            <select
-              value={selectedSede}
-              onChange={e => setSelectedSede(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">Consolidado (Todas las Sedes)</option>
-              {data?.sedes?.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            value={selectedSede}
+            onChange={e => setSelectedSede(e.target.value)}
+            options={[
+              { value: 'all', label: 'Consolidado (Todas las Sedes)' },
+              ...(data?.sedes?.map(s => ({ value: s.id, label: s.name })) || [])
+            ]}
+            icon={<Building2 size={14} color="#64748b" />}
+            placeholder="Sedes..."
+            style={{
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              background: '#fff',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+              height: '35px',
+              fontSize: '12px',
+              color: '#334155',
+              fontWeight: 800,
+              minWidth: '220px'
+            }}
+          />
 
           {/* Presets de Fecha */}
           <div style={presetsWrapperStyle}>
@@ -495,7 +504,10 @@ const containerStyle = {
   flexDirection: 'column',
   gap: '24px',
   background: '#f8fafc',
-  overflowY: 'auto'
+  overflowY: 'auto',
+  width: '100%',
+  maxWidth: '1400px',
+  margin: '0 auto'
 };
 
 const headerStyle = {

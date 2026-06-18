@@ -68,13 +68,16 @@ export async function POST(request) {
                     .input('codi', sql.Char(11), item.codi)
                     .input('cant', sql.Float, item.cant)
                     .query(`
-                        -- Revertir en tabla específica
-                        DECLARE @table_exists INT;
-                        SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
-                        IF @table_exists > 0
+                        -- Revertir en tabla específica (solo si no es prd0101 para evitar duplicidad en stoc)
+                        IF '${prdTable}' <> 'prd0101'
                         BEGIN
-                            DECLARE @sql NVARCHAR(MAX) = N'UPDATE ${prdTable} SET stoc = stoc + @cant WHERE codi = @codi';
-                            EXEC sp_executesql @sql, N'@cant FLOAT, @codi CHAR(11)', @cant, @codi;
+                            DECLARE @table_exists INT;
+                            SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
+                            IF @table_exists > 0
+                            BEGIN
+                                DECLARE @sql NVARCHAR(MAX) = N'UPDATE ${prdTable} SET stoc = stoc + @cant WHERE codi = @codi';
+                                EXEC sp_executesql @sql, N'@cant FLOAT, @codi CHAR(11)', @cant, @codi;
+                            END
                         END
                         -- Revertir en consolidado
                         UPDATE prd0101 SET ${stockField} = ${stockField} + @cant, stoc = stoc + @cant WHERE codi = @codi

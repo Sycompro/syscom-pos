@@ -11,10 +11,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
 
 import CustomDatePicker from './CustomDatePicker';
+import CustomSelect from './CustomSelect';
 import AlphanumericKeyboard from './AlphanumericKeyboard';
 import NumericKeypad from './NumericKeypad';
 
-export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName, useScreenKeyboards }) {
+export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName, useScreenKeyboards, idApeCaj }) {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     
@@ -48,6 +49,17 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
     const [editingMember, setEditingMember] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+    // Estados para Línea de Crédito
+    const [activeExpandedTab, setActiveExpandedTab] = useState('history');
+    const [creditData, setCreditData] = useState(null);
+    const [loadingCredit, setLoadingCredit] = useState(false);
+    const [isEditingCredit, setIsEditingCredit] = useState(false);
+    const [newCreditLimit, setNewCreditLimit] = useState('');
+    const [amortizingInvoice, setAmortizingInvoice] = useState(null);
+    const [collectAmount, setCollectAmount] = useState('');
+    const [collectMethod, setCollectMethod] = useState('Efectivo');
+    const [isSubmittingCollection, setIsSubmittingCollection] = useState(false);
 
     // Auto-ocultar toast después de 3 segundos
     useEffect(() => {
@@ -116,6 +128,9 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
         }
         
         setExpandedMember(member.id);
+        setActiveExpandedTab('history');
+        setCreditData(null);
+        setIsEditingCredit(false);
         if (memberHistory[member.id]) return;
 
         setLoadingHistory(true);
@@ -127,6 +142,83 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
             console.error('Error fetching history:', e);
         } finally {
             setLoadingHistory(false);
+        }
+    };
+
+    const fetchCreditStatus = async (codcli) => {
+        setLoadingCredit(true);
+        try {
+            const res = await fetch(`/api/customers/credit-status?codcli=${codcli}`);
+            const json = await res.json();
+            if (json.success) {
+                setCreditData(json.data);
+                setNewCreditLimit(json.data.limit.toString());
+            } else {
+                setToast({ show: true, message: json.error || 'Error al obtener estado de crédito', type: 'error' });
+            }
+        } catch (e) {
+            console.error('Error fetching credit status:', e);
+            setToast({ show: true, message: 'Error de red al obtener estado de crédito', type: 'error' });
+        } finally {
+            setLoadingCredit(false);
+        }
+    };
+
+    const handleSaveCreditLimit = async (codcli) => {
+        try {
+            const res = await fetch('/api/customers/update-credit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ codcli, limit: parseFloat(newCreditLimit) || 0 })
+            });
+            const json = await res.json();
+            if (json.success) {
+                setToast({ show: true, message: 'Límite de crédito guardado correctamente', type: 'success' });
+                setIsEditingCredit(false);
+                fetchCreditStatus(codcli);
+            } else {
+                setToast({ show: true, message: json.error || 'Error al actualizar límite', type: 'error' });
+            }
+        } catch (e) {
+            console.error('Error saving credit limit:', e);
+            setToast({ show: true, message: 'Error de red al guardar límite', type: 'error' });
+        }
+    };
+
+    const handleCollectDebt = async (codcli) => {
+        if (!idApeCaj) {
+            setToast({ show: true, message: 'Error: Debe tener una caja abierta en el POS para registrar cobros.', type: 'error' });
+            return;
+        }
+        
+        setIsSubmittingCollection(true);
+        try {
+            const res = await fetch('/api/sales/collect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    codcli,
+                    cdocu_ref: amortizingInvoice.cdocu,
+                    ndocu_ref: amortizingInvoice.ndocu,
+                    amount: parseFloat(collectAmount) || 0,
+                    paymentMethod: collectMethod,
+                    idApeCaj
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                setToast({ show: true, message: 'Cobranza registrada exitosamente', type: 'success' });
+                setAmortizingInvoice(null);
+                setCollectAmount('');
+                fetchCreditStatus(codcli);
+            } else {
+                setToast({ show: true, message: json.error || 'Error al registrar cobro', type: 'error' });
+            }
+        } catch (e) {
+            console.error('Error registering debt collection:', e);
+            setToast({ show: true, message: 'Error de red al registrar cobro', type: 'error' });
+        } finally {
+            setIsSubmittingCollection(false);
         }
     };
 
@@ -210,24 +302,28 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                         </div>
                         
                         <div style={{ display: 'flex', gap: '8px' }}>
-                            <select 
-                                style={compactSelectStyle}
+                            <CustomSelect 
                                 value={filterSede}
                                 onChange={(e) => setFilterSede(e.target.value)}
-                            >
-                                <option value="all">Sedes</option>
-                                <option value="my">Mi Sede</option>
-                            </select>
-                            <select 
-                                style={compactSelectStyle} 
+                                options={[
+                                    { value: 'all', label: 'Sedes (Todas)' },
+                                    { value: 'my', label: 'Mi Sede' }
+                                ]}
+                                style={{ ...compactSelectStyle, width: '110px' }}
+                                dropdownWidth="120px"
+                            />
+                            <CustomSelect 
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
-                            >
-                                <option value="all">Estado</option>
-                                <option value="activo">Activos</option>
-                                <option value="por vencer">Casi vencidos</option>
-                                <option value="vencido">Vencidos</option>
-                            </select>
+                                options={[
+                                    { value: 'all', label: 'Estado (Todos)' },
+                                    { value: 'activo', label: 'Activos' },
+                                    { value: 'por vencer', label: 'Casi vencidos' },
+                                    { value: 'vencido', label: 'Vencidos' }
+                                ]}
+                                style={{ ...compactSelectStyle, width: '130px' }}
+                                dropdownWidth="140px"
+                            />
                         </div>
                     </div>
 
@@ -790,7 +886,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                                         </motion.div>
                                     )}
 
-                                    {/* Panel Desplegable de Historial */}
+                                    {/* Panel Desplegable de Detalle / Operaciones & Crédito */}
                                     <AnimatePresence>
                                         {expandedMember === member.id && (
                                             <motion.div 
@@ -800,56 +896,281 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                                                 style={{ overflow: 'hidden', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}
                                             >
                                                 <div style={{ padding: '20px 40px 24px 70px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                                        <div style={{ width: '4px', height: '14px', background: '#8b5cf6', borderRadius: '2px' }} />
-                                                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                            Historial de Operaciones
-                                                        </span>
+                                                    
+                                                    {/* Pestañas (Tabs) estilo Porcelain Glass */}
+                                                    <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                                                        <button 
+                                                            onClick={() => setActiveExpandedTab('history')}
+                                                            style={{
+                                                                padding: '8px 12px',
+                                                                fontSize: '11px',
+                                                                fontWeight: 800,
+                                                                color: activeExpandedTab === 'history' ? '#8b5cf6' : '#64748b',
+                                                                borderBottom: activeExpandedTab === 'history' ? '2px solid #8b5cf6' : '2px solid transparent',
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                paddingBottom: '8px',
+                                                                marginBottom: '-1px'
+                                                            }}
+                                                        >
+                                                            Operaciones
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setActiveExpandedTab('credit');
+                                                                fetchCreditStatus(member.id);
+                                                            }}
+                                                            style={{
+                                                                padding: '8px 12px',
+                                                                fontSize: '11px',
+                                                                fontWeight: 800,
+                                                                color: activeExpandedTab === 'credit' ? '#3b82f6' : '#64748b',
+                                                                borderBottom: activeExpandedTab === 'credit' ? '2px solid #3b82f6' : '2px solid transparent',
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                paddingBottom: '8px',
+                                                                marginBottom: '-1px'
+                                                            }}
+                                                        >
+                                                            Línea de Crédito
+                                                        </button>
                                                     </div>
 
-                                                    {loadingHistory && !memberHistory[member.id] ? (
-                                                        <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>Consultando base de datos...</div>
-                                                    ) : (memberHistory[member.id] || []).length === 0 ? (
-                                                        <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>No se encontraron operaciones previas.</div>
-                                                    ) : (
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                            {(memberHistory[member.id] || []).map((entry, hIdx) => (
-                                                                <div key={hIdx} style={{ 
-                                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-                                                                    background: hIdx === 0 ? '#fff' : 'transparent',
-                                                                    padding: '10px 16px', borderRadius: '10px',
-                                                                    border: hIdx === 0 ? '1px solid #e2e8f0' : '1px solid transparent',
-                                                                    boxShadow: hIdx === 0 ? '0 2px 4px rgba(0,0,0,0.02)' : 'none'
-                                                                }}>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                                        <div style={{ 
-                                                                            width: '32px', height: '32px', borderRadius: '8px', 
-                                                                            background: hIdx === 0 ? '#f5f3ff' : '#f1f5f9',
-                                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                                            color: hIdx === 0 ? '#8b5cf6' : '#94a3b8'
+                                                    {activeExpandedTab === 'history' ? (
+                                                        <>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                                                <div style={{ width: '4px', height: '14px', background: '#8b5cf6', borderRadius: '2px' }} />
+                                                                <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                    Historial de Operaciones
+                                                                </span>
+                                                            </div>
+
+                                                            {loadingHistory && !memberHistory[member.id] ? (
+                                                                <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>Consultando base de datos...</div>
+                                                            ) : (memberHistory[member.id] || []).length === 0 ? (
+                                                                <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>No se encontraron operaciones previas.</div>
+                                                            ) : (
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                                    {(memberHistory[member.id] || []).map((entry, hIdx) => (
+                                                                        <div key={hIdx} style={{ 
+                                                                            display: 'flex', alignItems: 'center', justifycontent: 'space-between', 
+                                                                            background: hIdx === 0 ? '#fff' : 'transparent',
+                                                                            padding: '10px 16px', borderRadius: '10px',
+                                                                            border: hIdx === 0 ? '1px solid #e2e8f0' : '1px solid transparent',
+                                                                            boxShadow: hIdx === 0 ? '0 2px 4px rgba(0,0,0,0.02)' : 'none',
+                                                                            display: 'flex', justifyContent: 'space-between'
                                                                         }}>
-                                                                            <FileText size={14} />
+                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                                                <div style={{ 
+                                                                                    width: '32px', height: '32px', borderRadius: '8px', 
+                                                                                    background: hIdx === 0 ? '#f5f3ff' : '#f1f5f9',
+                                                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                                    color: hIdx === 0 ? '#8b5cf6' : '#94a3b8'
+                                                                                }}>
+                                                                                    <FileText size={14} />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>{entry.planName}</div>
+                                                                                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>{entry.document} • {entry.docType === '01' ? 'Factura' : 'Boleta'}</div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div style={{ textAlign: 'right' }}>
+                                                                                <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                                                                                    {(() => {
+                                                                                        const parts = entry.date.split('-');
+                                                                                        if (parts.length === 3) {
+                                                                                            const [y, m, d] = parts;
+                                                                                            return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                                                                        }
+                                                                                        return entry.date;
+                                                                                    })()}
+                                                                                </div>
+                                                                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#10b981' }}>S/ {entry.price.toFixed(2)}</div>
+                                                                            </div>
                                                                         </div>
-                                                                        <div>
-                                                                            <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>{entry.planName}</div>
-                                                                            <div style={{ fontSize: '11px', color: '#94a3b8' }}>{entry.document} • {entry.docType === '01' ? 'Factura' : 'Boleta'}</div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                                            {loadingCredit && !creditData ? (
+                                                                <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>Consultando línea de crédito en el ERP...</div>
+                                                            ) : !creditData ? (
+                                                                <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>No se pudo cargar la información.</div>
+                                                            ) : creditData.limit === 0 && !isEditingCredit ? (
+                                                                // CASO 1: Sin crédito habilitado
+                                                                <div style={{ 
+                                                                    display: 'flex', 
+                                                                    flexDirection: 'column', 
+                                                                    alignItems: 'center', 
+                                                                    padding: '24px', 
+                                                                    background: '#fff', 
+                                                                    borderRadius: '16px', 
+                                                                    border: '1px dashed #cbd5e1',
+                                                                    textAlign: 'center',
+                                                                    gap: '12px'
+                                                                }}>
+                                                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                                                                        <Lock size={20} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#334155' }}>Línea de Crédito Inactiva</div>
+                                                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Este socio no cuenta con una línea de crédito autorizada en el ERP.</div>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setNewCreditLimit('200'); // Valor inicial recomendado
+                                                                            setIsEditingCredit(true);
+                                                                        }}
+                                                                        style={{
+                                                                            padding: '8px 16px',
+                                                                            borderRadius: '10px',
+                                                                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                                                            color: '#fff',
+                                                                            border: 'none',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: 800,
+                                                                            cursor: 'pointer',
+                                                                            boxShadow: '0 4px 6px -1px rgba(59,130,246,0.2)'
+                                                                        }}
+                                                                    >
+                                                                        Activar Línea de Crédito
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                // CASO 2: Con crédito habilitado (o en edición)
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                                                    
+                                                                    {/* KPIs de Crédito */}
+                                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
+                                                                        <div style={{ background: '#fff', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                                                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Límite Autorizado</span>
+                                                                            {isEditingCredit ? (
+                                                                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
+                                                                                    <span style={{ fontSize: '13px', fontWeight: 700 }}>S/</span>
+                                                                                    <input 
+                                                                                        type="number"
+                                                                                        style={{ width: '70px', padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}
+                                                                                        value={newCreditLimit}
+                                                                                        onChange={(e) => setNewCreditLimit(e.target.value)}
+                                                                                    />
+                                                                                    <button 
+                                                                                        onClick={() => handleSaveCreditLimit(member.id)}
+                                                                                        style={{ background: '#ecfdf5', color: '#10b981', border: 'none', borderRadius: '6px', padding: '4px 6px', cursor: 'pointer', fontSize: '10px', fontWeight: 750 }}
+                                                                                    >
+                                                                                        Guardar
+                                                                                    </button>
+                                                                                    <button 
+                                                                                        onClick={() => setIsEditingCredit(false)}
+                                                                                        style={{ background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer' }}
+                                                                                    >
+                                                                                        <X size={12} />
+                                                                                    </button>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                                                                    <span style={{ fontSize: '16px', fontWeight: 900, color: '#1e293b' }}>S/ {creditData.limit.toFixed(2)}</span>
+                                                                                    <button 
+                                                                                        onClick={() => setIsEditingCredit(true)}
+                                                                                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', borderRadius: '4px' }}
+                                                                                        title="Editar límite"
+                                                                                    >
+                                                                                        <Edit3 size={12} />
+                                                                                    </button>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        <div style={{ background: '#fff', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                                                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Deuda Total</span>
+                                                                            <div style={{ fontSize: '16px', fontWeight: 900, color: creditData.debt > 0 ? '#ef4444' : '#1e293b', marginTop: '2px' }}>
+                                                                                S/ {creditData.debt.toFixed(2)}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div style={{ background: '#fff', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                                                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Crédito Disponible</span>
+                                                                            <div style={{ fontSize: '16px', fontWeight: 900, color: creditData.available > 0 ? '#10b981' : '#ef4444', marginTop: '2px' }}>
+                                                                                S/ {creditData.available.toFixed(2)}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div style={{ textAlign: 'right' }}>
-                                                                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
-                                                                            {(() => {
-                                                                                const parts = entry.date.split('-');
-                                                                                if (parts.length === 3) {
-                                                                                    const [y, m, d] = parts;
-                                                                                    return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                                                                                }
-                                                                                return entry.date;
-                                                                            })()}
+
+                                                                    {/* Tabla de Documentos de Crédito Pendientes */}
+                                                                    <div>
+                                                                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>
+                                                                            Comprobantes Pendientes de Pago
                                                                         </div>
-                                                                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#10b981' }}>S/ {entry.price.toFixed(2)}</div>
+                                                                        
+                                                                        {creditData.pendingInvoices.length === 0 ? (
+                                                                            <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>
+                                                                                Este socio no tiene cuentas pendientes de pago.
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
+                                                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left', minWidth: '400px' }}>
+                                                                                    <thead>
+                                                                                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                                                                            <th style={{ padding: '8px 12px', fontWeight: 700, color: '#475569' }}>Fecha</th>
+                                                                                            <th style={{ padding: '8px 12px', fontWeight: 700, color: '#475569' }}>Documento</th>
+                                                                                            <th style={{ padding: '8px 12px', fontWeight: 700, color: '#475569', textAlign: 'right' }}>Total Original</th>
+                                                                                            <th style={{ padding: '8px 12px', fontWeight: 700, color: '#ef4444', textAlign: 'right' }}>Saldo Deudor</th>
+                                                                                            <th style={{ padding: '8px 12px', fontWeight: 700, color: '#475569', textAlign: 'center' }}>Acción</th>
+                                                                                        </tr>
+                                                                                    </thead>
+                                                                                    <tbody>
+                                                                                        {creditData.pendingInvoices.map((inv, idx) => (
+                                                                                            <tr key={idx} style={{ borderBottom: idx < creditData.pendingInvoices.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                                                                                                <td style={{ padding: '10px 12px', color: '#64748b' }}>
+                                                                                                    {inv.fecha.split('-').reverse().join('/')}
+                                                                                                    <div style={{ fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>Vence: {inv.fven.split('-').reverse().join('/')}</div>
+                                                                                                </td>
+                                                                                                <td style={{ padding: '10px 12px', fontWeight: 700, color: '#334155' }}>
+                                                                                                    {inv.cdocu === '01' ? 'Factura' : inv.cdocu === '03' ? 'Boleta' : 'Nota'}
+                                                                                                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>{inv.ndocu}</div>
+                                                                                                </td>
+                                                                                                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#475569' }}>
+                                                                                                    S/ {inv.monto.toFixed(2)}
+                                                                                                </td>
+                                                                                                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, color: '#ef4444' }}>
+                                                                                                    S/ {inv.saldo.toFixed(2)}
+                                                                                                </td>
+                                                                                                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                                                                                                    <button
+                                                                                                        onClick={() => {
+                                                                                                            setAmortizingInvoice({ ...inv, codcli: member.id });
+                                                                                                            setCollectAmount(inv.saldo.toString());
+                                                                                                            setCollectMethod('Efectivo');
+                                                                                                        }}
+                                                                                                        style={{
+                                                                                                            background: '#ecfdf5',
+                                                                                                            color: '#10b981',
+                                                                                                            border: 'none',
+                                                                                                            borderRadius: '8px',
+                                                                                                            padding: '6px 10px',
+                                                                                                            fontSize: '11px',
+                                                                                                            fontWeight: 800,
+                                                                                                            cursor: 'pointer',
+                                                                                                            display: 'inline-flex',
+                                                                                                            alignItems: 'center',
+                                                                                                            gap: '4px'
+                                                                                                        }}
+                                                                                                    >
+                                                                                                        <CreditCard size={12} /> Amortizar
+                                                                                                    </button>
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        ))}
+                                                                                    </tbody>
+                                                                                </table>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
-                                                            ))}
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -879,6 +1200,138 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                     }
                 }}
             />
+
+            {/* MODAL DE AMORTIZACIÓN / PAGO DE DEUDA */}
+            <AnimatePresence>
+                {amortizingInvoice && (
+                    <div style={modalOverlayStyle}>
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }} 
+                            animate={{ scale: 1, opacity: 1 }} 
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            style={{ 
+                                background: '#fff', 
+                                padding: '24px', 
+                                borderRadius: '20px', 
+                                width: '90%', 
+                                maxWidth: '400px', 
+                                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.15)',
+                                border: '1px solid #f1f5f9',
+                                position: 'relative',
+                                zIndex: 1100
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <CreditCard size={18} />
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', margin: 0 }}>Amortizar Deuda</h3>
+                                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>{amortizingInvoice.cdocu}-{amortizingInvoice.ndocu}</span>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setAmortizingInvoice(null)} 
+                                    style={{ background: '#f8fafc', border: 'none', color: '#94a3b8', borderRadius: '8px', padding: '6px', cursor: 'pointer' }}
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div>
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                                        Saldo Pendiente
+                                    </span>
+                                    <div style={{ fontSize: '20px', fontWeight: 900, color: '#ef4444' }}>
+                                        S/ {amortizingInvoice.saldo.toFixed(2)}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                                        Monto a Pagar (S/)
+                                    </span>
+                                    <input 
+                                        type="number" 
+                                        style={{ 
+                                            width: '100%', 
+                                            padding: '10px 14px', 
+                                            borderRadius: '10px', 
+                                            border: '1px solid #e2e8f0', 
+                                            fontSize: '14px', 
+                                            fontWeight: 700,
+                                            color: '#1e293b',
+                                            outline: 'none'
+                                        }}
+                                        value={collectAmount}
+                                        onChange={(e) => setCollectAmount(e.target.value)}
+                                        max={amortizingInvoice.saldo}
+                                        min={0.1}
+                                        step="0.01"
+                                    />
+                                </div>
+
+                                <div>
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                                        Método de Cobro
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        {['Efectivo', 'Tarjeta'].map((method) => (
+                                            <button
+                                                key={method}
+                                                type="button"
+                                                onClick={() => setCollectMethod(method)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '10px',
+                                                    borderRadius: '10px',
+                                                    border: '1px solid',
+                                                    borderColor: collectMethod === method ? '#3b82f6' : '#e2e8f0',
+                                                    background: collectMethod === method ? '#eff6ff' : '#fff',
+                                                    color: collectMethod === method ? '#3b82f6' : '#475569',
+                                                    fontSize: '12px',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {method}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    disabled={isSubmittingCollection || !collectAmount || parseFloat(collectAmount) <= 0 || parseFloat(collectAmount) > amortizingInvoice.saldo}
+                                    onClick={() => handleCollectDebt(amortizingInvoice.codcli)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: '12px',
+                                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        fontSize: '13px',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                        marginTop: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px',
+                                        opacity: (isSubmittingCollection || !collectAmount || parseFloat(collectAmount) <= 0 || parseFloat(collectAmount) > amortizingInvoice.saldo) ? 0.6 : 1
+                                    }}
+                                >
+                                    {isSubmittingCollection ? 'Procesando...' : 'Registrar Amortización'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* TOAST NOTIFICATION */}
 
