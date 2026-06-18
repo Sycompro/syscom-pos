@@ -11,6 +11,9 @@ export default function Sidebar({
     const [isCustomersExpanded, setIsCustomersExpanded] = useState(
         activeTab === 'customers' || activeTab === 'birthdays'
     );
+    const [isFinanceExpanded, setIsFinanceExpanded] = useState(
+        activeTab === 'expenses' || activeTab === 'general-cash'
+    );
 
     const isExpanded = isMobileMode ? true : isExpandedInternal;
 
@@ -19,6 +22,12 @@ export default function Sidebar({
             setIsCustomersExpanded(true);
         } else {
             setIsCustomersExpanded(false);
+        }
+
+        if (activeTab === 'expenses' || activeTab === 'general-cash') {
+            setIsFinanceExpanded(true);
+        } else {
+            setIsFinanceExpanded(false);
         }
     }, [activeTab]);
 
@@ -232,6 +241,76 @@ export default function Sidebar({
                 )}
 
                 <div 
+                    onClick={() => setIsFinanceExpanded(prev => !prev)}
+                    style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash')}
+                    title={isExpanded ? "" : "Finanzas"}
+                >
+                    <Banknote size={18} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Finanzas</span>}
+                </div>
+
+                {/* Subapartados de Finanzas (Desplegables dinámicos y sin iconos) */}
+                {isExpanded && isFinanceExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                        {/* Subapartado 1: Egresos */}
+                        <div 
+                            onClick={() => setActiveTab('expenses')}
+                            style={{
+                                width: 'calc(100% - 16px)',
+                                height: '34px',
+                                background: activeTab === 'expenses' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '36px',
+                                color: activeTab === 'expenses' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: activeTab === 'expenses' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Egresos
+                            </span>
+                        </div>
+
+                        {/* Subapartado 2: Caja General */}
+                        <div 
+                            onClick={() => setActiveTab('general-cash')}
+                            style={{
+                                width: 'calc(100% - 16px)',
+                                height: '34px',
+                                background: activeTab === 'general-cash' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '36px',
+                                color: activeTab === 'general-cash' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: activeTab === 'general-cash' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Caja General
+                            </span>
+                        </div>
+                    </div>
+                )}
+
+                <div 
                     onClick={() => setActiveTab('whatsapp')}
                     style={getNavBtnStyle(activeTab === 'whatsapp')}
                     title={isExpanded ? "" : "Configuración de WhatsApp"}
@@ -259,10 +338,6 @@ export default function Sidebar({
                 <button onClick={onOpenHistory} title={isExpanded ? "" : "Historial de Ventas"} style={getBottomBtnStyle()}>
                     <History size={15} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Historial</span>}
-                </button>
-                <button onClick={() => setActiveTab('expenses')} title={isExpanded ? "" : "Registrar Gasto"} style={getBottomBtnStyle()}>
-                    <Banknote size={15} style={{ flexShrink: 0 }} />
-                    {isExpanded && <span style={labelTextStyle}>Registrar Gasto</span>}
                 </button>
                 <button onClick={onOpenCloseCash} title={isExpanded ? "" : "Cerrar Caja"} style={getBottomBtnStyle()}>
                     <Lock size={15} style={{ flexShrink: 0 }} />

@@ -30,6 +30,7 @@ import MembershipsView from '@/components/pos/MembershipsView';
 import WhatsappView from '@/components/pos/WhatsappView';
 import CustomersView from '@/components/pos/CustomersView';
 import PromotionsView from '@/components/pos/PromotionsView';
+import GeneralCashView from '@/components/pos/GeneralCashView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
@@ -232,6 +233,9 @@ export default function POSPage() {
     const [showMobileCart, setShowMobileCart] = useState(false);
     const [showMobilePhoneModal, setShowMobilePhoneModal] = useState(false);
     const [showMobileBirthdateModal, setShowMobileBirthdateModal] = useState(false);
+    const [inspectCashId, setInspectCashId] = useState(null);
+    const [showInspectCashModal, setShowInspectCashModal] = useState(false);
+    const [inspectCashReadOnly, setInspectCashReadOnly] = useState(true);
 
     useEffect(() => {
         setMounted(true);
@@ -994,6 +998,8 @@ export default function POSPage() {
                                  activeTab === 'promotions' ? 'Promociones' : 
                                  activeTab === 'customers' ? 'Clientes' : 
                                  activeTab === 'birthdays' ? 'Cumpleaños' : 
+                                 activeTab === 'expenses' ? 'Egresos' :
+                                 activeTab === 'general-cash' ? 'Caja General' :
                                  activeTab === 'whatsapp' ? 'Config WhatsApp' : 'POS'}
                             </span>
                         </div>
@@ -1556,6 +1562,21 @@ export default function POSPage() {
                             <WhatsappView useScreenKeyboards={useScreenKeyboards} />
                         </motion.div>
                     )}
+
+                    {activeTab === 'general-cash' && (
+                        <motion.div
+                            key="general-cash" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
+                        >
+                            <GeneralCashView 
+                                onInspectCash={(id, isClosed) => {
+                                    setInspectCashId(id);
+                                    setInspectCashReadOnly(isClosed);
+                                    setShowInspectCashModal(true);
+                                }}
+                            />
+                        </motion.div>
+                    )}
                 </AnimatePresence>
             </div>
 
@@ -1614,6 +1635,19 @@ export default function POSPage() {
                 onConfirm={(report) => {
                     handlePrintCashReport(report);
                     setTimeout(() => signOut(), 5000); // Dar más tiempo a imprimir antes de salir
+                }}
+            />
+            <CloseCashModal
+                isOpen={showInspectCashModal}
+                onClose={() => {
+                    setShowInspectCashModal(false);
+                    setInspectCashId(null);
+                }}
+                idApeCaj={inspectCashId}
+                readOnly={inspectCashReadOnly}
+                onConfirm={() => {
+                    setShowInspectCashModal(false);
+                    setInspectCashId(null);
                 }}
             />
             <SettingsModal 

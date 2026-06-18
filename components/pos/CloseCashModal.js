@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm }) {
+export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm, readOnly = false }) {
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isClosing, setIsClosing] = useState(false);
@@ -234,13 +234,15 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
                     {!isSuccess ? (
                         <>
                             <button onClick={onClose} style={cancelBtnStyle}>Cerrar Vista</button>
-                            <button 
-                                onClick={() => setShowConfirm(true)} 
-                                disabled={isClosing}
-                                style={{ ...confirmBtnStyle, background: isClosing ? '#94a3b8' : '#ef4444' }}
-                            >
-                                {isClosing ? 'Cerrando...' : 'Cerrar caja'}
-                            </button>
+                            {!readOnly && (
+                                <button 
+                                    onClick={() => setShowConfirm(true)} 
+                                    disabled={isClosing}
+                                    style={{ ...confirmBtnStyle, background: isClosing ? '#94a3b8' : '#ef4444' }}
+                                >
+                                    {isClosing ? 'Cerrando...' : 'Cerrar caja'}
+                                </button>
+                            )}
                         </>
                     ) : (
                         <>
