@@ -33,6 +33,7 @@ import PromotionsView from '@/components/pos/PromotionsView';
 import GeneralCashView from '@/components/pos/GeneralCashView';
 import ExpensesView from '@/components/pos/ExpensesView';
 import ProductsView from '@/components/pos/ProductsView';
+import DashboardView from '@/components/pos/DashboardView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
@@ -998,6 +999,7 @@ export default function POSPage() {
                             </button>
                             <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 {activeTab === 'pos' ? 'Punto de Venta' : 
+                                 activeTab === 'dashboard' ? 'Dashboard' : 
                                  activeTab === 'memberships' ? 'Membresías' : 
                                  activeTab === 'promotions' ? 'Promociones' : 
                                  activeTab === 'customers' ? 'Clientes' : 
@@ -1600,6 +1602,15 @@ export default function POSPage() {
                             style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
                         >
                             <ProductsView />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'dashboard' && (
+                        <motion.div
+                            key="dashboard" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
+                        >
+                            <DashboardView />
                         </motion.div>
                     )}
                 </AnimatePresence>

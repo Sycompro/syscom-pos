@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp } from 'lucide-react';
 
 export default function Sidebar({ 
     onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, 
@@ -150,6 +150,15 @@ export default function Sidebar({
                 >
                     <LayoutGrid size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Punto de Venta</span>}
+                </div>
+                
+                <div 
+                    onClick={() => setActiveTab('dashboard')}
+                    style={getNavBtnStyle(activeTab === 'dashboard')}
+                    title={isExpanded ? "" : "Dashboard"}
+                >
+                    <TrendingUp size={18} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Dashboard</span>}
                 </div>
                 
                 <div 
