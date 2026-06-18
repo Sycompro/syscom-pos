@@ -262,11 +262,13 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
             {/* Header del Módulo */}
             <div style={headerContainerStyle}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <h2 style={titleStyle}>{activeTab === 'customers' ? 'Gestión de Clientes' : 'Cumpleaños'}</h2>
+                    <h2 style={titleStyle}>
+                        {activeTab === 'customers' ? 'Gestión de Clientes' : 
+                         activeTab === 'credits' ? 'Gestión de Créditos' : 'Cumpleaños'}
+                    </h2>
                     <p style={subtitleStyle}>
-                        {activeTab === 'customers' 
-                            ? 'Lista y filtros en tiempo real conectados con Navasoft ERP' 
-                            : 'Socios que cumplen años este mes'}
+                        {activeTab === 'customers' ? 'Lista y filtros en tiempo real conectados con Navasoft ERP' : 
+                         activeTab === 'credits' ? 'Control de límites de crédito y saldos deudores de clientes' : 'Socios que cumplen años este mes'}
                     </p>
                 </div>
 
