@@ -38,66 +38,96 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    pointerEvents: 'none'
+                    pointerEvents: 'none',
+                    padding: '16px'
                 }}
             >
+                {/* Backdrop sutil */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                        position: 'fixed',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(15, 23, 42, 0.08)',
+                        backdropFilter: 'blur(4px)',
+                        WebkitBackdropFilter: 'blur(4px)',
+                        pointerEvents: 'auto',
+                        zIndex: -1
+                    }}
+                    onClick={onClose}
+                />
+
                 <motion.div 
                     ref={containerRef}
-                    initial={{ opacity: 0, scale: 0.9, y: 15, filter: 'blur(10px)' }}
+                    initial={{ opacity: 0, scale: 0.92, y: 20, filter: 'blur(10px)' }}
                     animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, scale: 0.9, y: 15, filter: 'blur(10px)' }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                    exit={{ opacity: 0, scale: 0.92, y: 20, filter: 'blur(10px)' }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 320 }}
                     onClick={(e) => e.stopPropagation()}
                     style={{
                         pointerEvents: 'auto',
-                        width: '260px',
-                        // ESTILO AZULADO CRISTALIZADO (Slate Glass UI)
-                        background: 'rgba(15, 23, 42, 0.75)', // Un poco más sólido para contraste
-                        backdropFilter: 'blur(30px) saturate(180%)',
-                        WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-                        borderRadius: '32px',
-                        // SOMBRA LIMPIA Y PROFUNDA (Multi-capa)
+                        width: '100%',
+                        maxWidth: '290px',
+                        // DISEÑO PREMIUM CLARO (Pure Porcelain Glass UI)
+                        background: 'rgba(255, 255, 255, 0.92)',
+                        backdropFilter: 'blur(20px) saturate(190%)',
+                        WebkitBackdropFilter: 'blur(20px) saturate(190%)',
+                        borderRadius: '28px',
+                        border: '1px solid rgba(255, 255, 255, 0.8)',
+                        // SOMBRAS SUAVES Y ELEGANTES MULTI-CAPA
                         boxShadow: `
-                            0 4px 6px -1px rgba(0, 0, 0, 0.1), 
-                            0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                            0 20px 25px -5px rgba(0, 0, 0, 0.1),
-                            0 30px 50px -10px rgba(0, 0, 0, 0.3),
-                            inset 0 0 0 1px rgba(255, 255, 255, 0.1)
+                            0 4px 6px -1px rgba(15, 23, 42, 0.03), 
+                            0 10px 20px -3px rgba(15, 23, 42, 0.05),
+                            0 20px 30px -8px rgba(15, 23, 42, 0.08),
+                            0 30px 60px -15px rgba(15, 23, 42, 0.12),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.9)
                         `,
-                        border: 'none',
-                        padding: '16px',
+                        padding: '20px',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '16px'
+                        gap: '18px',
+                        boxSizing: 'border-box'
                     }}
                 >
-                    {/* Display Superior */}
+                    {/* Indicador superior estético (estilo iOS) */}
+                    <div style={{
+                        width: '36px',
+                        height: '4px',
+                        background: '#e2e8f0',
+                        borderRadius: '2px',
+                        alignSelf: 'center',
+                        marginBottom: '-8px',
+                        opacity: 0.8
+                    }} />
+
+                    {/* Display de Visualización */}
                     <div style={{
                         width: '100%',
                         textAlign: 'center',
-                        minHeight: '24px',
+                        minHeight: '32px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        borderBottom: '1px solid rgba(255,255,255,0.1)',
-                        paddingBottom: '10px'
+                        borderBottom: '1px solid #f1f5f9',
+                        paddingBottom: '12px'
                     }}>
                         <span style={{ 
-                            fontSize: '18px',
-                            fontWeight: 400, 
-                            color: '#ffffff', 
-                            letterSpacing: '2px',
-                            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+                            fontSize: '22px',
+                            fontWeight: 750, 
+                            color: '#0f172a', 
+                            letterSpacing: '1px'
                         }}>
-                            {value || <span style={{ color: 'rgba(255,255,255,0.4)' }}>...</span>}
+                            {value || <span style={{ color: '#cbd5e1', fontWeight: 400 }}>...</span>}
                         </span>
                     </div>
-
-                    {/* Botones Grid */}
+ 
+                    {/* Teclas numéricas */}
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '10px'
+                        gap: '12px'
                     }}>
                         {keys.map((key) => {
                             const isDel = key === 'DEL';
@@ -110,36 +140,47 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                                         else onKeyPress(key);
                                     }}
                                     style={{
-                                        height: '46px',
-                                        // Botones negros cristalizados
-                                        background: isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)',
-                                        border: 'none',
-                                        borderRadius: '50px',
-                                        fontSize: '18px',
-                                        fontWeight: 400,
-                                        color: '#ffffff',
+                                        height: '52px',
+                                        background: isDel ? 'rgba(239, 68, 68, 0.07)' : '#ffffff',
+                                        border: isDel ? 'none' : '1px solid #f1f5f9',
+                                        borderRadius: '16px',
+                                        fontSize: '20px',
+                                        fontWeight: 650,
+                                        color: isDel ? '#ef4444' : '#1e293b',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         cursor: 'pointer',
-                                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2)',
-                                        transition: 'all 0.15s ease-out',
-                                        userSelect: 'none'
+                                        boxShadow: isDel ? 'none' : '0 2px 4px rgba(15, 23, 42, 0.02)',
+                                        transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        userSelect: 'none',
+                                        outline: 'none',
+                                        WebkitTapHighlightColor: 'transparent'
                                     }}
+                                    // Eventos de animación de clic para PC
                                     onMouseDown={e => {
-                                        e.currentTarget.style.transform = 'scale(0.85)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.6)' : 'rgba(255, 255, 255, 0.4)';
+                                        e.currentTarget.style.transform = 'scale(0.92)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.15)' : '#f8fafc';
                                     }}
                                     onMouseUp={e => {
                                         e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.07)' : '#ffffff';
                                     }}
                                     onMouseLeave={e => {
                                         e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.07)' : '#ffffff';
+                                    }}
+                                    // Soporte Táctil Inmediato para Móviles
+                                    onTouchStart={e => {
+                                        e.currentTarget.style.transform = 'scale(0.92)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.15)' : '#f8fafc';
+                                    }}
+                                    onTouchEnd={e => {
+                                        e.currentTarget.style.transform = 'scale(1)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.07)' : '#ffffff';
                                     }}
                                 >
-                                    {isDel ? <Delete size={20} strokeWidth={2} /> : key}
+                                    {isDel ? <Delete size={22} strokeWidth={2.2} /> : key}
                                 </button>
                             );
                         })}
@@ -153,36 +194,46 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         }}
                         style={{
                             width: '100%',
-                            height: '42px',
-                            background: 'rgba(255, 255, 255, 0.25)',
+                            height: '46px',
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                             color: '#ffffff',
                             border: 'none',
-                            borderRadius: '50px',
+                            borderRadius: '16px',
                             fontSize: '14px',
-                            fontWeight: 500,
+                            fontWeight: 700,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '6px',
-                            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.3)',
-                            transition: 'all 0.15s ease-out',
-                            userSelect: 'none'
+                            gap: '8px',
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)',
+                            transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+                            userSelect: 'none',
+                            outline: 'none',
+                            WebkitTapHighlightColor: 'transparent'
                         }}
                         onMouseDown={e => {
-                            e.currentTarget.style.transform = 'scale(0.95)';
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)';
+                            e.currentTarget.style.transform = 'scale(0.97)';
+                            e.currentTarget.style.filter = 'brightness(0.95)';
                         }}
                         onMouseUp={e => {
                             e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                            e.currentTarget.style.filter = 'none';
                         }}
                         onMouseLeave={e => {
                             e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                            e.currentTarget.style.filter = 'none';
+                        }}
+                        onTouchStart={e => {
+                            e.currentTarget.style.transform = 'scale(0.97)';
+                            e.currentTarget.style.filter = 'brightness(0.95)';
+                        }}
+                        onTouchEnd={e => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.filter = 'none';
                         }}
                     >
-                        <Check size={16} strokeWidth={2.5} />
+                        <Check size={18} strokeWidth={2.5} />
                         Aceptar
                     </button>
                 </motion.div>
