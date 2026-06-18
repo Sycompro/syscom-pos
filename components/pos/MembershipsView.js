@@ -31,6 +31,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
     const [isExtension, setIsExtension] = useState(false);
     const [expandedMember, setExpandedMember] = useState(null);
     const [activeDropdown, setActiveDropdown] = useState(null);
+    const [windowWidth, setWindowWidth] = useState(1280);
     
     // Estados para teclados en pantalla
     const [showSearchKeyboard, setShowSearchKeyboard] = useState(false);
@@ -74,6 +75,17 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
             return () => document.removeEventListener('click', handleCloseDropdown);
         }
     }, [activeDropdown]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setWindowWidth(window.innerWidth);
+            const handleResize = () => setWindowWidth(window.innerWidth);
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+        }
+    }, []);
+
+    const isMobile = windowWidth < 768;
 
     const fetchMemberships = async () => {
         setLoading(true);
@@ -221,16 +233,18 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
 
                     {/* Tabla de Resultados */}
                     <div style={tableContainerStyle}>
-                        <div style={tableHeaderStyle}>
-                            <span style={{ flex: 2 }}>Miembro</span>
-                            <span style={{ flex: 1.5 }}>Sede</span>
-                            <span style={{ flex: 1.5 }}>Plan</span>
-                            <span style={{ flex: 1 }}>Inicio</span>
-                            <span style={{ flex: 1.2 }}>Vencimiento</span>
-                            <span style={{ flex: 1 }}>Estado</span>
-                            <span style={{ flex: 1 }}>Precio</span>
-                            <span style={{ flex: 1 }}>Acciones</span>
-                        </div>
+                        {!isMobile && (
+                            <div style={tableHeaderStyle}>
+                                <span style={{ flex: 2 }}>Miembro</span>
+                                <span style={{ flex: 1.5 }}>Sede</span>
+                                <span style={{ flex: 1.5 }}>Plan</span>
+                                <span style={{ flex: 1 }}>Inicio</span>
+                                <span style={{ flex: 1.2 }}>Vencimiento</span>
+                                <span style={{ flex: 1 }}>Estado</span>
+                                <span style={{ flex: 1 }}>Precio</span>
+                                <span style={{ flex: 1 }}>Acciones</span>
+                            </div>
+                        )}
 
                         {/* Contenedor Scrollable para el Cuerpo de la Tabla */}
                         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }} className="no-scrollbar">
@@ -241,286 +255,540 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                             ) : (
                                 (members || []).map((member, idx) => (
                                     <div key={member.id}>
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: idx * 0.05 }}
-                                        style={{
-                                            ...tableRowStyle,
-                                            borderLeft: expandedMember === member.id ? '4px solid #3b82f6' : '4px solid transparent',
-                                            background: expandedMember === member.id ? '#f8fafc' : '#fff'
-                                        }}
-                                    >
-                                        {/* Miembro */}
-                                        <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <div style={avatarStyle}>{member.name.charAt(0)}</div>
-                                            <div>
-                                                <div style={memberNameStyle}>{member.name}</div>
-                                                <div style={memberPhoneStyle}>{member.phone}</div>
-                                            </div>
-                                        </div>
+                                    {isMobile ? (
+                                        // DISEÑO RESPONSIVO MÓVIL (Tarjeta Premium Porcelain UI)
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                padding: '16px',
+                                                borderBottom: '1px solid #f1f5f9',
+                                                background: expandedMember === member.id ? '#f8fafc' : '#ffffff',
+                                                gap: '12px',
+                                                position: 'relative',
+                                                borderLeft: expandedMember === member.id ? '4px solid #3b82f6' : '4px solid transparent',
+                                            }}
+                                        >
+                                            {/* Fila Superior: Info Principal y Acciones */}
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                    <div style={avatarStyle}>{member.name.charAt(0)}</div>
+                                                    <div>
+                                                        <div style={{ ...memberNameStyle, fontSize: '13px', lineHeight: '1.2' }}>{member.name}</div>
+                                                        <div style={{ ...memberPhoneStyle, marginTop: '2px' }}>{member.phone}</div>
+                                                    </div>
+                                                </div>
 
-                                        {/* Sede */}
-                                        <div style={{ flex: 1.5 }}>
-                                            <div style={sedeNameStyle}><MapPin size={14} /> {member.sede}</div>
-                                            <div style={sedeAddrStyle}>{member.address}</div>
-                                        </div>
-
-                                        {/* Plan */}
-                                        <div style={{ flex: 1.5, color: '#475569', fontSize: '13px' }}>
-                                            {member.planName || 'Sin plan registrado'}
-                                        </div>
-
-                                        {/* Inicio */}
-                                        <div style={{ flex: 1, color: '#64748b', fontSize: '13px' }}>
-                                            {member.startDate ? (() => {
-                                                const [y, m, d] = member.startDate.split('-');
-                                                return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                                            })() : '-'}
-                                        </div>
-
-                                        {/* Vencimiento */}
-                                        <div style={{ flex: 1.2 }}>
-                                            <div style={getExpStyle(member.status)}>
-                                                {member.endDate && member.endDate !== '1900-01-01' ? (() => {
-                                                    const [y, m, d] = member.endDate.split('-');
-                                                    return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                                                })() : 'Sin fecha'}
-                                            </div>
-                                            <div style={daysLeftStyle}>{member.daysLeft > 0 ? `${member.daysLeft}d restantes` : member.daysLeft < 0 ? `Vencido hace ${Math.abs(member.daysLeft)}d` : ''}</div>
-                                        </div>
-
-                                        {/* Estado */}
-                                        <div style={{ flex: 1 }}>
-                                            <span style={getStatusBadgeStyle(member.status)}>{member.status}</span>
-                                        </div>
-
-                                        {/* Precio */}
-                                        <div style={{ flex: 1, fontWeight: '600', color: '#1e293b' }}>
-                                            {member.price ? `S/${parseFloat(member.price).toFixed(2)}` : '-'}
-                                        </div>
-
-                                        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setActiveDropdown(activeDropdown === member.id ? null : member.id);
-                                                }}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    color: '#94a3b8',
-                                                    cursor: 'pointer',
-                                                    padding: '6px',
-                                                    borderRadius: '8px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    transition: 'all 0.2s',
-                                                    outline: 'none'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = '#f1f5f9';
-                                                    e.currentTarget.style.color = '#475569';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = 'none';
-                                                    e.currentTarget.style.color = '#94a3b8';
-                                                }}
-                                            >
-                                                <MoreVertical size={20} />
-                                            </button>
-
-                                            <AnimatePresence>
-                                                {activeDropdown === member.id && (
-                                                    <motion.div 
-                                                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                        transition={{ duration: 0.15 }}
+                                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setActiveDropdown(activeDropdown === member.id ? null : member.id);
+                                                        }}
                                                         style={{
-                                                            position: 'absolute',
-                                                            top: '100%',
-                                                            right: 0,
-                                                            background: '#ffffff',
-                                                            borderRadius: '12px',
+                                                            background: '#f8fafc',
                                                             border: '1px solid #e2e8f0',
-                                                            boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04)',
-                                                            zIndex: 100,
-                                                            minWidth: '150px',
-                                                            padding: '6px',
+                                                            color: '#94a3b8',
+                                                            cursor: 'pointer',
+                                                            padding: '8px',
+                                                            borderRadius: '10px',
                                                             display: 'flex',
-                                                            flexDirection: 'column',
-                                                            gap: '2px',
-                                                            pointerEvents: 'auto'
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            transition: 'all 0.2s',
+                                                            outline: 'none',
+                                                            WebkitTapHighlightColor: 'transparent'
                                                         }}
                                                     >
-                                                        {/* Opción Renovar */}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setActiveDropdown(null);
-                                                                if (member.status !== 'Vencido') {
-                                                                    setToast({ show: true, message: 'Esta membresía aún está vigente. Use "Extender" para añadir tiempo.', type: 'error' });
-                                                                    return;
-                                                                }
-                                                                setIsExtension(false);
-                                                                setRenewingMember(member);
-                                                            }}
+                                                        <MoreVertical size={16} />
+                                                    </button>
+
+                                                    <AnimatePresence>
+                                                        {activeDropdown === member.id && (
+                                                            <motion.div 
+                                                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                                transition={{ duration: 0.15 }}
+                                                                style={{
+                                                                    position: 'absolute',
+                                                                    top: '100%',
+                                                                    right: 0,
+                                                                    background: '#ffffff',
+                                                                    borderRadius: '12px',
+                                                                    border: '1px solid #e2e8f0',
+                                                                    boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04)',
+                                                                    zIndex: 100,
+                                                                    minWidth: '150px',
+                                                                    padding: '6px',
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    gap: '2px',
+                                                                    pointerEvents: 'auto'
+                                                                }}
+                                                            >
+                                                                {/* Opción Renovar */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDropdown(null);
+                                                                        if (member.status !== 'Vencido') {
+                                                                            setToast({ show: true, message: 'Esta membresía aún está vigente. Use "Extender" para añadir tiempo.', type: 'error' });
+                                                                            return;
+                                                                        }
+                                                                        setIsExtension(false);
+                                                                        setRenewingMember(member);
+                                                                    }}
+                                                                    style={{
+                                                                        ...dropdownItemStyle,
+                                                                        opacity: member.status === 'Vencido' ? 1 : 0.6
+                                                                    }}
+                                                                >
+                                                                    <RefreshCw size={14} style={{ color: member.status === 'Vencido' ? '#3b82f6' : '#94a3b8' }} />
+                                                                    <span>Renovar</span>
+                                                                </button>
+
+                                                                {/* Opción Extender */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDropdown(null);
+                                                                        if (member.status === 'Vencido') {
+                                                                            setToast({ show: true, message: 'Esta membresía ya expiró. Use "Renovar" para iniciar un nuevo periodo.', type: 'error' });
+                                                                            return;
+                                                                        }
+                                                                        setIsExtension(true);
+                                                                        setRenewingMember(member);
+                                                                    }}
+                                                                    style={{
+                                                                        ...dropdownItemStyle,
+                                                                        opacity: (member.status === 'Activo' || member.status === 'Por vencer') ? 1 : 0.6
+                                                                    }}
+                                                                >
+                                                                    <Calendar size={14} style={{ color: (member.status === 'Activo' || member.status === 'Por vencer') ? '#10b981' : '#94a3b8' }} />
+                                                                    <span>Extender</span>
+                                                                </button>
+
+                                                                {/* Opción WhatsApp */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDropdown(null);
+                                                                        setSelectedMemberWA(member);
+                                                                        setWaForceCategory(null);
+                                                                        setShowWAModal(true);
+                                                                    }}
+                                                                    style={dropdownItemStyle}
+                                                                >
+                                                                    <MessageCircle size={14} style={{ color: '#10b981' }} />
+                                                                    <span>WhatsApp</span>
+                                                                </button>
+
+                                                                {/* Opción Historial */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDropdown(null);
+                                                                        fetchHistory(member);
+                                                                    }}
+                                                                    style={{
+                                                                        ...dropdownItemStyle,
+                                                                        opacity: (member.historyCount > 1) ? 1 : 0.6
+                                                                    }}
+                                                                >
+                                                                    <Clock size={14} style={{ color: '#8b5cf6' }} />
+                                                                    <span>Historial</span>
+                                                                </button>
+
+                                                                {/* Opción Editar Perfil */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDropdown(null);
+                                                                        setEditingMember({
+                                                                            id: member.id,
+                                                                            nomcli: member.name,
+                                                                            celcli: member.phone,
+                                                                            email: member.email || '',
+                                                                            direccion: member.address || '',
+                                                                            fecnac: member.birthDate || ''
+                                                                        });
+                                                                    }}
+                                                                    style={dropdownItemStyle}
+                                                                >
+                                                                    <User size={14} style={{ color: '#3b82f6' }} />
+                                                                    <span>Editar Perfil</span>
+                                                                </button>
+
+                                                                <div style={{ height: '1px', background: '#f1f5f9', margin: '4px 6px' }} />
+
+                                                                {/* Opción Eliminar */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDropdown(null);
+                                                                    }}
+                                                                    style={{
+                                                                        ...dropdownItemStyle,
+                                                                        color: '#ef4444'
+                                                                    }}
+                                                                >
+                                                                    <Trash2 size={14} style={{ color: '#fca5a5' }} />
+                                                                    <span>Eliminar</span>
+                                                                </button>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            </div>
+
+                                            {/* Fila Media: Plan y Sede */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: '#f8fafc', padding: '10px 12px', borderRadius: '12px' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Plan contratado</div>
+                                                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginTop: '2px' }}>{member.planName || 'Sin plan'}</div>
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sede</div>
+                                                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                        <MapPin size={12} color="#3b82f6" /> {member.sede}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Fila Inferior: Fechas, Estado y Días Restantes */}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 800 }}>VIGENCIA</span>
+                                                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', marginTop: '2px' }}>
+                                                        {member.startDate ? (() => {
+                                                            const [y, m, d] = member.startDate.split('-');
+                                                            return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                                                        })() : '-'} 
+                                                        {' → '}
+                                                        <span style={getExpStyle(member.status)}>
+                                                            {member.endDate && member.endDate !== '1900-01-01' ? (() => {
+                                                                const [y, m, d] = member.endDate.split('-');
+                                                                return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                                            })() : 'Sin fecha'}
+                                                        </span>
+                                                    </span>
+                                                </div>
+
+                                                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                                    <span style={getStatusBadgeStyle(member.status)}>{member.status}</span>
+                                                    <span style={{ ...daysLeftStyle, fontWeight: 750, marginTop: '3px' }}>
+                                                        {member.daysLeft > 0 ? `${member.daysLeft}d restantes` : member.daysLeft < 0 ? `Vencido hace ${Math.abs(member.daysLeft)}d` : 'Hoy vence'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Fila Inferior: Botón Historial rápido y Precio */}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '10px', marginTop: '2px' }}>
+                                                <button 
+                                                    onClick={() => fetchHistory(member)}
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        color: '#8b5cf6',
+                                                        fontSize: '11px',
+                                                        fontWeight: 800,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px',
+                                                        padding: 0
+                                                    }}
+                                                >
+                                                    <Clock size={12} /> {expandedMember === member.id ? 'Ocultar historial' : 'Ver historial'}
+                                                </button>
+                                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>
+                                                    Precio: <span style={{ color: '#2563eb' }}>{member.price ? `S/${parseFloat(member.price).toFixed(2)}` : '-'}</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ) : (
+                                        // DISEÑO ESCRITORIO ORIGINAL (Tabla Horizontal)
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            style={{
+                                                ...tableRowStyle,
+                                                borderLeft: expandedMember === member.id ? '4px solid #3b82f6' : '4px solid transparent',
+                                                background: expandedMember === member.id ? '#f8fafc' : '#fff'
+                                            }}
+                                        >
+                                            {/* Miembro */}
+                                            <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <div style={avatarStyle}>{member.name.charAt(0)}</div>
+                                                <div>
+                                                    <div style={memberNameStyle}>{member.name}</div>
+                                                    <div style={memberPhoneStyle}>{member.phone}</div>
+                                                </div>
+                                            </div>
+
+                                            {/* Sede */}
+                                            <div style={{ flex: 1.5 }}>
+                                                <div style={sedeNameStyle}><MapPin size={14} /> {member.sede}</div>
+                                                <div style={sedeAddrStyle}>{member.address}</div>
+                                            </div>
+
+                                            {/* Plan */}
+                                            <div style={{ flex: 1.5, color: '#475569', fontSize: '13px' }}>
+                                                {member.planName || 'Sin plan registrado'}
+                                            </div>
+
+                                            {/* Inicio */}
+                                            <div style={{ flex: 1, color: '#64748b', fontSize: '13px' }}>
+                                                {member.startDate ? (() => {
+                                                    const [y, m, d] = member.startDate.split('-');
+                                                    return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                                })() : '-'}
+                                            </div>
+
+                                            {/* Vencimiento */}
+                                            <div style={{ flex: 1.2 }}>
+                                                <div style={getExpStyle(member.status)}>
+                                                    {member.endDate && member.endDate !== '1900-01-01' ? (() => {
+                                                        const [y, m, d] = member.endDate.split('-');
+                                                        return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                                    })() : 'Sin fecha'}
+                                                </div>
+                                                <div style={daysLeftStyle}>{member.daysLeft > 0 ? `${member.daysLeft}d restantes` : member.daysLeft < 0 ? `Vencido hace ${Math.abs(member.daysLeft)}d` : ''}</div>
+                                            </div>
+
+                                            {/* Estado */}
+                                            <div style={{ flex: 1 }}>
+                                                <span style={getStatusBadgeStyle(member.status)}>{member.status}</span>
+                                            </div>
+
+                                            {/* Precio */}
+                                            <div style={{ flex: 1, fontWeight: '600', color: '#1e293b' }}>
+                                                {member.price ? `S/${parseFloat(member.price).toFixed(2)}` : '-'}
+                                            </div>
+
+                                            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveDropdown(activeDropdown === member.id ? null : member.id);
+                                                    }}
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        color: '#94a3b8',
+                                                        cursor: 'pointer',
+                                                        padding: '6px',
+                                                        borderRadius: '8px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        transition: 'all 0.2s',
+                                                        outline: 'none'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.background = '#f1f5f9';
+                                                        e.currentTarget.style.color = '#475569';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.background = 'none';
+                                                        e.currentTarget.style.color = '#94a3b8';
+                                                    }}
+                                                >
+                                                    <MoreVertical size={20} />
+                                                </button>
+
+                                                <AnimatePresence>
+                                                    {activeDropdown === member.id && (
+                                                        <motion.div 
+                                                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                            transition={{ duration: 0.15 }}
                                                             style={{
-                                                                ...dropdownItemStyle,
-                                                                opacity: member.status === 'Vencido' ? 1 : 0.6
-                                                            }}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.background = '#f8fafc';
-                                                                e.currentTarget.style.color = '#0f172a';
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.background = 'none';
-                                                                e.currentTarget.style.color = '#475569';
-                                                            }}
-                                                        >
-                                                            <RefreshCw size={14} style={{ color: member.status === 'Vencido' ? '#3b82f6' : '#94a3b8' }} />
-                                                            <span>Renovar</span>
-                                                        </button>
-
-                                                        {/* Opción Extender */}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setActiveDropdown(null);
-                                                                if (member.status === 'Vencido') {
-                                                                    setToast({ show: true, message: 'Esta membresía ya expiró. Use "Renovar" para iniciar un nuevo periodo.', type: 'error' });
-                                                                    return;
-                                                                }
-                                                                setIsExtension(true);
-                                                                setRenewingMember(member);
-                                                            }}
-                                                            style={{
-                                                                ...dropdownItemStyle,
-                                                                opacity: (member.status === 'Activo' || member.status === 'Por vencer') ? 1 : 0.6
-                                                            }}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.background = '#f8fafc';
-                                                                e.currentTarget.style.color = '#0f172a';
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.background = 'none';
-                                                                e.currentTarget.style.color = '#475569';
+                                                                position: 'absolute',
+                                                                top: '100%',
+                                                                right: 0,
+                                                                background: '#ffffff',
+                                                                borderRadius: '12px',
+                                                                border: '1px solid #e2e8f0',
+                                                                boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04)',
+                                                                zIndex: 100,
+                                                                minWidth: '150px',
+                                                                padding: '6px',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                gap: '2px',
+                                                                pointerEvents: 'auto'
                                                             }}
                                                         >
-                                                            <Calendar size={14} style={{ color: (member.status === 'Activo' || member.status === 'Por vencer') ? '#10b981' : '#94a3b8' }} />
-                                                            <span>Extender</span>
-                                                        </button>
+                                                            {/* Opción Renovar */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setActiveDropdown(null);
+                                                                    if (member.status !== 'Vencido') {
+                                                                        setToast({ show: true, message: 'Esta membresía aún está vigente. Use "Extender" para añadir tiempo.', type: 'error' });
+                                                                        return;
+                                                                    }
+                                                                    setIsExtension(false);
+                                                                    setRenewingMember(member);
+                                                                }}
+                                                                style={{
+                                                                    ...dropdownItemStyle,
+                                                                    opacity: member.status === 'Vencido' ? 1 : 0.6
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = '#f8fafc';
+                                                                    e.currentTarget.style.color = '#0f172a';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'none';
+                                                                    e.currentTarget.style.color = '#475569';
+                                                                }}
+                                                            >
+                                                                <RefreshCw size={14} style={{ color: member.status === 'Vencido' ? '#3b82f6' : '#94a3b8' }} />
+                                                                <span>Renovar</span>
+                                                            </button>
 
-                                                        {/* Opción WhatsApp */}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setActiveDropdown(null);
-                                                                setSelectedMemberWA(member);
-                                                                setWaForceCategory(null);
-                                                                setShowWAModal(true);
-                                                            }}
-                                                            style={dropdownItemStyle}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.background = '#f8fafc';
-                                                                e.currentTarget.style.color = '#0f172a';
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.background = 'none';
-                                                                e.currentTarget.style.color = '#475569';
-                                                            }}
-                                                        >
-                                                            <MessageCircle size={14} style={{ color: '#10b981' }} />
-                                                            <span>WhatsApp</span>
-                                                        </button>
+                                                            {/* Opción Extender */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setActiveDropdown(null);
+                                                                    if (member.status === 'Vencido') {
+                                                                        setToast({ show: true, message: 'Esta membresía ya expiró. Use "Renovar" para iniciar un nuevo periodo.', type: 'error' });
+                                                                        return;
+                                                                    }
+                                                                    setIsExtension(true);
+                                                                    setRenewingMember(member);
+                                                                }}
+                                                                style={{
+                                                                    ...dropdownItemStyle,
+                                                                    opacity: (member.status === 'Activo' || member.status === 'Por vencer') ? 1 : 0.6
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = '#f8fafc';
+                                                                    e.currentTarget.style.color = '#0f172a';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'none';
+                                                                    e.currentTarget.style.color = '#475569';
+                                                                }}
+                                                            >
+                                                                <Calendar size={14} style={{ color: (member.status === 'Activo' || member.status === 'Por vencer') ? '#10b981' : '#94a3b8' }} />
+                                                                <span>Extender</span>
+                                                            </button>
 
-                                                        {/* Opción Historial */}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setActiveDropdown(null);
-                                                                fetchHistory(member);
-                                                            }}
-                                                            style={{
-                                                                ...dropdownItemStyle,
-                                                                opacity: (member.historyCount > 1) ? 1 : 0.6
-                                                            }}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.background = '#f8fafc';
-                                                                e.currentTarget.style.color = '#0f172a';
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.background = 'none';
-                                                                e.currentTarget.style.color = '#475569';
-                                                            }}
-                                                        >
-                                                            <Clock size={14} style={{ color: '#8b5cf6' }} />
-                                                            <span>Historial</span>
-                                                        </button>
+                                                            {/* Opción WhatsApp */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setActiveDropdown(null);
+                                                                    setSelectedMemberWA(member);
+                                                                    setWaForceCategory(null);
+                                                                    setShowWAModal(true);
+                                                                }}
+                                                                style={dropdownItemStyle}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = '#f8fafc';
+                                                                    e.currentTarget.style.color = '#0f172a';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'none';
+                                                                    e.currentTarget.style.color = '#475569';
+                                                                }}
+                                                            >
+                                                                <MessageCircle size={14} style={{ color: '#10b981' }} />
+                                                                <span>WhatsApp</span>
+                                                            </button>
 
-                                                        {/* Opción Editar Perfil */}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setActiveDropdown(null);
-                                                                setEditingMember({
-                                                                    id: member.id,
-                                                                    nomcli: member.name,
-                                                                    celcli: member.phone,
-                                                                    email: member.email || '',
-                                                                    direccion: member.address || '',
-                                                                    fecnac: member.birthDate || ''
-                                                                });
-                                                            }}
-                                                            style={dropdownItemStyle}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.background = '#f8fafc';
-                                                                e.currentTarget.style.color = '#0f172a';
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.background = 'none';
-                                                                e.currentTarget.style.color = '#475569';
-                                                            }}
-                                                        >
-                                                            <User size={14} style={{ color: '#3b82f6' }} />
-                                                            <span>Editar Perfil</span>
-                                                        </button>
+                                                            {/* Opción Historial */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setActiveDropdown(null);
+                                                                    fetchHistory(member);
+                                                                }}
+                                                                style={{
+                                                                    ...dropdownItemStyle,
+                                                                    opacity: (member.historyCount > 1) ? 1 : 0.6
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = '#f8fafc';
+                                                                    e.currentTarget.style.color = '#0f172a';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'none';
+                                                                    e.currentTarget.style.color = '#475569';
+                                                                }}
+                                                            >
+                                                                <Clock size={14} style={{ color: '#8b5cf6' }} />
+                                                                <span>Historial</span>
+                                                            </button>
 
-                                                        {/* Divisor */}
-                                                        <div style={{ height: '1px', background: '#f1f5f9', margin: '4px 6px' }} />
+                                                            {/* Opción Editar Perfil */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setActiveDropdown(null);
+                                                                    setEditingMember({
+                                                                        id: member.id,
+                                                                        nomcli: member.name,
+                                                                        celcli: member.phone,
+                                                                        email: member.email || '',
+                                                                        direccion: member.address || '',
+                                                                        fecnac: member.birthDate || ''
+                                                                    });
+                                                                }}
+                                                                style={dropdownItemStyle}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = '#f8fafc';
+                                                                    e.currentTarget.style.color = '#0f172a';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'none';
+                                                                    e.currentTarget.style.color = '#475569';
+                                                                }}
+                                                            >
+                                                                <User size={14} style={{ color: '#3b82f6' }} />
+                                                                <span>Editar Perfil</span>
+                                                            </button>
 
-                                                        {/* Opción Eliminar */}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setActiveDropdown(null);
-                                                                // Lógica de eliminar (basura)
-                                                            }}
-                                                            style={{
-                                                                ...dropdownItemStyle,
-                                                                color: '#ef4444'
-                                                            }}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.background = '#fef2f2';
-                                                                e.currentTarget.style.color = '#ef4444';
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.background = 'none';
-                                                                e.currentTarget.style.color = '#ef4444';
-                                                            }}
-                                                        >
-                                                            <Trash2 size={14} style={{ color: '#fca5a5' }} />
-                                                            <span>Eliminar</span>
-                                                        </button>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
+                                                            <div style={{ height: '1px', background: '#f1f5f9', margin: '4px 6px' }} />
 
-
-                                    </motion.div>
+                                                            {/* Opción Eliminar */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setActiveDropdown(null);
+                                                                }}
+                                                                style={{
+                                                                    ...dropdownItemStyle,
+                                                                    color: '#ef4444'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = '#fef2f2';
+                                                                    e.currentTarget.style.color = '#ef4444';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'none';
+                                                                    e.currentTarget.style.color = '#ef4444';
+                                                                }}
+                                                            >
+                                                                <Trash2 size={14} style={{ color: '#fca5a5' }} />
+                                                                <span>Eliminar</span>
+                                                            </button>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        </motion.div>
+                                    )}
 
                                     {/* Panel Desplegable de Historial */}
                                     <AnimatePresence>
