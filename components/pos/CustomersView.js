@@ -1,11 +1,88 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Plus, UserPlus, ShoppingCart, Edit, MessageCircle, Mail, MapPin, Phone, Calendar, Loader2, Save, X, Users, User, RefreshCw } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Search, Plus, UserPlus, ShoppingCart, Edit, MessageCircle, Mail, MapPin, Phone, Calendar, Loader2, Save, X, Users, User, RefreshCw, Clock, CreditCard, Lock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
 
 export default function CustomersView({ activeTab = 'customers', onSelectCustomer, onOpenRegisterModal, onAlert, onQueueWhatsApp, companyName }) {
     const [customers, setCustomers] = useState([]);
+    
+    // Estados para crédito y cobros
+    const [selectedCreditCustomer, setSelectedCreditCustomer] = useState(null);
+    const [creditData, setCreditData] = useState(null);
+    const [loadingCredit, setLoadingCredit] = useState(false);
+    const [isEditingCredit, setIsEditingCredit] = useState(false);
+    const [newCreditLimit, setNewCreditLimit] = useState('');
+    const [amortizingInvoice, setAmortizingInvoice] = useState(null);
+    const [collectAmount, setCollectAmount] = useState('');
+    const [collectMethod, setCollectMethod] = useState('Efectivo');
+    const [isSubmittingCollection, setIsSubmittingCollection] = useState(false);
+
+    const fetchCreditStatus = async (codcli) => {
+        setLoadingCredit(true);
+        setCreditData(null);
+        try {
+            const res = await fetch(`/api/customers/credit-status?codcli=${codcli}`);
+            const data = await res.json();
+            if (data.success) {
+                setCreditData(data.data);
+            }
+        } catch (e) {
+            console.error('Error fetching credit status:', e);
+        } finally {
+            setLoadingCredit(false);
+        }
+    };
+
+    const handleSaveCreditLimit = async (codcli) => {
+        if (!newCreditLimit || isNaN(parseFloat(newCreditLimit))) return;
+        try {
+            const res = await fetch('/api/customers/update-credit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ codcli, limit: parseFloat(newCreditLimit) })
+            });
+            const data = await res.json();
+            if (data.success) {
+                onAlert('Éxito', 'Límite de crédito actualizado en el ERP.', 'success');
+                setIsEditingCredit(false);
+                fetchCreditStatus(codcli);
+            }
+        } catch (e) {
+            console.error('Error saving credit limit:', e);
+        }
+    };
+
+    const handleCollectDebt = async (codcli) => {
+        if (!amortizingInvoice || !collectAmount) return;
+        setIsSubmittingCollection(true);
+        try {
+            const res = await fetch('/api/sales/collect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    codcli,
+                    cdocu_ref: amortizingInvoice.cdocu,
+                    ndocu_ref: amortizingInvoice.ndocu,
+                    amount: parseFloat(collectAmount),
+                    paymentMethod: collectMethod === 'Efectivo' ? 1 : 2
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                onAlert('Éxito', `Cobro registrado. Nro Recibo: ${data.receiptNumber}`, 'success');
+                setAmortizingInvoice(null);
+                fetchCreditStatus(codcli);
+            } else {
+                onAlert('Error', data.error || 'Error al procesar el cobro.', 'error');
+            }
+        } catch (e) {
+            console.error('Error in handleCollectDebt:', e);
+            onAlert('Error', 'Fallo al procesar el cobro.', 'error');
+        } finally {
+            setIsSubmittingCollection(false);
+        }
+    };
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -251,6 +328,16 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                                                 <ShoppingCart size={13} /> <span>Asociar</span>
                                             </button>
                                             <button 
+                                                onClick={() => {
+                                                    setSelectedCreditCustomer(c);
+                                                    fetchCreditStatus(c.codcli);
+                                                }} 
+                                                style={{ ...actionBtnStyle, background: '#eff6ff', color: '#2563eb' }}
+                                                title="Ver Línea de Crédito"
+                                            >
+                                                <Clock size={13} /> <span>Crédito</span>
+                                            </button>
+                                            <button 
                                                 onClick={() => handleEditClick(c)} 
                                                 style={{ ...actionBtnStyle, background: '#f1f5f9', color: '#475569' }}
                                                 title="Editar cliente"
@@ -302,6 +389,16 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                                                             title="Asociar cliente"
                                                         >
                                                             <ShoppingCart size={13} />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setSelectedCreditCustomer(c);
+                                                                fetchCreditStatus(c.codcli);
+                                                            }} 
+                                                            style={{ ...tableActionBtnStyle, background: '#e0f2fe', color: '#0369a1' }}
+                                                            title="Ver Línea de Crédito"
+                                                        >
+                                                            <Clock size={13} />
                                                         </button>
                                                         <button 
                                                             onClick={() => handleEditClick(c)} 
@@ -538,6 +635,355 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                     setShowWAModal(false);
                 }}
             />
+
+            {/* MODAL DE LÍNEA DE CRÉDITO DEL CLIENTE */}
+            <AnimatePresence>
+                {selectedCreditCustomer && (
+                    <div style={modalOverlayStyle} onClick={() => { setSelectedCreditCustomer(null); setCreditData(null); setIsEditingCredit(false); }}>
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }} 
+                            animate={{ scale: 1, opacity: 1 }} 
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            style={{ 
+                                background: '#fff', 
+                                padding: '24px', 
+                                borderRadius: '20px', 
+                                width: '90%', 
+                                maxWidth: '500px', 
+                                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.15)',
+                                border: '1px solid #f1f5f9',
+                                position: 'relative',
+                                zIndex: 1000,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '16px'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Clock size={18} />
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', margin: 0 }}>Línea de Crédito</h3>
+                                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cliente: {selectedCreditCustomer.nomcli} ({selectedCreditCustomer.codcli})</span>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => { setSelectedCreditCustomer(null); setCreditData(null); setIsEditingCredit(false); }} 
+                                    style={{ background: '#f8fafc', border: 'none', color: '#94a3b8', borderRadius: '8px', padding: '6px', cursor: 'pointer' }}
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            {loadingCredit && !creditData ? (
+                                <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+                                    <Loader2 className="animate-spin" size={24} style={{ color: '#3b82f6', margin: '0 auto 10px auto' }} />
+                                    <span>Consultando cuenta corriente en el ERP...</span>
+                                </div>
+                            ) : !creditData ? (
+                                <div style={{ padding: '20px', textAlign: 'center', color: '#ef4444', fontSize: '12px' }}>
+                                    Error al cargar la información del crédito.
+                                </div>
+                            ) : creditData.limit === 0 && !isEditingCredit ? (
+                                <div style={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    alignItems: 'center', 
+                                    padding: '24px', 
+                                    background: '#f8fafc', 
+                                    borderRadius: '16px', 
+                                    border: '1px dashed #cbd5e1',
+                                    textAlign: 'center',
+                                    gap: '12px'
+                                }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                                        <Lock size={20} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#334155' }}>Línea de Crédito Inactiva</div>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Este cliente no tiene una línea de crédito autorizada en el ERP.</div>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setNewCreditLimit('200');
+                                            setIsEditingCredit(true);
+                                        }}
+                                        style={{
+                                            padding: '8px 16px',
+                                            borderRadius: '10px',
+                                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                            color: '#fff',
+                                            border: 'none',
+                                            fontSize: '11px',
+                                            fontWeight: 800,
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+                                        }}
+                                    >
+                                        Activar Línea de Crédito
+                                    </button>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                                        <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Límite</span>
+                                            {isEditingCredit ? (
+                                                <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '4px' }}>
+                                                    <input 
+                                                        type="number"
+                                                        style={{ width: '60px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}
+                                                        value={newCreditLimit}
+                                                        onChange={(e) => setNewCreditLimit(e.target.value)}
+                                                    />
+                                                    <button 
+                                                        onClick={() => handleSaveCreditLimit(selectedCreditCustomer.codcli)}
+                                                        style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 6px', cursor: 'pointer', fontSize: '9px', fontWeight: 800 }}
+                                                    >
+                                                        Sí
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setIsEditingCredit(false)}
+                                                        style={{ background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer' }}
+                                                    >
+                                                        <X size={10} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                                    <span style={{ fontSize: '13px', fontWeight: 900, color: '#1e293b' }}>S/ {creditData.limit.toFixed(2)}</span>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setNewCreditLimit(creditData.limit.toString());
+                                                            setIsEditingCredit(true);
+                                                        }}
+                                                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                                                        title="Editar límite"
+                                                    >
+                                                        <Edit size={10} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Deuda</span>
+                                            <div style={{ fontSize: '13px', fontWeight: 900, color: creditData.debt > 0 ? '#ef4444' : '#1e293b', marginTop: '2px' }}>
+                                                S/ {creditData.debt.toFixed(2)}
+                                            </div>
+                                        </div>
+                                        <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Disponible</span>
+                                            <div style={{ fontSize: '13px', fontWeight: 900, color: creditData.available > 0 ? '#10b981' : '#ef4444', marginTop: '2px' }}>
+                                                S/ {creditData.available.toFixed(2)}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>
+                                            Comprobantes Pendientes
+                                        </div>
+                                        
+                                        {creditData.pendingInvoices.length === 0 ? (
+                                            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+                                                No hay facturas o boletas pendientes de pago.
+                                            </div>
+                                        ) : (
+                                            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflowY: 'auto', maxHeight: '180px' }}>
+                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'left' }}>
+                                                    <thead>
+                                                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                                            <th style={{ padding: '6px 10px', fontWeight: 700, color: '#475569' }}>Fecha / Vence</th>
+                                                            <th style={{ padding: '6px 10px', fontWeight: 700, color: '#475569' }}>Documento</th>
+                                                            <th style={{ padding: '6px 10px', fontWeight: 700, color: '#ef4444', textAlign: 'right' }}>Saldo</th>
+                                                            <th style={{ padding: '6px 10px', fontWeight: 700, color: '#475569', textAlign: 'center' }}>Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {creditData.pendingInvoices.map((inv, idx) => (
+                                                            <tr key={idx} style={{ borderBottom: idx < creditData.pendingInvoices.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                                                                <td style={{ padding: '8px 10px', color: '#64748b' }}>
+                                                                    {inv.fecha.split('-').reverse().join('/')}
+                                                                    <div style={{ fontSize: '8px', color: '#94a3b8' }}>Vence: {inv.fven.split('-').reverse().join('/')}</div>
+                                                                </td>
+                                                                <td style={{ padding: '8px 10px', fontWeight: 700, color: '#334155' }}>
+                                                                    {inv.cdocu === '01' ? 'Factura' : inv.cdocu === '03' ? 'Boleta' : 'Nota'}
+                                                                    <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>{inv.ndocu}</div>
+                                                                </td>
+                                                                <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: '#ef4444' }}>
+                                                                    S/ {inv.saldo.toFixed(2)}
+                                                                </td>
+                                                                <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setAmortizingInvoice({ ...inv, codcli: selectedCreditCustomer.codcli });
+                                                                            setCollectAmount(inv.saldo.toString());
+                                                                            setCollectMethod('Efectivo');
+                                                                        }}
+                                                                        style={{
+                                                                            background: '#ecfdf5',
+                                                                            color: '#10b981',
+                                                                            border: 'none',
+                                                                            borderRadius: '6px',
+                                                                            padding: '4px 8px',
+                                                                            fontSize: '10px',
+                                                                            fontWeight: 800,
+                                                                            cursor: 'pointer',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '2px'
+                                                                        }}
+                                                                    >
+                                                                        <CreditCard size={10} /> Cobrar
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* MODAL DE COBRO / AMORTIZACIÓN DENTRO DE CLIENTES */}
+            <AnimatePresence>
+                {amortizingInvoice && (
+                    <div style={{ ...modalOverlayStyle, zIndex: 1100 }}>
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }} 
+                            animate={{ scale: 1, opacity: 1 }} 
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            style={{ 
+                                background: '#fff', 
+                                padding: '24px', 
+                                borderRadius: '20px', 
+                                width: '90%', 
+                                maxWidth: '360px', 
+                                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.15)',
+                                border: '1px solid #f1f5f9',
+                                position: 'relative'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <CreditCard size={16} />
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', margin: 0 }}>Registrar Pago</h3>
+                                        <span style={{ fontSize: '10px', color: '#94a3b8' }}>{amortizingInvoice.cdocu}-{amortizingInvoice.ndocu}</span>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setAmortizingInvoice(null)} 
+                                    style={{ background: '#f8fafc', border: 'none', color: '#94a3b8', borderRadius: '8px', padding: '4px', cursor: 'pointer' }}
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div>
+                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                                        Deuda pendiente
+                                    </span>
+                                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#ef4444' }}>
+                                        S/ {amortizingInvoice.saldo.toFixed(2)}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                                        Monto a Amortizar
+                                    </span>
+                                    <input 
+                                        type="number" 
+                                        style={{ 
+                                            width: '100%', 
+                                            padding: '8px 12px', 
+                                            borderRadius: '8px', 
+                                            border: '1px solid #e2e8f0', 
+                                            fontSize: '13px', 
+                                            fontWeight: 700,
+                                            color: '#1e293b',
+                                            outline: 'none'
+                                        }}
+                                        value={collectAmount}
+                                        onChange={(e) => setCollectAmount(e.target.value)}
+                                        max={amortizingInvoice.saldo}
+                                        min={0.1}
+                                        step="0.01"
+                                    />
+                                </div>
+
+                                <div>
+                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                                        Método de Pago
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                        {['Efectivo', 'Tarjeta'].map((method) => (
+                                            <button
+                                                key={method}
+                                                type="button"
+                                                onClick={() => setCollectMethod(method)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '8px',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid',
+                                                    borderColor: collectMethod === method ? '#3b82f6' : '#e2e8f0',
+                                                    background: collectMethod === method ? '#eff6ff' : '#fff',
+                                                    color: collectMethod === method ? '#3b82f6' : '#475569',
+                                                    fontSize: '11px',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {method}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    disabled={isSubmittingCollection || !collectAmount || parseFloat(collectAmount) <= 0 || parseFloat(collectAmount) > amortizingInvoice.saldo}
+                                    onClick={() => handleCollectDebt(amortizingInvoice.codcli)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        borderRadius: '10px',
+                                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        fontSize: '12px',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                        marginTop: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '4px',
+                                        opacity: (isSubmittingCollection || !collectAmount || parseFloat(collectAmount) <= 0 || parseFloat(collectAmount) > amortizingInvoice.saldo) ? 0.6 : 1
+                                    }}
+                                >
+                                    {isSubmittingCollection ? 'Procesando...' : 'Confirmar Cobro'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
