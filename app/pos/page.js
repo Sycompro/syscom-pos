@@ -31,6 +31,7 @@ import WhatsappView from '@/components/pos/WhatsappView';
 import CustomersView from '@/components/pos/CustomersView';
 import PromotionsView from '@/components/pos/PromotionsView';
 import GeneralCashView from '@/components/pos/GeneralCashView';
+import ExpensesView from '@/components/pos/ExpensesView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
@@ -236,6 +237,8 @@ export default function POSPage() {
     const [inspectCashId, setInspectCashId] = useState(null);
     const [showInspectCashModal, setShowInspectCashModal] = useState(false);
     const [inspectCashReadOnly, setInspectCashReadOnly] = useState(true);
+    const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [expenseRefreshTrigger, setExpenseRefreshTrigger] = useState(0);
 
     useEffect(() => {
         setMounted(true);
@@ -1577,6 +1580,18 @@ export default function POSPage() {
                             />
                         </motion.div>
                     )}
+
+                    {activeTab === 'expenses' && (
+                        <motion.div
+                            key="expenses" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
+                        >
+                            <ExpensesView 
+                                key={expenseRefreshTrigger}
+                                onAddExpense={() => setShowExpenseModal(true)}
+                            />
+                        </motion.div>
+                    )}
                 </AnimatePresence>
             </div>
 
@@ -1657,9 +1672,12 @@ export default function POSPage() {
                 onSaved={loadKeyboardPreference}
             />
             <CashExpenseModal
-                isOpen={activeTab === 'expenses'}
-                onClose={() => setActiveTab('pos')}
-                onSaved={() => setActiveTab('pos')}
+                isOpen={showExpenseModal}
+                onClose={() => setShowExpenseModal(false)}
+                onSaved={() => {
+                    setShowExpenseModal(false);
+                    setExpenseRefreshTrigger(prev => prev + 1);
+                }}
                 idapecaj={idApeCaj}
                 codpto={session?.user?.company?.codpto || '01'}
                 useScreenKeyboards={useScreenKeyboards}
