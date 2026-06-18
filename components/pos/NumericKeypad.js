@@ -1,10 +1,20 @@
 'use client';
 import { Delete, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, value = '' }) {
     const containerRef = useRef(null);
+    const [windowWidth, setWindowWidth] = useState(1280);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setWindowWidth(window.innerWidth);
+            const handleResize = () => setWindowWidth(window.innerWidth);
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+        }
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -20,6 +30,8 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
     }, [isOpen, onClose]);
 
     if (!isOpen) return null;
+
+    const isMobile = windowWidth < 768;
 
     const keys = [
         '1', '2', '3',
@@ -69,9 +81,9 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     style={{
                         pointerEvents: 'auto',
                         width: '100%',
-                        maxWidth: '290px',
-                        // DISEÑO PREMIUM CLARO (Pure Porcelain Glass UI)
-                        background: 'rgba(255, 255, 255, 0.92)',
+                        maxWidth: isMobile ? '330px' : '290px',
+                        // DISEÑO PREMIUM CLARO (Porcelain Glass UI)
+                        background: 'rgba(255, 255, 255, 0.95)',
                         backdropFilter: 'blur(20px) saturate(190%)',
                         WebkitBackdropFilter: 'blur(20px) saturate(190%)',
                         borderRadius: '28px',
@@ -84,10 +96,10 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                             0 30px 60px -15px rgba(15, 23, 42, 0.12),
                             inset 0 1px 0 rgba(255, 255, 255, 0.9)
                         `,
-                        padding: '20px',
+                        padding: isMobile ? '24px' : '20px',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '18px',
+                        gap: isMobile ? '16px' : '14px',
                         boxSizing: 'border-box'
                     }}
                 >
@@ -98,7 +110,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         background: '#e2e8f0',
                         borderRadius: '2px',
                         alignSelf: 'center',
-                        marginBottom: '-8px',
+                        marginBottom: '-4px',
                         opacity: 0.8
                     }} />
 
@@ -114,7 +126,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         paddingBottom: '12px'
                     }}>
                         <span style={{ 
-                            fontSize: '22px',
+                            fontSize: isMobile ? '24px' : '22px',
                             fontWeight: 750, 
                             color: '#0f172a', 
                             letterSpacing: '1px'
@@ -127,7 +139,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '12px'
+                        gap: isMobile ? '14px' : '12px'
                     }}>
                         {keys.map((key) => {
                             const isDel = key === 'DEL';
@@ -140,11 +152,11 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                                         else onKeyPress(key);
                                     }}
                                     style={{
-                                        height: '52px',
+                                        height: isMobile ? '58px' : '52px',
                                         background: isDel ? 'rgba(239, 68, 68, 0.07)' : '#ffffff',
                                         border: isDel ? 'none' : '1px solid #f1f5f9',
                                         borderRadius: '16px',
-                                        fontSize: '20px',
+                                        fontSize: isMobile ? '22px' : '20px',
                                         fontWeight: 650,
                                         color: isDel ? '#ef4444' : '#1e293b',
                                         display: 'flex',
@@ -180,7 +192,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                                         e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.07)' : '#ffffff';
                                     }}
                                 >
-                                    {isDel ? <Delete size={22} strokeWidth={2.2} /> : key}
+                                    {isDel ? <Delete size={isMobile ? 24 : 22} strokeWidth={2.2} /> : key}
                                 </button>
                             );
                         })}
@@ -194,7 +206,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         }}
                         style={{
                             width: '100%',
-                            height: '46px',
+                            height: isMobile ? '52px' : '46px',
                             background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                             color: '#ffffff',
                             border: 'none',
@@ -233,7 +245,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                             e.currentTarget.style.filter = 'none';
                         }}
                     >
-                        <Check size={18} strokeWidth={2.5} />
+                        <Check size={isMobile ? 20 : 18} strokeWidth={2.5} />
                         Aceptar
                     </button>
                 </motion.div>
