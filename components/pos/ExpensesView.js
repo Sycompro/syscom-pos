@@ -12,6 +12,17 @@ export default function ExpensesView({ onAddExpense }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterDate, setFilterDate] = useState('');
 
+    const [windowWidth, setWindowWidth] = useState(1280);
+
+    useEffect(() => {
+        setWindowWidth(window.innerWidth);
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const isMobileView = windowWidth < 768;
+
     const fetchList = async () => {
         setLoading(true);
         setError(null);
@@ -65,19 +76,57 @@ export default function ExpensesView({ onAddExpense }) {
         return localDate.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
+    // Estilos dinámicos reactivos
+    const responsiveContainerStyle = {
+        ...containerStyle,
+        padding: isMobileView ? '16px' : '30px',
+        gap: isMobileView ? '16px' : '24px',
+    };
+
+    const responsiveHeaderStyle = {
+        ...headerStyle,
+        flexDirection: isMobileView ? 'column' : 'row',
+        alignItems: isMobileView ? 'stretch' : 'center',
+        gap: isMobileView ? '12px' : '0'
+    };
+
+    const responsiveTitleStyle = {
+        ...titleStyle,
+        fontSize: isMobileView ? '20px' : '24px',
+        textAlign: isMobileView ? 'left' : 'left'
+    };
+
+    const responsiveSearchWrapperStyle = {
+        ...searchWrapperStyle,
+        width: isMobileView ? '100%' : 'auto',
+        flex: isMobileView ? 'initial' : 1
+    };
+
+    const responsiveDateFilterWrapperStyle = {
+        ...dateFilterWrapperStyle,
+        width: isMobileView ? '100%' : 'auto',
+        justifyContent: isMobileView ? 'space-between' : 'flex-start'
+    };
+
+    const responsiveAddBtnStyle = {
+        ...addBtnStyle,
+        flex: isMobileView ? 1 : 'initial',
+        justifyContent: 'center'
+    };
+
     return (
-        <div style={containerStyle}>
+        <div style={responsiveContainerStyle}>
             {/* Cabecera */}
-            <div style={headerStyle}>
+            <div style={responsiveHeaderStyle}>
                 <div>
-                    <h2 style={titleStyle}>Egresos y Gastos de Caja</h2>
+                    <h2 style={responsiveTitleStyle}>Egresos y Gastos de Caja</h2>
                     <p style={subtitleStyle}>Registro y control de salidas de dinero en efectivo.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', width: isMobileView ? '100%' : 'auto' }}>
                     <button onClick={fetchList} style={refreshBtnStyle} disabled={loading} title="Actualizar lista">
                         <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     </button>
-                    <button onClick={onAddExpense} style={addBtnStyle}>
+                    <button onClick={onAddExpense} style={responsiveAddBtnStyle}>
                         <Plus size={16} />
                         <span>Registrar Gasto</span>
                     </button>
@@ -86,7 +135,7 @@ export default function ExpensesView({ onAddExpense }) {
 
             {/* Barra de Filtros */}
             <div style={filtersContainerStyle}>
-                <div style={searchWrapperStyle}>
+                <div style={responsiveSearchWrapperStyle}>
                     <Search size={16} color="#94a3b8" />
                     <input 
                         type="text" 
@@ -97,14 +146,16 @@ export default function ExpensesView({ onAddExpense }) {
                     />
                 </div>
 
-                <div style={dateFilterWrapperStyle}>
-                    <Calendar size={16} color="#94a3b8" style={{ marginRight: '8px' }} />
-                    <input 
-                        type="date" 
-                        style={dateInputStyle}
-                        value={filterDate}
-                        onChange={e => setFilterDate(e.target.value)}
-                    />
+                <div style={responsiveDateFilterWrapperStyle}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Calendar size={16} color="#94a3b8" style={{ marginRight: '8px' }} />
+                        <input 
+                            type="date" 
+                            style={dateInputStyle}
+                            value={filterDate}
+                            onChange={e => setFilterDate(e.target.value)}
+                        />
+                    </div>
                     {filterDate && (
                         <button onClick={() => setFilterDate('')} style={clearDateBtnStyle}>Limpiar</button>
                     )}
@@ -138,9 +189,9 @@ export default function ExpensesView({ onAddExpense }) {
                                 <tr>
                                     <th style={thStyle}>Fecha</th>
                                     <th style={thStyle}>Concepto</th>
-                                    <th style={thStyle}>Motivo / Concepto ERP</th>
-                                    <th style={thStyle}>Nro. Cuenta / Cta Cte</th>
-                                    <th style={thStyle}>Caja</th>
+                                    {!isMobileView && <th style={thStyle}>Motivo / Concepto ERP</th>}
+                                    {!isMobileView && <th style={thStyle}>Nro. Cuenta / Cta Cte</th>}
+                                    {!isMobileView && <th style={thStyle}>Caja</th>}
                                     <th style={{ ...thStyle, textAlign: 'right' }}>Monto</th>
                                 </tr>
                             </thead>
@@ -153,33 +204,53 @@ export default function ExpensesView({ onAddExpense }) {
                                         transition={{ delay: Math.min(index * 0.03, 0.3) }}
                                         style={trStyle}
                                     >
-                                        <td style={tdStyle}>
+                                        <td style={{ ...tdStyle, padding: isMobileView ? '12px 10px' : '16px 20px' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                 <span style={{ fontWeight: 700, color: '#334155' }}>{formatDate(item.fecha)}</span>
                                                 <span style={{ fontSize: '10px', color: '#94a3b8' }}>{item.hora || '-'}</span>
                                             </div>
                                         </td>
-                                        <td style={{ ...tdStyle, fontWeight: 700, color: '#1e293b' }}>
-                                            {item.concepto || '-'}
-                                        </td>
-                                        <td style={tdStyle}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <div style={badgeStyle}>
-                                                    <FileText size={10} color="#6366f1" />
-                                                </div>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontWeight: 800, color: '#475569' }}>{item.desmotivo || 'Otros Egresos'}</span>
-                                                    <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 600 }}>Cód: {item.codmotivo?.trim() || '06'}</span>
-                                                </div>
+                                        <td style={{ ...tdStyle, padding: isMobileView ? '12px 10px' : '16px 20px' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontWeight: 700, color: '#1e293b' }}>{item.concepto || '-'}</span>
+                                                {isMobileView && (
+                                                    <span style={{ fontSize: '10px', color: '#64748b', marginTop: '2px', fontWeight: 500 }}>
+                                                        {item.desmotivo || 'Otros'} {item.nroctacte ? `• ${item.nroctacte}` : ''} {item.idapecaj ? `• Caja #${item.idapecaj}` : ''}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
-                                        <td style={{ ...tdStyle, fontWeight: 650, color: '#475569' }}>
-                                            {item.nroctacte?.trim() || '-'}
-                                        </td>
-                                        <td style={{ ...tdStyle, fontWeight: 700, color: '#64748b' }}>
-                                            Caja #{item.idapecaj}
-                                        </td>
-                                        <td style={{ ...tdStyle, fontWeight: 900, color: '#ef4444', textAlign: 'right' }}>
+                                        {!isMobileView && (
+                                            <td style={tdStyle}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <div style={badgeStyle}>
+                                                        <FileText size={10} color="#6366f1" />
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <span style={{ fontWeight: 800, color: '#475569' }}>{item.desmotivo || 'Otros Egresos'}</span>
+                                                        <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 600 }}>Cód: {item.codmotivo?.trim() || '06'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        )}
+                                        {!isMobileView && (
+                                            <td style={{ ...tdStyle, fontWeight: 650, color: '#475569' }}>
+                                                {item.nroctacte?.trim() || '-'}
+                                            </td>
+                                        )}
+                                        {!isMobileView && (
+                                            <td style={{ ...tdStyle, fontWeight: 700, color: '#64748b' }}>
+                                                Caja #{item.idapecaj}
+                                            </td>
+                                        )}
+                                        <td style={{ 
+                                            ...tdStyle, 
+                                            padding: isMobileView ? '12px 10px' : '16px 20px', 
+                                            fontWeight: 900, 
+                                            color: '#ef4444', 
+                                            textAlign: 'right',
+                                            whiteSpace: 'nowrap'
+                                        }}>
                                             - {formatCurrency(item.monto)}
                                         </td>
                                     </motion.tr>
@@ -221,7 +292,7 @@ const titleStyle = {
 const subtitleStyle = {
     margin: '4px 0 0',
     color: '#64748b',
-    fontSize: '14px',
+    fontSize: '12px',
     fontWeight: 500
 };
 
@@ -237,7 +308,8 @@ const refreshBtnStyle = {
     color: '#475569',
     cursor: 'pointer',
     boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
+    flexShrink: 0
 };
 
 const addBtnStyle = {
