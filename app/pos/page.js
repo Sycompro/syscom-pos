@@ -1500,7 +1500,7 @@ export default function POSPage() {
                     {activeTab === 'promotions' && (
                         <motion.div
                             key="promotions" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                            style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
+                            style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
                         >
                             {loadingMembersForPromotions ? (
                                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#64748b', fontSize: '12px', fontWeight: 600 }}>
@@ -1551,7 +1551,7 @@ export default function POSPage() {
                     {activeTab === 'whatsapp' && (
                         <motion.div
                             key="whatsapp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                            style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
+                            style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
                         >
                             <WhatsappView useScreenKeyboards={useScreenKeyboards} />
                         </motion.div>
