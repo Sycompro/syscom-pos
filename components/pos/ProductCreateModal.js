@@ -159,6 +159,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
     subfamilyId: '',
     codgru: '',
     codmar: '',
+    cost: '',
     pvns: '',
     codcolor_prod: '',
     talla: '',
@@ -210,6 +211,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
         subfamilyId: '',
         codgru: '',
         codmar: '',
+        cost: '',
         pvns: '',
         codcolor_prod: '',
         talla: '',
@@ -311,6 +313,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
         descr: formData.descr.trim(),
         codsub: formData.subfamilyId,
         codmar: formData.codmar,
+        cost: parseFloat(formData.cost) || 0,
         pvns: parseFloat(formData.pvns),
         codcolor_prod: formData.codcolor_prod || undefined,
         talla: formData.talla || undefined,
@@ -423,9 +426,21 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
                   <div>
-                    <label style={labelStyle}>Precio (S/.) *</label>
+                    <label style={labelStyle}>Costo Compra *</label>
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      required
+                      placeholder="0.00"
+                      value={formData.cost}
+                      onChange={e => handleInputChange('cost', e.target.value)}
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Precio Venta *</label>
                     <input 
                       type="number" 
                       step="0.01"

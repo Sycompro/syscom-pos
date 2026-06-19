@@ -14,7 +14,8 @@ export async function POST(request) {
     
     const { 
       descr, codsub, codmar, pvns, codcolor_prod, talla, codf,
-      umed = 'UND', tipoitm = 1, msto = 'S', aigv = 'S', membershipDays = 0
+      umed = 'UND', tipoitm = 1, msto = 'S', aigv = 'S', membershipDays = 0,
+      cost = 0
     } = body;
 
     // Validar requeridos
@@ -25,6 +26,11 @@ export async function POST(request) {
     const priceVal = parseFloat(pvns);
     if (isNaN(priceVal) || priceVal < 0) {
       return NextResponse.json({ error: 'El precio de venta (pvns) debe ser un número válido mayor o igual a cero' }, { status: 400 });
+    }
+
+    const costVal = parseFloat(cost) || 0;
+    if (isNaN(costVal) || costVal < 0) {
+      return NextResponse.json({ error: 'El costo de compra (cost) debe ser un número válido mayor o igual a cero' }, { status: 400 });
     }
 
     const pool = await getConnection(company);
@@ -67,6 +73,9 @@ export async function POST(request) {
       const vvns = aigv === 'N' ? priceVal : priceVal / 1.18;
       const igvns = aigv === 'N' ? 0.0000 : priceVal - vvns;
 
+      // Calcular utilidad (funs)
+      const funs = vvns - costVal;
+
       const cleanDescr = descr.trim().toUpperCase();
       const cleanCodf = (codf || '').trim().toUpperCase();
 
@@ -87,6 +96,10 @@ export async function POST(request) {
       insertMaster.input('msto', sql.Char(1), msto);
       insertMaster.input('aigv', sql.Char(1), aigv);
       insertMaster.input('Usr_003', sql.VarChar(30), (membershipDays > 0 ? membershipDays.toString() : '').padEnd(30, ' '));
+      
+      insertMaster.input('pcns', sql.Decimal(14, 4), costVal);
+      insertMaster.input('pcus', sql.Decimal(14, 4), costVal / 3.75);
+      insertMaster.input('funs', sql.Decimal(14, 4), funs);
 
       await insertMaster.query(`
         INSERT INTO prd0101 (
@@ -103,7 +116,7 @@ export async function POST(request) {
           @codi, @descr, @marc, @codmar, @pvns, @vvns, @igvns, 
           @umed, @umed, 1.0000, 1, 'S', @tipoitm, '01', 
           @msto, @aigv, '(01,02,03,04,05,06,07,08,09)                                                                  ', GETDATE(), @codcolor_prod, @talla,
-          0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
+          @pcus, @pcns, @funs, 0.0000, 0.0000, @pcns, @pcus, 0.0000,
           @codf, '                         ', '                                                                                ', '01', '01', '   ', '0000',
           '', 0.0000, '   ', '   ', 0, 0.0000, 0, 'C', 'C',
           0, 0, 0, '     ', '     ', 0,
@@ -136,6 +149,10 @@ export async function POST(request) {
         insertSec.input('igvns', sql.Decimal(14, 4), igvns);
         insertSec.input('vvns', sql.Decimal(14, 4), vvns);
         insertSec.input('Usr_003', sql.VarChar(30), (membershipDays > 0 ? membershipDays.toString() : '').padEnd(30, ' '));
+        
+        insertSec.input('pcns', sql.Decimal(14, 4), costVal);
+        insertSec.input('pcus', sql.Decimal(14, 4), costVal / 3.75);
+        insertSec.input('funs', sql.Decimal(14, 4), funs);
 
         await insertSec.query(`
           INSERT INTO ${table} (
@@ -144,21 +161,47 @@ export async function POST(request) {
             msto, aigv, tipoitm, codcat, Usr_003
           ) VALUES (
             @codi, @descr, @marc, @umed, @pvns, 1, @codf, 0.0000,
-            0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, @igvns, @vvns,
+            @pcus, @pcns, @funs, 0.0000, 0.0000, @pcns, @pcus, 0.0000, @igvns, @vvns,
             @msto, @aigv, @tipoitm, '01', @Usr_003
           )
         `);
       }
 
+      // 8. Registrar en todas las Listas de Precios (Dtl01Pre)
+      const priceListsRes = await transaction.request().query(`
+        SELECT LTRIM(RTRIM(CodLis)) as CodLis 
+        FROM Tbl_Lista_Precio WITH(nolock)
+      `);
+      const priceLists = priceListsRes.recordset.map(pl => pl.CodLis);
+
+      for (const codLis of priceLists) {
+        const insertPre = transaction.request();
+        insertPre.input('CodLis', sql.Char(2), codLis);
+        insertPre.input('Codi', sql.Char(20), generatedCodi);
+        insertPre.input('vvns', sql.Decimal(14, 4), vvns);
+        insertPre.input('pvns', sql.Decimal(14, 4), priceVal);
+
+        await insertPre.query(`
+          INSERT INTO Dtl01Pre (
+            CodLis, Codi, vvns, pvns, vvus, pvus, RangoIni, RangoFin, 
+            dsct, funs, fuus, codcat, fals, Dscto, vvnsE, pvnsE, vvusE, pvusE, nroreg
+          ) VALUES (
+            @CodLis, @Codi, @vvns, @pvns, 0.0000, 0.0000, 0, 0, 
+            0.0000, 0.0000, 0.0000, '01', 0, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0
+          )
+        `);
+      }
+
       await transaction.commit();
-      console.log(`[API Create Product] Producto creado: ${generatedCodi} (${cleanDescr}) en prd0101 y propagado a: ${secondaryTables.join(', ')}`);
+      console.log(`[API Create Product] Producto creado: ${generatedCodi} (${cleanDescr}) con costo ${costVal} en prd0101, propagado a sedes y ${priceLists.length} listas de precios.`);
 
       return NextResponse.json({
         success: true,
         codi: generatedCodi.trim(),
         descr: cleanDescr.trim(),
         pvns: priceVal,
-        propagatedTables: secondaryTables
+        propagatedTables: secondaryTables,
+        priceListsCount: priceLists.length
       });
 
     } catch (err) {
