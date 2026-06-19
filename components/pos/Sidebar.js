@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp, ShoppingBag, Truck } from 'lucide-react';
 
 export default function Sidebar({ 
     onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, 
@@ -12,7 +12,7 @@ export default function Sidebar({
         activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits'
     );
     const [isFinanceExpanded, setIsFinanceExpanded] = useState(
-        activeTab === 'expenses' || activeTab === 'general-cash' || activeTab === 'purchases'
+        activeTab === 'expenses' || activeTab === 'general-cash'
     );
     const [isProductsExpanded, setIsProductsExpanded] = useState(
         activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands'
@@ -27,7 +27,7 @@ export default function Sidebar({
             setIsCustomersExpanded(false);
         }
 
-        if (activeTab === 'expenses' || activeTab === 'general-cash' || activeTab === 'purchases') {
+        if (activeTab === 'expenses' || activeTab === 'general-cash') {
             setIsFinanceExpanded(true);
         } else {
             setIsFinanceExpanded(false);
@@ -393,8 +393,26 @@ export default function Sidebar({
                 )}
 
                 <div 
+                    onClick={() => setActiveTab('purchases')}
+                    style={getNavBtnStyle(activeTab === 'purchases')}
+                    title={isExpanded ? "" : "Compras"}
+                >
+                    <ShoppingBag size={18} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Compras</span>}
+                </div>
+
+                <div 
+                    onClick={() => setActiveTab('suppliers')}
+                    style={getNavBtnStyle(activeTab === 'suppliers')}
+                    title={isExpanded ? "" : "Proveedores"}
+                >
+                    <Truck size={18} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Proveedores</span>}
+                </div>
+
+                <div 
                     onClick={() => setIsFinanceExpanded(prev => !prev)}
-                    style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash' || activeTab === 'purchases')}
+                    style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash')}
                     title={isExpanded ? "" : "Finanzas"}
                 >
                     <Banknote size={18} style={{ flexShrink: 0 }} />
@@ -457,34 +475,6 @@ export default function Sidebar({
                                 whiteSpace: 'nowrap' 
                             }}>
                                 Caja General
-                            </span>
-                        </div>
-
-                        {/* Subapartado 3: Compras */}
-                        <div 
-                            onClick={() => setActiveTab('purchases')}
-                            style={{
-                                width: 'calc(100% - 16px)',
-                                height: '34px',
-                                background: activeTab === 'purchases' ? 'rgba(59,130,246,0.1)' : 'transparent',
-                                borderRadius: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'flex-start',
-                                paddingLeft: '36px',
-                                color: activeTab === 'purchases' ? '#3b82f6' : '#64748b',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease-in-out',
-                                marginTop: '-2px',
-                                marginBottom: '2px'
-                            }}
-                        >
-                            <span style={{ 
-                                fontSize: '11px', 
-                                fontWeight: activeTab === 'purchases' ? 900 : 700, 
-                                whiteSpace: 'nowrap' 
-                            }}>
-                                Compras
                             </span>
                         </div>
                     </div>

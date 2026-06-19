@@ -34,6 +34,7 @@ import GeneralCashView from '@/components/pos/GeneralCashView';
 import ExpensesView from '@/components/pos/ExpensesView';
 import PurchasesView from '@/components/pos/PurchasesView';
 import ProductsView from '@/components/pos/ProductsView';
+import SuppliersView from '@/components/pos/SuppliersView';
 import DashboardView from '@/components/pos/DashboardView';
 import SalesView from '@/components/pos/SalesView';
 import SettingsModal from '@/components/pos/SettingsModal';
@@ -1018,6 +1019,7 @@ export default function POSPage() {
                                  activeTab === 'credits' ? 'Gestión de Créditos' :
                                  activeTab === 'expenses' ? 'Egresos' :
                                  activeTab === 'purchases' ? 'Compras' :
+                                 activeTab === 'suppliers' ? 'Proveedores' :
                                  activeTab === 'general-cash' ? 'Caja General' :
                                  activeTab === 'whatsapp' ? 'Config WhatsApp' : 
                                  activeTab === 'sales' ? 'Historial Ventas' : 
@@ -1663,6 +1665,15 @@ export default function POSPage() {
                                     console.log("Compra registrada exitosamente.");
                                 }}
                             />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'suppliers' && (
+                        <motion.div
+                            key="suppliers" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
+                        >
+                            <SuppliersView />
                         </motion.div>
                     )}
 
