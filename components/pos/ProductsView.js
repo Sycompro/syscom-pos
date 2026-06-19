@@ -22,10 +22,7 @@ export default function ProductsView({ currentTab }) {
   const [stockLoading, setStockLoading] = useState(false);
   const [sedeStocks, setSedeStocks] = useState([]);
   
-  const [editProduct, setEditProduct] = useState(null);
-  const [savingProduct, setSavingProduct] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState(null);
+  const [selectedProductCodi, setSelectedProductCodi] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' | 'classifications' | 'brands'
 
@@ -115,48 +112,7 @@ export default function ProductsView({ currentTab }) {
     }
   };
 
-  // Guardar edición de producto
-  const handleSaveChanges = async (e) => {
-    e.preventDefault();
-    setSavingProduct(true);
-    setSaveError(null);
-    setSaveSuccess(false);
 
-    try {
-      const res = await fetch('/api/products/update', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editProduct)
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        setSaveSuccess(true);
-        // Refrescar los datos localmente
-        setProducts(prev => prev.map(p => p.id === editProduct.id ? { 
-          ...p, 
-          name: editProduct.descr,
-          brand: editProduct.marc,
-          unit: editProduct.umed,
-          price: editProduct.pvns,
-          userCode: editProduct.codf,
-          estado: editProduct.estado
-        } : p));
-        
-        setTimeout(() => {
-          setEditProduct(null);
-          setSaveSuccess(false);
-        }, 1500);
-      } else {
-        throw new Error(data.error || 'No se pudo actualizar el producto');
-      }
-    } catch (err) {
-      console.error('[ProductsView] Error saving product:', err);
-      setSaveError(err.message);
-    } finally {
-      setSavingProduct(false);
-    }
-  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(amount || 0);
@@ -357,15 +313,10 @@ export default function ProductsView({ currentTab }) {
                     <span>Ver Stock Sedes</span>
                   </button>
                   <button 
-                    onClick={() => setEditProduct({
-                      id: item.id,
-                      descr: item.name,
-                      marc: item.brand,
-                      umed: item.unit,
-                      pvns: item.price,
-                      codf: item.userCode,
-                      estado: item.estado ?? 1
-                    })} 
+                    onClick={() => {
+                      setSelectedProductCodi(item.id);
+                      setIsCreateModalOpen(true);
+                    }} 
                     style={cardActionBtnEditStyle}
                   >
                     <Edit size={14} />
@@ -440,15 +391,10 @@ export default function ProductsView({ currentTab }) {
                           <Store size={14} />
                         </button>
                         <button 
-                          onClick={() => setEditProduct({
-                            id: item.id,
-                            descr: item.name,
-                            marc: item.brand,
-                            umed: item.unit,
-                            pvns: item.price,
-                            codf: item.userCode,
-                            estado: item.estado ?? 1
-                          })}
+                          onClick={() => {
+                            setSelectedProductCodi(item.id);
+                            setIsCreateModalOpen(true);
+                          }}
                           style={actionBtnEditStyle}
                           title="Editar producto"
                         >
@@ -544,172 +490,14 @@ export default function ProductsView({ currentTab }) {
         )}
       </AnimatePresence>
 
-      {/* MODAL 2: EDICIÓN DE PRODUCTO / ARTÍCULO */}
-      <AnimatePresence>
-        {editProduct && (
-          <div style={modalOverlayStyle}>
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              style={{
-                ...modalContentStyle,
-                width: isMobileView ? '95%' : '520px',
-                padding: '24px'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Edit size={18} color="#0f172a" />
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: '#0f172a' }}>Editar Información del Artículo</h3>
-                </div>
-                <button onClick={() => setEditProduct(null)} style={closeModalBtnStyle} disabled={savingProduct}>
-                  <X size={16} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveChanges} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Código ERP (Único)</label>
-                    <input 
-                      type="text" 
-                      value={editProduct.id} 
-                      disabled 
-                      style={{ ...inputStyle, background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' }} 
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Código Físico / Barras</label>
-                    <input 
-                      type="text" 
-                      value={editProduct.codf || ''} 
-                      onChange={e => setEditProduct({ ...editProduct, codf: e.target.value })} 
-                      style={inputStyle}
-                      placeholder="Ej: 775012..."
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={labelStyle}>Descripción / Nombre Maestro</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={editProduct.descr} 
-                    onChange={e => setEditProduct({ ...editProduct, descr: e.target.value })} 
-                    style={inputStyle} 
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Marca / Fabricante</label>
-                    <input 
-                      type="text" 
-                      value={editProduct.marc || ''} 
-                      onChange={e => setEditProduct({ ...editProduct, marc: e.target.value })} 
-                      style={inputStyle} 
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Unidad de Medida</label>
-                    <input 
-                      type="text" 
-                      required
-                      value={editProduct.umed} 
-                      onChange={e => setEditProduct({ ...editProduct, umed: e.target.value })} 
-                      style={inputStyle} 
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Precio de Venta Maestro (S/.)</label>
-                    <input 
-                      type="number" 
-                      step="0.01"
-                      required
-                      value={editProduct.pvns} 
-                      onChange={e => setEditProduct({ ...editProduct, pvns: parseFloat(e.target.value) || 0 })} 
-                      style={inputStyle} 
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Estado del Producto</label>
-                    <select
-                      value={editProduct.estado}
-                      onChange={e => setEditProduct({ ...editProduct, estado: parseInt(e.target.value) })}
-                      style={inputStyle}
-                    >
-                      <option value={1}>Activo (Venta ERP)</option>
-                      <option value={0}>Inactivo (Desactivado)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Notificaciones de éxito o error */}
-                <AnimatePresence>
-                  {saveSuccess && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      style={successAlertStyle}
-                    >
-                      <Check size={14} style={{ marginRight: '6px' }} />
-                      <span>¡Artículo guardado y propagado en el ERP con éxito!</span>
-                    </motion.div>
-                  )}
-                  {saveError && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      style={errorAlertStyle}
-                    >
-                      <AlertCircle size={14} style={{ marginRight: '6px' }} />
-                      <span>Error: {saveError}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Botones de acción */}
-                <div style={{ display: 'flex', gap: '10px', marginTop: '8px', justifyContent: 'flex-end' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setEditProduct(null)} 
-                    style={cancelBtnStyle}
-                    disabled={savingProduct}
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    type="submit" 
-                    style={submitBtnStyle}
-                    disabled={savingProduct}
-                  >
-                    {savingProduct ? (
-                      <>
-                        <Loader2 className="animate-spin" size={14} style={{ marginRight: '6px' }} />
-                        <span>Guardando...</span>
-                      </>
-                    ) : (
-                      <span>Guardar Cambios</span>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       <ProductCreateModal 
         isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setSelectedProductCodi(null);
+        }} 
         onSuccess={fetchProducts} 
+        productCodi={selectedProductCodi}
       />
     </div>
   );
