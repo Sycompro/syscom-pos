@@ -589,6 +589,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       placeholder={!formData.subfamilyId ? 'Subfamilia primero...' : 'Seleccionar...'}
                       onAdd={formData.subfamilyId ? () => setInlineCreate(inlineCreate === 'group' ? null : 'group') : undefined}
                       addLabel="Crear Grupo"
+                      openUp={true}
                     />
                     <AnimatePresence>
                       {inlineCreate === 'group' && (
@@ -640,6 +641,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       onChange={e => handleInputChange('talla', e.target.value)}
                       options={sizeOptions}
                       placeholder="Seleccionar..."
+                      openUp={true}
                     />
                   </div>
 
@@ -651,6 +653,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       onChange={e => handleInputChange('codcolor_prod', e.target.value)}
                       options={colorOptions}
                       placeholder="Seleccionar..."
+                      openUp={true}
                     />
                   </div>
                 </div>

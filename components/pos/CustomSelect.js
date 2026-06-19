@@ -13,7 +13,8 @@ export default function CustomSelect({
   dropdownWidth,
   searchable = false,
   onAdd,
-  addLabel = '+ Crear nuevo'
+  addLabel = '+ Crear nuevo',
+  openUp = false
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -84,7 +85,8 @@ export default function CustomSelect({
 
   const listContainerStyle = {
     position: 'absolute',
-    top: 'calc(100% + 4px)',
+    top: openUp ? 'auto' : 'calc(100% + 4px)',
+    bottom: openUp ? 'calc(100% + 4px)' : 'auto',
     left: 0,
     width: dropdownWidth || '100%',
     maxHeight: isOpen ? '280px' : '0px',
@@ -98,7 +100,7 @@ export default function CustomSelect({
     padding: isOpen ? '4px' : '0px 4px',
     boxSizing: 'border-box',
     opacity: isOpen ? 1 : 0,
-    transform: isOpen ? 'translateY(0)' : 'translateY(-6px)',
+    transform: isOpen ? 'translateY(0)' : (openUp ? 'translateY(6px)' : 'translateY(-6px)'),
     transition: 'max-height 0.22s ease, opacity 0.18s ease, transform 0.18s ease, padding 0.18s ease, border-color 0.18s ease',
     pointerEvents: isOpen ? 'auto' : 'none'
   };
