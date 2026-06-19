@@ -14,6 +14,9 @@ export default function Sidebar({
     const [isFinanceExpanded, setIsFinanceExpanded] = useState(
         activeTab === 'expenses' || activeTab === 'general-cash'
     );
+    const [isProductsExpanded, setIsProductsExpanded] = useState(
+        activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands'
+    );
 
     const isExpanded = isMobileMode ? true : isExpandedInternal;
 
@@ -28,6 +31,12 @@ export default function Sidebar({
             setIsFinanceExpanded(true);
         } else {
             setIsFinanceExpanded(false);
+        }
+
+        if (activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands') {
+            setIsProductsExpanded(true);
+        } else {
+            setIsProductsExpanded(false);
         }
     }, [activeTab]);
 
@@ -189,13 +198,101 @@ export default function Sidebar({
                 </div>
 
                 <div 
-                    onClick={() => setActiveTab('products')}
-                    style={getNavBtnStyle(activeTab === 'products')}
+                    onClick={() => setIsProductsExpanded(prev => !prev)}
+                    style={getNavBtnStyle(activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands')}
                     title={isExpanded ? "" : "Productos"}
                 >
                     <Package size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Productos</span>}
                 </div>
+
+                {isExpanded && isProductsExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                        {/* Subapartado 1: Catálogo */}
+                        <div 
+                            onClick={() => setActiveTab('products')}
+                            style={{
+                                width: 'calc(100% - 16px)',
+                                height: '34px',
+                                background: activeTab === 'products' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '36px',
+                                color: activeTab === 'products' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: activeTab === 'products' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Catálogo
+                            </span>
+                        </div>
+
+                        {/* Subapartado 2: Clasificaciones */}
+                        <div 
+                            onClick={() => setActiveTab('classifications')}
+                            style={{
+                                width: 'calc(100% - 16px)',
+                                height: '34px',
+                                background: activeTab === 'classifications' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '36px',
+                                color: activeTab === 'classifications' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: activeTab === 'classifications' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Clasificaciones
+                            </span>
+                        </div>
+
+                        {/* Subapartado 3: Marcas */}
+                        <div 
+                            onClick={() => setActiveTab('brands')}
+                            style={{
+                                width: 'calc(100% - 16px)',
+                                height: '34px',
+                                background: activeTab === 'brands' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '36px',
+                                color: activeTab === 'brands' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: activeTab === 'brands' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Marcas
+                            </span>
+                        </div>
+                    </div>
+                )}
 
                 <div 
                     onClick={() => setIsCustomersExpanded(prev => !prev)}

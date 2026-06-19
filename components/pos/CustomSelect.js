@@ -1,10 +1,24 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { ChevronDown, Search, Plus } from 'lucide-react';
 
-export default function CustomSelect({ value, onChange, options = [], placeholder = 'Seleccionar...', icon, disabled = false, style = {}, dropdownWidth }) {
+export default function CustomSelect({
+  value,
+  onChange,
+  options = [],
+  placeholder = 'Seleccionar...',
+  icon,
+  disabled = false,
+  style = {},
+  dropdownWidth,
+  searchable = false,
+  onAdd,
+  addLabel = '+ Crear nuevo'
+}) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   // Cerrar al hacer click afuera
   useEffect(() => {
@@ -17,7 +31,24 @@ export default function CustomSelect({ value, onChange, options = [], placeholde
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Auto-focus en el input de búsqueda al abrir
+  useEffect(() => {
+    if (isOpen && searchable && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+    if (!isOpen) {
+      setSearchTerm('');
+    }
+  }, [isOpen, searchable]);
+
   const selectedOption = options.find(opt => opt.value === value);
+
+  // Filtrar opciones según el término de búsqueda
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchTerm.trim()) return options;
+    const term = searchTerm.toLowerCase();
+    return options.filter(opt => opt.label.toLowerCase().includes(term));
+  }, [options, searchTerm, searchable]);
 
   const handleToggle = () => {
     if (!disabled) setIsOpen(!isOpen);
@@ -56,16 +87,44 @@ export default function CustomSelect({ value, onChange, options = [], placeholde
     top: 'calc(100% + 4px)',
     left: 0,
     width: dropdownWidth || '100%',
-    maxHeight: '220px',
-    overflowY: 'auto',
+    maxHeight: isOpen ? '280px' : '0px',
+    overflowY: isOpen ? 'auto' : 'hidden',
     background: 'rgba(255, 255, 255, 0.98)',
     backdropFilter: 'blur(8px)',
-    border: '1px solid #e2e8f0',
+    border: isOpen ? '1px solid #e2e8f0' : '1px solid transparent',
     borderRadius: '12px',
-    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+    boxShadow: isOpen ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' : 'none',
     zIndex: 999,
-    padding: '4px',
+    padding: isOpen ? '4px' : '0px 4px',
+    boxSizing: 'border-box',
+    opacity: isOpen ? 1 : 0,
+    transform: isOpen ? 'translateY(0)' : 'translateY(-6px)',
+    transition: 'max-height 0.22s ease, opacity 0.18s ease, transform 0.18s ease, padding 0.18s ease, border-color 0.18s ease',
+    pointerEvents: isOpen ? 'auto' : 'none'
+  };
+
+  const searchWrapperStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 8px',
+    margin: '2px 2px 4px 2px',
+    borderRadius: '8px',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
     boxSizing: 'border-box'
+  };
+
+  const searchInputStyle = {
+    border: 'none',
+    outline: 'none',
+    background: 'transparent',
+    fontSize: '11px',
+    fontWeight: 600,
+    color: '#1e293b',
+    width: '100%',
+    padding: 0,
+    margin: 0
   };
 
   const optionItemStyle = (isSelected) => ({
@@ -86,6 +145,27 @@ export default function CustomSelect({ value, onChange, options = [], placeholde
     border: 'none',
     boxSizing: 'border-box'
   });
+
+  const addButtonStyle = {
+    borderTop: '1px solid #e2e8f0',
+    padding: '10px 12px',
+    color: '#3b82f6',
+    fontWeight: 800,
+    fontSize: '11px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    width: '100%',
+    background: 'transparent',
+    border: 'none',
+    borderTop: '1px solid #e2e8f0',
+    borderRadius: 0,
+    boxSizing: 'border-box',
+    textAlign: 'left'
+  };
+
+  const hasNoResults = filteredOptions.length === 0;
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
@@ -108,14 +188,29 @@ export default function CustomSelect({ value, onChange, options = [], placeholde
         />
       </div>
 
-      {isOpen && (
-        <div style={listContainerStyle}>
-          {options.length === 0 ? (
-            <div style={{ padding: '8px 12px', color: '#94a3b8', fontStyle: 'italic', fontSize: '11px' }}>
-              Sin opciones
-            </div>
-          ) : (
-            options.map(opt => {
+      <div style={listContainerStyle}>
+        {searchable && (
+          <div style={searchWrapperStyle}>
+            <Search size={13} style={{ color: '#94a3b8', flexShrink: 0 }} />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar..."
+              style={searchInputStyle}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
+
+        {hasNoResults && !onAdd ? (
+          <div style={{ padding: '8px 12px', color: '#94a3b8', fontStyle: 'italic', fontSize: '11px' }}>
+            Sin opciones
+          </div>
+        ) : (
+          <div style={{ maxHeight: searchable ? '180px' : '210px', overflowY: 'auto' }}>
+            {filteredOptions.map(opt => {
               const isSelected = opt.value === value;
               return (
                 <button
@@ -137,10 +232,31 @@ export default function CustomSelect({ value, onChange, options = [], placeholde
                   {opt.label}
                 </button>
               );
-            })
-          )}
-        </div>
-      )}
+            })}
+          </div>
+        )}
+
+        {onAdd && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAdd();
+              setIsOpen(false);
+            }}
+            style={addButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#f0f7ff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
+          >
+            <Plus size={13} style={{ flexShrink: 0 }} />
+            {addLabel}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

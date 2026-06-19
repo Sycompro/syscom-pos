@@ -1018,7 +1018,10 @@ export default function POSPage() {
                                  activeTab === 'expenses' ? 'Egresos' :
                                  activeTab === 'general-cash' ? 'Caja General' :
                                  activeTab === 'whatsapp' ? 'Config WhatsApp' : 
-                                 activeTab === 'sales' ? 'Historial Ventas' : 'POS'}
+                                 activeTab === 'sales' ? 'Historial Ventas' : 
+                                 activeTab === 'products' ? 'Catálogo Artículos' :
+                                 activeTab === 'classifications' ? 'Clasificaciones' :
+                                 activeTab === 'brands' ? 'Marcas ERP' : 'POS'}
                             </span>
                         </div>
                         <div style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe', textTransform: 'uppercase' }}>
@@ -1647,12 +1650,15 @@ export default function POSPage() {
                         </motion.div>
                     )}
 
-                    {activeTab === 'products' && (
+                    {(activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands') && (
                         <motion.div
                             key="products" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                             style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
                         >
-                            <ProductsView />
+                            <ProductsView currentTab={
+                                activeTab === 'classifications' ? 'classifications' :
+                                activeTab === 'brands' ? 'brands' : 'catalog'
+                            } />
                         </motion.div>
                     )}
 

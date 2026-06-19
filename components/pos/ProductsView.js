@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react';
 import { 
   Search, Edit, Loader2, RefreshCw, AlertCircle, X, Check, 
-  Store, Tag, Barcode, Package, Layers, Activity 
+  Store, Tag, Barcode, Package, Layers, Activity, Plus 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProductCreateModal from './ProductCreateModal';
+import ClassificationsManager from './ClassificationsManager';
 
-export default function ProductsView() {
+export default function ProductsView({ currentTab }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,6 +26,14 @@ export default function ProductsView() {
   const [savingProduct, setSavingProduct] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' | 'classifications' | 'brands'
+
+  useEffect(() => {
+    if (currentTab) {
+      setActiveTab(currentTab);
+    }
+  }, [currentTab]);
 
   // Estados de interfaz responsiva
   const [windowWidth, setWindowWidth] = useState(1280);
@@ -183,18 +193,56 @@ export default function ProductsView() {
             fontWeight: 950,
             color: '#0f172a',
             letterSpacing: '-0.02em'
-          }}>Catálogo de Productos y Artículos</h2>
-          <p style={subtitleStyle}>Precios locales, herencia de precios maestros y stock consolidado multi-sede.</p>
+          }}>
+            {activeTab === 'catalog' ? 'Catálogo de Productos y Artículos' : 
+             activeTab === 'brands' ? 'Gestión de Marcas ERP' : 'Gestión de Clasificaciones Maestras'}
+          </h2>
+          <p style={subtitleStyle}>
+            {activeTab === 'catalog' 
+              ? 'Precios locales, herencia de precios maestros y stock consolidado multi-sede.' :
+             activeTab === 'brands'
+              ? 'Gestión y registro de Marcas autorizadas en el ERP.'
+              : 'Gestión y registro de Familias, Subfamilias y Giros Tipos en el ERP.'}
+          </p>
         </div>
-        <div>
-          <button onClick={fetchProducts} style={refreshBtnStyle} disabled={loading} title="Actualizar lista">
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {activeTab === 'catalog' && (
+            <button 
+              onClick={() => setIsCreateModalOpen(true)}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                color: '#fff',
+                border: 'none',
+                fontSize: '12px',
+                fontWeight: 850,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 4px 10px rgba(15,23,42,0.1)',
+                height: '40px'
+              }}
+            >
+              <Plus size={16} />
+              <span>Nuevo Producto</span>
+            </button>
+          )}
+          {activeTab === 'catalog' && (
+            <button onClick={fetchProducts} style={refreshBtnStyle} disabled={loading} title="Actualizar lista">
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Barra de Filtros y Búsqueda */}
-      <div style={responsiveFiltersStyle}>
+      {/* Pestañas de Navegación del Módulo eliminadas - Controladas por Sidebar */}
+
+      {activeTab === 'catalog' ? (
+        <>
+          {/* Barra de Filtros y Búsqueda */}
+          <div style={responsiveFiltersStyle}>
         <div style={{
           ...searchWrapperStyle,
           width: isMobileView ? '100%' : '350px',
@@ -415,6 +463,12 @@ export default function ProductsView() {
           </div>
         )}
       </div>
+        </>
+      ) : activeTab === 'brands' ? (
+        <ClassificationsManager mode="brands" />
+      ) : (
+        <ClassificationsManager mode="classifications" />
+      )}
 
       {/* MODAL 1: CONSULTA DE STOCK MULTI-SEDE */}
       <AnimatePresence>
@@ -651,6 +705,12 @@ export default function ProductsView() {
           </div>
         )}
       </AnimatePresence>
+
+      <ProductCreateModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onSuccess={fetchProducts} 
+      />
     </div>
   );
 }
