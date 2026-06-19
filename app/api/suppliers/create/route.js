@@ -12,7 +12,7 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { nompro, rucpro, dirpro, telpro, email } = body;
+        const { nompro, rucpro, dirpro, telpro, email, docType } = body;
 
         if (!nompro) {
             return NextResponse.json({ error: 'Razón Social / Nombre es requerido' }, { status: 400 });
@@ -44,6 +44,19 @@ export async function POST(request) {
                 }
             }
 
+            let finalCodDocIde = '06'; // Default RUC
+            if (docType === 'DNI' || docType === '01') {
+                finalCodDocIde = '01';
+            } else if (docType === 'RUC' || docType === '06') {
+                finalCodDocIde = '06';
+            } else if (docType === 'CE' || docType === '04') {
+                finalCodDocIde = '04';
+            } else if (docType === 'Pasaporte' || docType === '07') {
+                finalCodDocIde = '07';
+            } else {
+                finalCodDocIde = rucpro.trim().length === 11 ? '06' : '01';
+            }
+
             // 2. Insertar en mst01pro
             const reqInsert = transaction.request();
             reqInsert.input('codpro', sql.Char(6), nextCode);
@@ -53,10 +66,18 @@ export async function POST(request) {
             reqInsert.input('telpro', sql.VarChar(25), (telpro || '').trim().substring(0, 25));
             reqInsert.input('email', sql.VarChar(60), (email || '').trim().substring(0, 60));
             reqInsert.input('estado', sql.Int, 1);
+            reqInsert.input('coddocide', sql.Char(2), finalCodDocIde);
+            reqInsert.input('nrodocide', sql.VarChar(20), rucpro.trim().substring(0, 20));
 
             await reqInsert.query(`
-                INSERT INTO mst01pro (codpro, nompro, rucpro, dirpro, telpro, email, estado, FecReg)
-                VALUES (@codpro, @nompro, @rucpro, @dirpro, @telpro, @email, @estado, GETDATE())
+                INSERT INTO mst01pro (
+                    codpro, nompro, rucpro, dirpro, telpro, email, estado, FecReg,
+                    coddocide, nrodocide, codpos, codpai, codact, codcat, Catsnt, codigv, sexpro, condom, despacho, repsem, codtipo, ccestado, ccdiaent
+                )
+                VALUES (
+                    @codpro, @nompro, @rucpro, @dirpro, @telpro, @email, @estado, GETDATE(),
+                    @coddocide, @nrodocide, '01        ', '01', '01', '01', 1, '01', 1, 1, 1, 8, '01', 1, 0
+                )
             `);
 
             await transaction.commit();

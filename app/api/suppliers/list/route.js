@@ -30,7 +30,8 @@ export async function GET(request) {
                     RTRIM(dirpro) as dirpro,
                     RTRIM(telpro) as telpro,
                     RTRIM(email) as email,
-                    estado
+                    estado,
+                    RTRIM(coddocide) as coddocide
                 FROM mst01pro WITH(nolock)
                 WHERE (nompro LIKE @q OR rucpro LIKE @q OR codpro LIKE @q)
                   AND codpro <> 'P00000' -- Excluir el comodín VARIOS del catálogo administrativo
@@ -45,7 +46,8 @@ export async function GET(request) {
                     RTRIM(dirpro) as dirpro,
                     RTRIM(telpro) as telpro,
                     RTRIM(email) as email,
-                    estado
+                    estado,
+                    RTRIM(coddocide) as coddocide
                 FROM mst01pro WITH(nolock)
                 WHERE codpro <> 'P00000'
                 ORDER BY nompro ASC
@@ -61,7 +63,8 @@ export async function GET(request) {
             dirpro: r.dirpro || '',
             telpro: r.telpro || '',
             email: r.email || '',
-            estado: r.estado
+            estado: r.estado,
+            coddocide: r.coddocide || ''
         }));
 
         return NextResponse.json({ success: true, suppliers });

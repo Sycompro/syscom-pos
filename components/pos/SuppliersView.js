@@ -25,6 +25,8 @@ export default function SuppliersView() {
   const [formDirpro, setFormDirpro] = useState('');
   const [formTelpro, setFormTelpro] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formDocType, setFormDocType] = useState('06'); // '06' = RUC, '01' = DNI, etc.
+  const [searchingRuc, setSearchingRuc] = useState(false);
 
   const [windowWidth, setWindowWidth] = useState(1200);
 
@@ -64,6 +66,39 @@ export default function SuppliersView() {
     fetchSuppliers();
   }, [searchTerm]);
 
+  // Consulta automática de RUC/DNI en SUNAT/RENIEC
+  const handleLookupDocument = async (val = formRucpro, docType = formDocType) => {
+    const cleanDoc = val.trim();
+    if (!cleanDoc) return;
+    
+    // Solo consultar automáticamente para RUC de 11 o DNI de 8 dígitos
+    if (docType === '06' && cleanDoc.length !== 11) return;
+    if (docType === '01' && cleanDoc.length !== 8) return;
+    
+    setSearchingRuc(true);
+    setModalError(null);
+    try {
+      const res = await fetch(`/api/suppliers/lookup?q=${encodeURIComponent(cleanDoc)}&docType=${docType}`);
+      const data = await res.json();
+      if (data.success) {
+        if (data.exists) {
+          setModalError(`El proveedor con este documento ya está registrado (${data.supplier.codpro} - ${data.supplier.nompro})`);
+          setFormNompro(data.supplier.nompro);
+          setFormDirpro(data.supplier.dirpro);
+          setFormTelpro(data.supplier.telpro);
+          setFormEmail(data.supplier.email);
+        } else if (data.data) {
+          setFormNompro(data.data.nompro || '');
+          setFormDirpro(data.data.dirpro || '');
+        }
+      }
+    } catch (err) {
+      console.error('[SuppliersView] Error querying RUC/DNI:', err);
+    } finally {
+      setSearchingRuc(false);
+    }
+  };
+
   // Abrir modal en modo crear
   const handleOpenCreateModal = () => {
     setEditingCodpro(null);
@@ -72,6 +107,7 @@ export default function SuppliersView() {
     setFormDirpro('');
     setFormTelpro('');
     setFormEmail('');
+    setFormDocType('06');
     setModalError(null);
     setShowModal(true);
   };
@@ -84,6 +120,7 @@ export default function SuppliersView() {
     setFormDirpro(supplier.dirpro);
     setFormTelpro(supplier.telpro);
     setFormEmail(supplier.email);
+    setFormDocType(supplier.coddocide || (supplier.rucpro.length === 11 ? '06' : '01'));
     setModalError(null);
     setShowModal(true);
   };
@@ -99,11 +136,15 @@ export default function SuppliersView() {
       return;
     }
     if (!formRucpro.trim()) {
-      setModalError("El RUC o Documento es requerido.");
+      setModalError("El Documento de Identidad es requerido.");
       return;
     }
-    if (formRucpro.trim().length !== 11 && formRucpro.trim().length !== 8) {
-      setModalError("El RUC debe tener 11 dígitos (o DNI de 8 dígitos).");
+    if (formDocType === '06' && formRucpro.trim().length !== 11) {
+      setModalError("El RUC debe tener exactamente 11 dígitos.");
+      return;
+    }
+    if (formDocType === '01' && formRucpro.trim().length !== 8) {
+      setModalError("El DNI debe tener exactamente 8 dígitos.");
       return;
     }
 
@@ -114,7 +155,8 @@ export default function SuppliersView() {
         rucpro: formRucpro.trim(),
         dirpro: formDirpro.trim(),
         telpro: formTelpro.trim(),
-        email: formEmail.trim()
+        email: formEmail.trim(),
+        docType: formDocType
       };
 
       let res, data;
@@ -312,18 +354,93 @@ export default function SuppliersView() {
                 )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {/* RUC */}
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>RUC / Documento Identidad</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ej. 20123456789 (11 dígitos)" 
-                      value={formRucpro}
-                      onChange={e => setFormRucpro(e.target.value.replace(/[^0-9]/g, ''))}
-                      maxLength={11}
-                      required
-                      style={inputStyle}
-                    />
+                  {/* Tipo de Documento y Número */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 1fr', gap: '10px' }}>
+                    {/* Tipo Doc */}
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Tipo Doc.</label>
+                      <select 
+                        value={formDocType}
+                        onChange={e => {
+                          setFormDocType(e.target.value);
+                          setFormRucpro('');
+                          setFormNompro('');
+                          setFormDirpro('');
+                        }}
+                        style={{
+                          ...inputStyle,
+                          padding: '8px 12px',
+                          background: '#ffffff',
+                          cursor: 'pointer',
+                          height: '38px'
+                        }}
+                      >
+                        <option value="06">RUC</option>
+                        <option value="01">DNI</option>
+                        <option value="04">CARNÉ EXT.</option>
+                        <option value="07">PASAPORTE</option>
+                      </select>
+                    </div>
+
+                    {/* Documento */}
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Nro. Documento</label>
+                      <div style={{ display: 'flex', gap: '6px', width: '100%' }}>
+                        <input 
+                          type="text" 
+                          placeholder={
+                            formDocType === '06' ? 'RUC de 11 dígitos' :
+                            formDocType === '01' ? 'DNI de 8 dígitos' : 'Nro. de Documento'
+                          }
+                          value={formRucpro}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                            const cleanValue = (formDocType === '01' || formDocType === '06') ? value.replace(/[^0-9]/g, '') : value;
+                            setFormRucpro(cleanValue);
+                            
+                            // Auto consulta en SUNAT/RENIEC al completar dígitos
+                            if (formDocType === '06' && cleanValue.length === 11) {
+                              handleLookupDocument(cleanValue, '06');
+                            } else if (formDocType === '01' && cleanValue.length === 8) {
+                              handleLookupDocument(cleanValue, '01');
+                            }
+                          }}
+                          maxLength={formDocType === '06' ? 11 : formDocType === '01' ? 8 : 20}
+                          required
+                          style={{ ...inputStyle, flex: 1, height: '38px' }}
+                        />
+                        {(formDocType === '01' || formDocType === '06') && (
+                          <button
+                            type="button"
+                            onClick={() => handleLookupDocument(formRucpro, formDocType)}
+                            disabled={searchingRuc || (formDocType === '06' ? formRucpro.length !== 11 : formRucpro.length !== 8)}
+                            style={{
+                              padding: '8px 12px',
+                              borderRadius: '10px',
+                              background: '#eff6ff',
+                              color: '#3b82f6',
+                              border: '1px solid rgba(59,130,246,0.2)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              minWidth: '70px',
+                              transition: 'all 0.2s ease',
+                              height: '38px',
+                              opacity: (searchingRuc || (formDocType === '06' ? formRucpro.length !== 11 : formRucpro.length !== 8)) ? 0.5 : 1
+                            }}
+                          >
+                            {searchingRuc ? (
+                              <Loader2 className="animate-spin" size={14} />
+                            ) : (
+                              'Buscar'
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Razón Social */}

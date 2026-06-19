@@ -12,7 +12,7 @@ export async function PATCH(request) {
 
     try {
         const body = await request.json();
-        const { codpro, nompro, rucpro, dirpro, telpro, email } = body;
+        const { codpro, nompro, rucpro, dirpro, telpro, email, docType } = body;
 
         if (!codpro) {
             return NextResponse.json({ error: 'El código del proveedor (codpro) es requerido' }, { status: 400 });
@@ -25,6 +25,19 @@ export async function PATCH(request) {
         }
 
         const pool = await getConnection(session.user.company);
+
+        let finalCodDocIde = '06'; // Default RUC
+        if (docType === 'DNI' || docType === '01') {
+            finalCodDocIde = '01';
+        } else if (docType === 'RUC' || docType === '06') {
+            finalCodDocIde = '06';
+        } else if (docType === 'CE' || docType === '04') {
+            finalCodDocIde = '04';
+        } else if (docType === 'Pasaporte' || docType === '07') {
+            finalCodDocIde = '07';
+        } else {
+            finalCodDocIde = rucpro.trim().length === 11 ? '06' : '01';
+        }
         
         const reqUpdate = pool.request();
         reqUpdate.input('codpro', sql.Char(6), codpro);
@@ -33,6 +46,8 @@ export async function PATCH(request) {
         reqUpdate.input('dirpro', sql.VarChar(60), (dirpro || '').trim().toUpperCase().substring(0, 60));
         reqUpdate.input('telpro', sql.VarChar(25), (telpro || '').trim().substring(0, 25));
         reqUpdate.input('email', sql.VarChar(60), (email || '').trim().substring(0, 60));
+        reqUpdate.input('coddocide', sql.Char(2), finalCodDocIde);
+        reqUpdate.input('nrodocide', sql.VarChar(20), rucpro.trim().substring(0, 20));
 
         const result = await reqUpdate.query(`
             UPDATE mst01pro
@@ -40,7 +55,9 @@ export async function PATCH(request) {
                 rucpro = @rucpro,
                 dirpro = @dirpro,
                 telpro = @telpro,
-                email = @email
+                email = @email,
+                coddocide = @coddocide,
+                nrodocide = @nrodocide
             WHERE codpro = @codpro
         `);
 
