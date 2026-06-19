@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { 
   Receipt, Search, Printer, Calendar, Loader2, MessageCircle, 
   CheckCircle2, Banknote, CreditCard, UserCircle, AlertCircle, 
-  ChevronRight, Trash2, SlidersHorizontal, ArrowRight, TrendingUp, X 
+  ChevronRight, Trash2, SlidersHorizontal, ArrowRight, TrendingUp, X,
+  MoreVertical
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CustomSelect from './CustomSelect';
@@ -42,6 +43,21 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
   const [selectedMotivoAnu, setSelectedMotivoAnu] = useState('');
   const [processingAnnul, setProcessingAnnul] = useState(false);
 
+  // Dropdown de Acciones
+  const [activeDropdown, setActiveDropdown] = useState(null);
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveDropdown(null);
+    };
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, []);
+
+  const toggleDropdown = (ndocu) => {
+    setActiveDropdown(prev => prev === ndocu ? null : ndocu);
+  };
+
   const [windowWidth, setWindowWidth] = useState(1280);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -53,6 +69,24 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
   }, []);
 
   const isMobileView = windowWidth < 768;
+
+  const dropdownItemStyle = {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 12px',
+    background: 'transparent',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '11px',
+    fontWeight: 700,
+    color: '#334155',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'background 0.15s',
+    outline: 'none',
+  };
 
   // Estilos de KPIs adaptables a móviles
   const cardStyle = isMobileView ? {
@@ -319,6 +353,9 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
           .search-col-responsive {
             grid-column: span 1 !important;
           }
+        }
+        .dropdown-item-hover:hover {
+          background-color: #f1f5f9 !important;
         }
       `}} />
 
@@ -657,22 +694,90 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
                   <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#3b82f6', fontSize: '12px' }}>
                     S/ {sale.tota.toFixed(2)}
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                      <button onClick={() => handleOpenDetail(sale)} style={actionBtnDetail} title="Ver items">
-                        <ChevronRight size={13} />
+                  <td style={{ ...tdStyle, textAlign: 'center', position: 'relative' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); toggleDropdown(sale.ndocu); }} 
+                        style={{
+                          background: activeDropdown === sale.ndocu ? '#f1f5f9' : 'transparent',
+                          border: 'none',
+                          color: '#64748b',
+                          padding: '6px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        title="Acciones"
+                      >
+                        <MoreVertical size={16} />
                       </button>
-                      <button onClick={() => openWaModal(sale)} style={actionBtnWa} title="Enviar por WhatsApp">
-                        <MessageCircle size={13} />
-                      </button>
-                      <button onClick={() => handleReprint(sale)} disabled={reprinting === sale.ndocu} style={actionBtnPrint} title="Reimprimir">
-                        {reprinting === sale.ndocu ? <Loader2 className="animate-spin" size={13} /> : <Printer size={13} />}
-                      </button>
-                      {sale.status === 'ACTIVO' && (
-                        <button onClick={() => setAnnulSale(sale)} style={actionBtnAnnul} title="Anular venta">
-                          <Trash2 size={13} />
-                        </button>
-                      )}
+
+                      <AnimatePresence>
+                        {activeDropdown === sale.ndocu && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                            style={{
+                              position: 'absolute',
+                              right: '100%',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              background: '#ffffff',
+                              borderRadius: '12px',
+                              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                              border: '1px solid #f1f5f9',
+                              zIndex: 50,
+                              minWidth: '160px',
+                              overflow: 'hidden',
+                              padding: '4px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '2px',
+                              marginRight: '8px'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => { setActiveDropdown(null); handleOpenDetail(sale); }}
+                              style={dropdownItemStyle}
+                              className="dropdown-item-hover"
+                            >
+                              <ChevronRight size={13} style={{ color: '#3b82f6' }} />
+                              <span>Ver items</span>
+                            </button>
+                            <button
+                              onClick={() => { setActiveDropdown(null); openWaModal(sale); }}
+                              style={dropdownItemStyle}
+                              className="dropdown-item-hover"
+                            >
+                              <MessageCircle size={13} style={{ color: '#10b981' }} />
+                              <span>Enviar WhatsApp</span>
+                            </button>
+                            <button
+                              onClick={() => { setActiveDropdown(null); handleReprint(sale); }}
+                              disabled={reprinting === sale.ndocu}
+                              style={dropdownItemStyle}
+                              className="dropdown-item-hover"
+                            >
+                              {reprinting === sale.ndocu ? <Loader2 className="animate-spin" size={13} /> : <Printer size={13} style={{ color: '#64748b' }} />}
+                              <span>Reimprimir</span>
+                            </button>
+                            {sale.status === 'ACTIVO' && (
+                              <button
+                                onClick={() => { setActiveDropdown(null); setAnnulSale(sale); }}
+                                style={{ ...dropdownItemStyle, color: '#ef4444' }}
+                                className="dropdown-item-hover"
+                              >
+                                <Trash2 size={13} style={{ color: '#ef4444' }} />
+                                <span>Anular venta</span>
+                              </button>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </td>
                 </tr>
