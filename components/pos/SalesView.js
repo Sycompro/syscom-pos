@@ -572,7 +572,7 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
                 <th style={thStyle} className="hide-mobile">VENDEDOR</th>
                 <th style={thStyle} className="hide-mobile">FECHA / HORA</th>
                 <th style={{ ...thStyle, textAlign: 'right' }} className="hide-mobile">PAGO</th>
-                <th style={thStyle} className="hide-mobile">SUNAT</th>
+                <th style={thStyle}>SUNAT</th>
                 <th style={{ ...thStyle, textAlign: 'right' }}>TOTAL</th>
                 <th style={{ ...thStyle, textAlign: 'center' }}>ACCIONES</th>
               </tr>
@@ -641,7 +641,7 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
                       <span style={{ fontWeight: 700 }}>{sale.paymentType}</span>
                     </div>
                   </td>
-                  <td style={tdStyle} className="hide-mobile">
+                  <td style={tdStyle}>
                     <span style={{
                       fontSize: '8px',
                       fontWeight: 900,
