@@ -32,6 +32,7 @@ import CustomersView from '@/components/pos/CustomersView';
 import PromotionsView from '@/components/pos/PromotionsView';
 import GeneralCashView from '@/components/pos/GeneralCashView';
 import ExpensesView from '@/components/pos/ExpensesView';
+import PurchasesView from '@/components/pos/PurchasesView';
 import ProductsView from '@/components/pos/ProductsView';
 import DashboardView from '@/components/pos/DashboardView';
 import SalesView from '@/components/pos/SalesView';
@@ -1016,6 +1017,7 @@ export default function POSPage() {
                                  activeTab === 'birthdays' ? 'Cumpleaños' : 
                                  activeTab === 'credits' ? 'Gestión de Créditos' :
                                  activeTab === 'expenses' ? 'Egresos' :
+                                 activeTab === 'purchases' ? 'Compras' :
                                  activeTab === 'general-cash' ? 'Caja General' :
                                  activeTab === 'whatsapp' ? 'Config WhatsApp' : 
                                  activeTab === 'sales' ? 'Historial Ventas' : 
@@ -1646,6 +1648,20 @@ export default function POSPage() {
                             <ExpensesView 
                                 key={expenseRefreshTrigger}
                                 onAddExpense={() => setShowExpenseModal(true)}
+                            />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'purchases' && (
+                        <motion.div
+                            key="purchases" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
+                        >
+                            <PurchasesView 
+                                idApeCaj={idApeCaj}
+                                onPurchaseSuccess={() => {
+                                    console.log("Compra registrada exitosamente.");
+                                }}
                             />
                         </motion.div>
                     )}
