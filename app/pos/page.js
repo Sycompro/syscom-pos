@@ -1018,7 +1018,9 @@ export default function POSPage() {
                                  activeTab === 'birthdays' ? 'Cumpleaños' : 
                                  activeTab === 'credits' ? 'Gestión de Créditos' :
                                  activeTab === 'expenses' ? 'Egresos' :
-                                 activeTab === 'purchases' ? 'Compras' :
+                                 activeTab === 'purchases-ocm' ? 'Orden de Compra' :
+                                 activeTab === 'purchases-gim' ? 'Nota de Ingreso' :
+                                 activeTab === 'purchases-ccp' ? 'Facturas / Boletas' :
                                  activeTab === 'suppliers' ? 'Proveedores' :
                                  activeTab === 'general-cash' ? 'Caja General' :
                                  activeTab === 'whatsapp' ? 'Config WhatsApp' : 
@@ -1654,7 +1656,7 @@ export default function POSPage() {
                         </motion.div>
                     )}
 
-                    {activeTab === 'purchases' && (
+                    {(activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp') && (
                         <motion.div
                             key="purchases" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                             style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
@@ -1664,6 +1666,10 @@ export default function POSPage() {
                                 onPurchaseSuccess={() => {
                                     console.log("Compra registrada exitosamente.");
                                 }}
+                                currentTab={
+                                    activeTab === 'purchases-ocm' ? 'ocm' :
+                                    activeTab === 'purchases-gim' ? 'gim' : 'ccp'
+                                }
                             />
                         </motion.div>
                     )}

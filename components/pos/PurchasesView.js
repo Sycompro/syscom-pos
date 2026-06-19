@@ -7,11 +7,20 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function PurchasesView({ idApeCaj, onPurchaseSuccess }) {
+export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab }) {
   // Pestañas principales: 'ocm' = Orden de Compra, 'gim' = Nota de Ingreso, 'ccp' = Facturas/Boletas
   const [subTab, setSubTab] = useState('ccp');
   // Modo de visualización: 'list' (historial) o 'create' (formulario de registro)
   const [viewMode, setViewMode] = useState('list');
+
+  useEffect(() => {
+    if (currentTab) {
+      setSubTab(currentTab);
+      setViewMode('list');
+      setErrorMsg(null);
+      setSuccessData(null);
+    }
+  }, [currentTab]);
 
   // Estados generales de carga y error
   const [loading, setLoading] = useState(false);
@@ -595,30 +604,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess }) {
         </div>
       </div>
 
-      {/* Sub-Pestañas de Compra (Estilo Porcelain) */}
-      <div style={subTabContainerStyle}>
-        <button 
-          onClick={() => setSubTab('ocm')}
-          style={subTab === 'ocm' ? activeSubTabBtnStyle : inactiveSubTabBtnStyle}
-        >
-          <FileText size={14} style={{ marginRight: '6px' }} />
-          Orden de Compra (OCM)
-        </button>
-        <button 
-          onClick={() => setSubTab('gim')}
-          style={subTab === 'gim' ? activeSubTabBtnStyle : inactiveSubTabBtnStyle}
-        >
-          <Clipboard size={14} style={{ marginRight: '6px' }} />
-          Nota de Ingreso (GIM)
-        </button>
-        <button 
-          onClick={() => setSubTab('ccp')}
-          style={subTab === 'ccp' ? activeSubTabBtnStyle : inactiveSubTabBtnStyle}
-        >
-          <Receipt size={14} style={{ marginRight: '6px' }} />
-          Facturas / Boletas (CCP)
-        </button>
-      </div>
+
 
       {/* RENDERIZADO MODO: HISTORIAL (LIST) */}
       {viewMode === 'list' && (
