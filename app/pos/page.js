@@ -1665,7 +1665,7 @@ export default function POSPage() {
                     {activeTab === 'dashboard' && (
                         <motion.div
                             key="dashboard" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                            style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
+                            style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}
                         >
                             <DashboardView />
                         </motion.div>

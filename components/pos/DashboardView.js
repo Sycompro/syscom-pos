@@ -261,28 +261,75 @@ export default function DashboardView() {
       <AnimatePresence>
         {datePreset === 'custom' && (
           <motion.div 
+            key="custom-date-range"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
             style={customRangeStyle}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <Calendar size={14} color="#64748b" />
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Rango:</span>
-              <input 
-                type="date" 
-                value={startDate} 
-                onChange={e => setStartDate(e.target.value)} 
-                style={dateInputStyle} 
-              />
-              <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
-              <input 
-                type="date" 
-                value={endDate} 
-                onChange={e => setEndDate(e.target.value)} 
-                style={dateInputStyle} 
-              />
-              <button onClick={fetchDashboardData} style={queryBtnStyle}>Consultar</button>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: isMobileView ? 'column' : 'row', 
+              alignItems: isMobileView ? 'stretch' : 'center', 
+              gap: isMobileView ? '10px' : '8px', 
+              padding: isMobileView ? '16px' : '12px 16px',
+              boxSizing: 'border-box'
+            }}>
+              {isMobileView ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <Calendar size={16} color="#3b82f6" />
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b' }}>Seleccionar Rango</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Desde</span>
+                    <input 
+                      type="date" 
+                      value={startDate} 
+                      onChange={e => setStartDate(e.target.value)} 
+                      style={{ ...dateInputStyle, width: '100%', height: '38px', fontSize: '12px', boxSizing: 'border-box' }} 
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Hasta</span>
+                    <input 
+                      type="date" 
+                      value={endDate} 
+                      onChange={e => setEndDate(e.target.value)} 
+                      style={{ ...dateInputStyle, width: '100%', height: '38px', fontSize: '12px', boxSizing: 'border-box' }} 
+                    />
+                  </div>
+
+                  <button 
+                    onClick={fetchDashboardData} 
+                    style={{ ...queryBtnStyle, width: '100%', height: '38px', fontSize: '12px', fontWeight: 900, marginTop: '6px' }}
+                  >
+                    Consultar Rango
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Calendar size={14} color="#64748b" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Rango:</span>
+                  <input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={e => setStartDate(e.target.value)} 
+                    style={dateInputStyle} 
+                  />
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
+                  <input 
+                    type="date" 
+                    value={endDate} 
+                    onChange={e => setEndDate(e.target.value)} 
+                    style={dateInputStyle} 
+                  />
+                  <button onClick={fetchDashboardData} style={queryBtnStyle}>Consultar</button>
+                </>
+              )}
             </div>
           </motion.div>
         )}
@@ -507,7 +554,8 @@ const containerStyle = {
   overflowY: 'auto',
   width: '100%',
   maxWidth: '1400px',
-  margin: '0 auto'
+  margin: '0 auto',
+  boxSizing: 'border-box'
 };
 
 const headerStyle = {
@@ -608,11 +656,12 @@ const activePresetBtnStyle = {
 
 const customRangeStyle = {
   background: '#fff',
-  padding: '12px 16px',
   borderRadius: '16px',
   border: '1px solid #e2e8f0',
   boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-  overflow: 'hidden'
+  overflow: 'hidden',
+  boxSizing: 'border-box',
+  width: '100%'
 };
 
 const dateInputStyle = {
