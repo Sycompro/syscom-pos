@@ -370,24 +370,24 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
         exit={{ scale: 0.95, opacity: 0 }}
         style={{
           ...modalContentStyle,
-          width: '680px',
+          width: '600px',
           maxWidth: '95vw',
           position: 'relative'
         }}
       >
         {/* ─── CABECERA ────────────────────────────────────────────────── */}
         <div style={modalHeaderStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={headerIconStyle}>
-              <Package size={20} />
+              <Package size={16} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>Nuevo Producto ERP</h3>
-              <p style={{ margin: 0, fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Crea un artículo respetando la estructura relacional de Navasoft.</p>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>Nuevo Producto ERP</h3>
+              <p style={{ margin: 0, fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Estructura relacional Navasoft</p>
             </div>
           </div>
           <button type="button" onClick={onClose} style={closeModalBtnStyle} disabled={saving}>
-            <X size={16} />
+            <X size={14} />
           </button>
         </div>
 
@@ -407,17 +407,10 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
         ) : (
           <form onSubmit={handleProductSubmit} style={formBodyStyle}>
             
-            {/* ═══ SECCIÓN 1: INFORMACIÓN DEL ARTÍCULO ═══════════════════ */}
+            {/* ═══ SECCIÓN 1: DATOS PRINCIPALES ═══════════════════════ */}
             <div style={sectionStyle}>
-              <div style={sectionHeaderStyle}>
-                <div style={{ ...sectionBadgeStyle, background: '#eff6ff', color: '#2563eb' }}>
-                  <Package size={13} />
-                </div>
-                <span style={sectionTitleStyle}>Información del Artículo</span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Descripción - Full width */}
+              <span style={sectionLabelStyle}>Datos del Artículo</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div>
                   <label style={labelStyle}>Descripción / Nombre *</label>
                   <input 
@@ -430,34 +423,9 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  {/* Categoría / Tipo */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                   <div>
-                    <label style={labelStyle}>Categoría / Tipo *</label>
-                    <CustomSelect
-                      value={formData.tipoitm}
-                      onChange={e => handleInputChange('tipoitm', e.target.value)}
-                      options={tipoOptions}
-                      placeholder="Seleccione tipo..."
-                    />
-                  </div>
-
-                  {/* UM Kardex */}
-                  <div>
-                    <label style={labelStyle}>UM Kardex (Medida) *</label>
-                    <CustomSelect
-                      value={formData.umed}
-                      onChange={e => handleInputChange('umed', e.target.value)}
-                      options={umedOptions}
-                      placeholder="Seleccione UM..."
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  {/* Precio */}
-                  <div>
-                    <label style={labelStyle}>Precio de Venta (S/.) *</label>
+                    <label style={labelStyle}>Precio (S/.) *</label>
                     <input 
                       type="number" 
                       step="0.01"
@@ -468,54 +436,69 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       style={inputStyle}
                     />
                   </div>
-
-                  {/* Código de Barras */}
                   <div>
-                    <label style={labelStyle}>Código de Barras / Físico</label>
+                    <label style={labelStyle}>Tipo *</label>
+                    <CustomSelect
+                      value={formData.tipoitm}
+                      onChange={e => handleInputChange('tipoitm', e.target.value)}
+                      options={tipoOptions}
+                      placeholder="Tipo..."
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>UM Kardex *</label>
+                    <CustomSelect
+                      value={formData.umed}
+                      onChange={e => handleInputChange('umed', e.target.value)}
+                      options={umedOptions}
+                      placeholder="UM..."
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <label style={labelStyle}>Código de Barras</label>
                     <input 
                       type="text" 
-                      placeholder="Opcional (Ej: 7751234567890)"
+                      placeholder="Opcional"
                       value={formData.codf}
                       onChange={e => handleInputChange('codf', e.target.value)}
                       style={inputStyle}
                     />
                   </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', paddingBottom: '4px' }}>
+                    <label style={toggleLabelStyle}>
+                      <div style={{
+                        ...toggleSwitchStyle,
+                        background: formData.aigv ? '#3b82f6' : '#cbd5e1'
+                      }} onClick={() => handleInputChange('aigv', !formData.aigv)}>
+                        <div style={{
+                          ...toggleKnobStyle,
+                          transform: formData.aigv ? 'translateX(16px)' : 'translateX(2px)'
+                        }} />
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>IGV 18%</span>
+                    </label>
+                    <label style={{
+                      ...toggleLabelStyle,
+                      opacity: formData.tipoitm === '2' ? 0.4 : 1,
+                      pointerEvents: formData.tipoitm === '2' ? 'none' : 'auto'
+                    }}>
+                      <div style={{
+                        ...toggleSwitchStyle,
+                        background: formData.msto ? '#3b82f6' : '#cbd5e1'
+                      }} onClick={() => formData.tipoitm !== '2' && handleInputChange('msto', !formData.msto)}>
+                        <div style={{
+                          ...toggleKnobStyle,
+                          transform: formData.msto ? 'translateX(16px)' : 'translateX(2px)'
+                        }} />
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>Stock</span>
+                    </label>
+                  </div>
                 </div>
 
-                {/* Checkboxes - toggles */}
-                <div style={toggleRowStyle}>
-                  <label style={toggleLabelStyle}>
-                    <div style={{
-                      ...toggleSwitchStyle,
-                      background: formData.aigv ? '#3b82f6' : '#cbd5e1'
-                    }} onClick={() => handleInputChange('aigv', !formData.aigv)}>
-                      <div style={{
-                        ...toggleKnobStyle,
-                        transform: formData.aigv ? 'translateX(16px)' : 'translateX(2px)'
-                      }} />
-                    </div>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Afecto IGV (18%)</span>
-                  </label>
-
-                  <label style={{
-                    ...toggleLabelStyle,
-                    opacity: formData.tipoitm === '2' ? 0.4 : 1,
-                    pointerEvents: formData.tipoitm === '2' ? 'none' : 'auto'
-                  }}>
-                    <div style={{
-                      ...toggleSwitchStyle,
-                      background: formData.msto ? '#3b82f6' : '#cbd5e1'
-                    }} onClick={() => formData.tipoitm !== '2' && handleInputChange('msto', !formData.msto)}>
-                      <div style={{
-                        ...toggleKnobStyle,
-                        transform: formData.msto ? 'translateX(16px)' : 'translateX(2px)'
-                      }} />
-                    </div>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Control de Stock</span>
-                  </label>
-                </div>
-
-                {/* Días de Membresía - Condicional para Servicio */}
                 <AnimatePresence>
                   {formData.tipoitm === '2' && (
                     <motion.div
@@ -524,18 +507,15 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       exit={{ height: 0, opacity: 0 }}
                       style={{ overflow: 'hidden' }}
                     >
-                      <div style={{ padding: '0 0 4px' }}>
-                        <label style={labelStyle}>Días de Membresía / Vigencia</label>
+                      <div>
+                        <label style={labelStyle}>Días de Membresía</label>
                         <input
                           type="number"
-                          placeholder="Ej: 30 (Dejar vacío o 0 si no es membresía)"
+                          placeholder="Ej: 30"
                           value={formData.membershipDays}
                           onChange={e => handleInputChange('membershipDays', e.target.value)}
                           style={inputStyle}
                         />
-                        <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>
-                          Si ingresa días, el sistema creará este artículo como una membresía activa del gimnasio.
-                        </p>
                       </div>
                     </motion.div>
                   )}
@@ -543,135 +523,115 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
               </div>
             </div>
 
-            {/* ═══ SECCIÓN 2: CLASIFICACIÓN JERÁRQUICA ════════════════════ */}
+            {/* ═══ SECCIÓN 2: CLASIFICACIÓN + ATRIBUTOS (2 columnas) ════ */}
             <div style={sectionStyle}>
-              <div style={sectionHeaderStyle}>
-                <div style={{ ...sectionBadgeStyle, background: '#fef3c7', color: '#d97706' }}>
-                  <ChevronRight size={13} />
-                </div>
-                <span style={sectionTitleStyle}>Clasificación Jerárquica</span>
-                <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600, marginLeft: 'auto' }}>Cascada ERP</span>
-              </div>
+              <span style={sectionLabelStyle}>Clasificación y Atributos</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {/* COLUMNA IZQUIERDA: Jerarquía */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div>
+                    <label style={labelStyle}>Familia *</label>
+                    <CustomSelect
+                      searchable
+                      value={formData.familyId}
+                      onChange={e => handleInputChange('familyId', e.target.value)}
+                      options={familyOptions}
+                      placeholder="Seleccionar..."
+                      onAdd={() => setInlineCreate(inlineCreate === 'family' ? null : 'family')}
+                      addLabel="Crear Familia"
+                    />
+                    <AnimatePresence>
+                      {inlineCreate === 'family' && (
+                        <InlineCreateForm
+                          type="family"
+                          label="Familia"
+                          onCreated={(data) => handleInlineCreated(data, 'family')}
+                          onCancel={() => setInlineCreate(null)}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Familia */}
-                <div>
-                  <label style={labelStyle}>Familia *</label>
-                  <CustomSelect
-                    searchable
-                    value={formData.familyId}
-                    onChange={e => handleInputChange('familyId', e.target.value)}
-                    options={familyOptions}
-                    placeholder="Buscar y seleccionar Familia..."
-                    onAdd={() => setInlineCreate(inlineCreate === 'family' ? null : 'family')}
-                    addLabel="Crear nueva Familia"
-                  />
-                  <AnimatePresence>
-                    {inlineCreate === 'family' && (
-                      <InlineCreateForm
-                        type="family"
-                        label="Familia"
-                        onCreated={(data) => handleInlineCreated(data, 'family')}
-                        onCancel={() => setInlineCreate(null)}
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
+                  <div>
+                    <label style={labelStyle}>Subfamilia *</label>
+                    <CustomSelect
+                      searchable
+                      disabled={!formData.familyId}
+                      value={formData.subfamilyId}
+                      onChange={e => handleInputChange('subfamilyId', e.target.value)}
+                      options={subfamilyOptions}
+                      placeholder={!formData.familyId ? 'Familia primero...' : 'Seleccionar...'}
+                      onAdd={formData.familyId ? () => setInlineCreate(inlineCreate === 'subfamily' ? null : 'subfamily') : undefined}
+                      addLabel="Crear Subfamilia"
+                    />
+                    <AnimatePresence>
+                      {inlineCreate === 'subfamily' && (
+                        <InlineCreateForm
+                          type="subfamily"
+                          label="Subfamilia"
+                          familyId={formData.familyId}
+                          families={metadata.families}
+                          onCreated={(data) => handleInlineCreated(data, 'subfamily')}
+                          onCancel={() => setInlineCreate(null)}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
 
-                {/* Subfamilia */}
-                <div>
-                  <label style={labelStyle}>Subfamilia (Define Prefijo de Código) *</label>
-                  <CustomSelect
-                    searchable
-                    disabled={!formData.familyId}
-                    value={formData.subfamilyId}
-                    onChange={e => handleInputChange('subfamilyId', e.target.value)}
-                    options={subfamilyOptions}
-                    placeholder={!formData.familyId ? 'Seleccione Familia primero...' : 'Buscar Subfamilia...'}
-                    onAdd={formData.familyId ? () => setInlineCreate(inlineCreate === 'subfamily' ? null : 'subfamily') : undefined}
-                    addLabel="Crear nueva Subfamilia"
-                  />
-                  <AnimatePresence>
-                    {inlineCreate === 'subfamily' && (
-                      <InlineCreateForm
-                        type="subfamily"
-                        label="Subfamilia"
-                        familyId={formData.familyId}
-                        families={metadata.families}
-                        onCreated={(data) => handleInlineCreated(data, 'subfamily')}
-                        onCancel={() => setInlineCreate(null)}
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Grupo / Giro Tipo */}
-                <div>
-                  <label style={labelStyle}>Giro Tipo / Grupo</label>
-                  <CustomSelect
-                    searchable
-                    disabled={!formData.subfamilyId}
-                    value={formData.codgru}
-                    onChange={e => handleInputChange('codgru', e.target.value)}
-                    options={groupOptions}
-                    placeholder={!formData.subfamilyId ? 'Seleccione Subfamilia primero...' : 'Buscar Grupo...'}
-                    onAdd={formData.subfamilyId ? () => setInlineCreate(inlineCreate === 'group' ? null : 'group') : undefined}
-                    addLabel="Crear nuevo Giro Tipo"
-                  />
-                  <AnimatePresence>
-                    {inlineCreate === 'group' && (
-                      <InlineCreateForm
-                        type="group"
-                        label="Giro Tipo / Grupo"
-                        familyId={formData.familyId}
-                        subfamilyId={formData.subfamilyId}
-                        families={metadata.families}
-                        subfamilies={metadata.subfamilies}
-                        onCreated={(data) => handleInlineCreated(data, 'group')}
-                        onCancel={() => setInlineCreate(null)}
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </div>
-
-            {/* ═══ SECCIÓN 3: ATRIBUTOS Y MARCA ══════════════════════════ */}
-            <div style={sectionStyle}>
-              <div style={sectionHeaderStyle}>
-                <div style={{ ...sectionBadgeStyle, background: '#f0fdf4', color: '#16a34a' }}>
-                  <Tag size={13} />
-                </div>
-                <span style={sectionTitleStyle}>Atributos y Marca</span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Marca */}
-                <div>
-                  <label style={labelStyle}>Marca *</label>
-                  <CustomSelect
-                    searchable
-                    value={formData.codmar}
-                    onChange={e => handleInputChange('codmar', e.target.value)}
-                    options={brandOptions}
-                    placeholder="Buscar marca..."
-                    onAdd={() => setInlineCreate(inlineCreate === 'brand' ? null : 'brand')}
-                    addLabel="Crear nueva Marca"
-                  />
-                  <AnimatePresence>
-                    {inlineCreate === 'brand' && (
-                      <InlineCreateForm
-                        type="brand"
-                        label="Marca"
-                        onCreated={(data) => handleInlineCreated(data, 'brand')}
-                        onCancel={() => setInlineCreate(null)}
-                      />
-                    )}
-                  </AnimatePresence>
+                  <div>
+                    <label style={labelStyle}>Giro Tipo / Grupo</label>
+                    <CustomSelect
+                      searchable
+                      disabled={!formData.subfamilyId}
+                      value={formData.codgru}
+                      onChange={e => handleInputChange('codgru', e.target.value)}
+                      options={groupOptions}
+                      placeholder={!formData.subfamilyId ? 'Subfamilia primero...' : 'Seleccionar...'}
+                      onAdd={formData.subfamilyId ? () => setInlineCreate(inlineCreate === 'group' ? null : 'group') : undefined}
+                      addLabel="Crear Grupo"
+                    />
+                    <AnimatePresence>
+                      {inlineCreate === 'group' && (
+                        <InlineCreateForm
+                          type="group"
+                          label="Giro Tipo"
+                          familyId={formData.familyId}
+                          subfamilyId={formData.subfamilyId}
+                          families={metadata.families}
+                          subfamilies={metadata.subfamilies}
+                          onCreated={(data) => handleInlineCreated(data, 'group')}
+                          onCancel={() => setInlineCreate(null)}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  {/* Talla */}
+                {/* COLUMNA DERECHA: Marca + Atributos */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div>
+                    <label style={labelStyle}>Marca *</label>
+                    <CustomSelect
+                      searchable
+                      value={formData.codmar}
+                      onChange={e => handleInputChange('codmar', e.target.value)}
+                      options={brandOptions}
+                      placeholder="Buscar marca..."
+                      onAdd={() => setInlineCreate(inlineCreate === 'brand' ? null : 'brand')}
+                      addLabel="Crear Marca"
+                    />
+                    <AnimatePresence>
+                      {inlineCreate === 'brand' && (
+                        <InlineCreateForm
+                          type="brand"
+                          label="Marca"
+                          onCreated={(data) => handleInlineCreated(data, 'brand')}
+                          onCancel={() => setInlineCreate(null)}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   <div>
                     <label style={labelStyle}>Talla / Medida</label>
                     <CustomSelect
@@ -679,11 +639,10 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       value={formData.talla}
                       onChange={e => handleInputChange('talla', e.target.value)}
                       options={sizeOptions}
-                      placeholder="Seleccionar talla..."
+                      placeholder="Seleccionar..."
                     />
                   </div>
 
-                  {/* Color */}
                   <div>
                     <label style={labelStyle}>Color / Variante</label>
                     <CustomSelect
@@ -691,7 +650,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       value={formData.codcolor_prod}
                       onChange={e => handleInputChange('codcolor_prod', e.target.value)}
                       options={colorOptions}
-                      placeholder="Seleccionar color..."
+                      placeholder="Seleccionar..."
                     />
                   </div>
                 </div>
@@ -727,29 +686,12 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
 
             {/* ═══ ACCIONES ═══════════════════════════════════════════════ */}
             <div style={actionsBarStyle}>
-              <button 
-                type="button" 
-                onClick={onClose} 
-                style={cancelBtnStyle}
-                disabled={saving}
-              >
-                Cancelar
-              </button>
-              <button 
-                type="submit" 
-                style={submitBtnStyle}
-                disabled={saving}
-              >
+              <button type="button" onClick={onClose} style={cancelBtnStyle} disabled={saving}>Cancelar</button>
+              <button type="submit" style={submitBtnStyle} disabled={saving}>
                 {saving ? (
-                  <>
-                    <Loader2 className="animate-spin" size={14} style={{ marginRight: '6px' }} />
-                    Guardando en ERP...
-                  </>
+                  <><Loader2 className="animate-spin" size={13} style={{ marginRight: '5px' }} />Guardando...</>
                 ) : (
-                  <>
-                    <Package size={14} style={{ marginRight: '6px' }} />
-                    Crear Producto
-                  </>
+                  <><Package size={13} style={{ marginRight: '5px' }} />Crear Producto</>
                 )}
               </button>
             </div>
@@ -793,16 +735,16 @@ const modalHeaderStyle = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '20px 24px 16px',
+  padding: '14px 20px 12px',
   borderBottom: '1px solid #f1f5f9',
   flexShrink: 0
 };
 
 const headerIconStyle = {
-  width: '40px',
-  height: '40px',
+  width: '32px',
+  height: '32px',
   background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-  borderRadius: '12px',
+  borderRadius: '10px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -813,8 +755,8 @@ const closeModalBtnStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: '32px',
-  height: '32px',
+  width: '28px',
+  height: '28px',
   borderRadius: '8px',
   background: '#f1f5f9',
   border: 'none',
@@ -832,51 +774,36 @@ const formBodyStyle = {
 };
 
 const sectionStyle = {
-  padding: '18px 24px',
+  padding: '12px 20px',
   borderBottom: '1px solid #f1f5f9'
 };
 
-const sectionHeaderStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  marginBottom: '14px'
-};
-
-const sectionBadgeStyle = {
-  width: '26px',
-  height: '26px',
-  borderRadius: '8px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0
-};
-
-const sectionTitleStyle = {
-  fontSize: '12px',
+const sectionLabelStyle = {
+  display: 'block',
+  fontSize: '10px',
   fontWeight: 900,
-  color: '#1e293b',
+  color: '#94a3b8',
   textTransform: 'uppercase',
-  letterSpacing: '0.04em'
+  letterSpacing: '0.06em',
+  marginBottom: '10px'
 };
 
 const labelStyle = {
   display: 'block',
-  fontSize: '10px',
+  fontSize: '9px',
   fontWeight: 800,
   color: '#475569',
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
-  marginBottom: '6px'
+  marginBottom: '4px'
 };
 
 const inputStyle = {
   width: '100%',
-  padding: '10px 14px',
+  padding: '8px 12px',
   borderRadius: '10px',
   border: '1px solid #e2e8f0',
-  fontSize: '13px',
+  fontSize: '12px',
   fontWeight: 650,
   color: '#1e293b',
   outline: 'none',
@@ -887,15 +814,15 @@ const inputStyle = {
 
 const toggleRowStyle = {
   display: 'flex',
-  gap: '24px',
-  padding: '6px 0',
+  gap: '16px',
+  padding: '2px 0',
   flexWrap: 'wrap'
 };
 
 const toggleLabelStyle = {
   display: 'flex',
   alignItems: 'center',
-  gap: '10px',
+  gap: '6px',
   cursor: 'pointer',
   userSelect: 'none'
 };
@@ -924,32 +851,32 @@ const toggleKnobStyle = {
 const actionsBarStyle = {
   display: 'flex',
   justifyContent: 'flex-end',
-  gap: '10px',
-  padding: '16px 24px',
+  gap: '8px',
+  padding: '12px 20px',
   borderTop: '1px solid #f1f5f9',
   flexShrink: 0,
   background: '#fafbfc'
 };
 
 const cancelBtnStyle = {
-  padding: '10px 18px',
+  padding: '8px 16px',
   borderRadius: '10px',
   background: '#f1f5f9',
   color: '#475569',
   border: 'none',
-  fontSize: '12px',
+  fontSize: '11px',
   fontWeight: 800,
   cursor: 'pointer',
   transition: 'all 0.15s'
 };
 
 const submitBtnStyle = {
-  padding: '10px 20px',
+  padding: '8px 18px',
   borderRadius: '10px',
   background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
   color: '#fff',
   border: 'none',
-  fontSize: '12px',
+  fontSize: '11px',
   fontWeight: 850,
   cursor: 'pointer',
   display: 'flex',
@@ -962,26 +889,26 @@ const submitBtnStyle = {
 const successAlertStyle = {
   display: 'flex',
   alignItems: 'center',
-  padding: '10px 14px',
-  margin: '0 24px',
+  padding: '8px 12px',
+  margin: '0 20px',
   background: '#f0fdf4',
   border: '1px solid #bbf7d0',
   borderRadius: '10px',
   color: '#16a34a',
-  fontSize: '12px',
+  fontSize: '11px',
   fontWeight: 700
 };
 
 const errorAlertStyle = {
   display: 'flex',
   alignItems: 'center',
-  padding: '10px 14px',
-  margin: '0 24px',
+  padding: '8px 12px',
+  margin: '0 20px',
   background: '#fef2f2',
   border: '1px solid #fecaca',
   borderRadius: '10px',
   color: '#dc2626',
-  fontSize: '12px',
+  fontSize: '11px',
   fontWeight: 700
 };
 
@@ -999,10 +926,10 @@ const retryBtnStyle = {
 
 // Estilos del InlineCreateForm
 const inlineFormContainerStyle = {
-  marginTop: '8px',
-  padding: '14px',
+  marginTop: '6px',
+  padding: '10px',
   background: '#f8fafc',
-  borderRadius: '12px',
+  borderRadius: '10px',
   border: '1px solid #e2e8f0'
 };
 
