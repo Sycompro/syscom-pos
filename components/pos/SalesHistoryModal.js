@@ -175,6 +175,7 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                                     <th style={thStyle}>CLIENTE / IDENTIFICACIÓN</th>
                                     <th style={thStyle}>VENDEDOR</th>
                                     <th style={thStyle}>FECHA / HORA</th>
+                                    <th style={thStyle}>SUNAT</th>
                                     <th style={{ ...thStyle, textAlign: 'right' }}>TOTAL</th>
                                     <th style={{ ...thStyle, textAlign: 'center' }}>ACCIONES</th>
                                 </tr>
@@ -209,6 +210,35 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                                                 <span style={{ fontSize: '10px', fontWeight: 600 }}>{sale.fecha_real || new Date(sale.fecha).toLocaleDateString()}</span>
                                                 <span style={{ fontSize: '11px', color: '#1e293b', fontWeight: 700 }}>{sale.hora_real}</span>
                                             </div>
+                                        </td>
+                                        <td style={tdStyle}>
+                                            {(sale.cdocu === '01' || sale.cdocu === '03') ? (
+                                                <span style={{
+                                                    fontSize: '8px',
+                                                    fontWeight: 900,
+                                                    color: sale.sunatColor,
+                                                    background: sale.sunatColor === '#10b981' ? '#e6fbf3' : (sale.sunatColor === '#ef4444' ? '#fdf2f2' : '#fffbeb'),
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    textTransform: 'uppercase',
+                                                    border: '1px solid ' + sale.sunatColor + '20'
+                                                }}>
+                                                    {sale.sunatStatus}
+                                                </span>
+                                            ) : (
+                                                <span style={{
+                                                    fontSize: '8px',
+                                                    fontWeight: 900,
+                                                    color: '#94a3b8',
+                                                    background: '#f1f5f9',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    textTransform: 'uppercase',
+                                                    border: '1px solid #e2e8f0'
+                                                }}>
+                                                    NO APLICA
+                                                </span>
+                                            )}
                                         </td>
                                         <td style={{ ...tdStyle, textAlign: 'right' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>

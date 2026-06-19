@@ -198,7 +198,7 @@ const inputStyle = {
     borderRadius: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', 
     gap: '10px', cursor: 'pointer', height: '42px', boxSizing: 'border-box' 
 };
-const calendarPopupStyle = { position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 500, background: '#fff', borderRadius: '16px', padding: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', border: '1px solid #f1f5f9', width: '240px' };
+const calendarPopupStyle = { position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 500, background: '#fff', borderRadius: '16px', padding: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', border: '1px solid #f1f5f9', width: '240px' };
 const calendarHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' };
 const selectHeaderStyle = { border: 'none', background: '#f1f5f9', borderRadius: '6px', padding: '0 4px 0 8px', fontSize: '11px', fontWeight: 800, color: '#0f172a', outline: 'none', cursor: 'pointer', height: '24px' };
 const navBtnStyle = { background: '#f8fafc', border: 'none', width: '24px', height: '24px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' };

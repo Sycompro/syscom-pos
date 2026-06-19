@@ -55,6 +55,7 @@ export async function GET(request) {
         f.ndocu, f.cdocu, f.nomcli, f.ruccli, 
         CAST(f.totn AS FLOAT) as tota, 
         f.fecha, f.FecReg, f.flag, f.selpago, f.codven, f.codfdp,
+        f.efact, f.efactcode, f.efactcdr,
         CONVERT(VARCHAR(8), f.FecReg, 108) as hora_real,
         CONVERT(VARCHAR(10), f.FecReg, 103) as fecha_real,
         LTRIM(RTRIM(p.nompto)) as sedeName,
@@ -69,11 +70,34 @@ export async function GET(request) {
     const salesRes = await salesRequest.query(queryStr);
 
     // Mapeo final de estado y tipo de pago
-    const sales = salesRes.recordset.map(s => ({
-      ...s,
-      status: (s.flag === '9' || s.flag === '*') ? 'ANULADO' : 'ACTIVO',
-      paymentType: s.selpago === 1 ? 'EFECTIVO' : (s.selpago === 4 ? 'MIXTO' : 'TARJETA')
-    }));
+    const sales = salesRes.recordset.map(s => {
+      let sunatStatus = 'NO APLICA';
+      let sunatColor = '#94a3b8';
+
+      if (s.cdocu === '01' || s.cdocu === '03') {
+        const cdr = Number(s.efactcdr);
+        const code = (s.efactcode || '').trim();
+
+        if (cdr === 1 || code === '0') {
+          sunatStatus = 'ACEPTADO';
+          sunatColor = '#10b981';
+        } else if (cdr === -1 || (code !== '' && code !== '0')) {
+          sunatStatus = `RECHAZADO [${code}]`;
+          sunatColor = '#ef4444';
+        } else {
+          sunatStatus = 'PENDIENTE';
+          sunatColor = '#f59e0b';
+        }
+      }
+
+      return {
+        ...s,
+        status: (s.flag === '9' || s.flag === '*') ? 'ANULADO' : 'ACTIVO',
+        paymentType: s.selpago === 1 ? 'EFECTIVO' : (s.selpago === 4 ? 'MIXTO' : 'TARJETA'),
+        sunatStatus,
+        sunatColor
+      };
+    });
 
     // Cargar sedes del ERP para el filtro
     const activeSedesRes = await pool.request().query(`

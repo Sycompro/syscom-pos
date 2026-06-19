@@ -1588,6 +1588,7 @@ export default function POSPage() {
                         >
                             <CustomersView 
                                 activeTab={activeTab}
+                                idApeCaj={idApeCaj}
                                 onSelectCustomer={(client) => {
                                     setCustomer({
                                         name: client.nomcli,

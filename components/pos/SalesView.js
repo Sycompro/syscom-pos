@@ -54,6 +54,48 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
 
   const isMobileView = windowWidth < 768;
 
+  // Estilos de KPIs adaptables a móviles
+  const cardStyle = isMobileView ? {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: '#ffffff',
+    borderRadius: '12px',
+    padding: '8px 12px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+    border: '1px solid #f1f5f9',
+    width: '100%',
+    boxSizing: 'border-box'
+  } : kpiCardStyle;
+
+  const iconStyle = isMobileView ? {
+    width: '32px',
+    height: '32px',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0
+  } : iconContainerStyle;
+
+  const labelKpiStyle = isMobileView ? {
+    fontSize: '9px',
+    fontWeight: 800,
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    display: 'block',
+    lineHeight: '1.2'
+  } : kpiLabelStyle;
+
+  const valueKpiStyle = isMobileView ? {
+    fontSize: '12px',
+    fontWeight: 900,
+    color: '#0f172a',
+    display: 'block',
+    marginTop: '2px',
+    lineHeight: '1.2'
+  } : kpiValueStyle;
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -268,7 +310,8 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
         }
         @media (max-width: 480px) {
           .kpi-grid-responsive {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
           }
           .filter-grid-responsive {
             grid-template-columns: 1fr !important;
@@ -281,40 +324,40 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
 
       {/* 1. KPIs SUPERIORES (Estilo Premium Porcelain Glass) */}
       <div style={kpiGridStyle} className="kpi-grid-responsive">
-        <div style={kpiCardStyle}>
-          <div style={{ ...iconContainerStyle, color: '#10b981', background: '#e6fbf3' }}>
-            <TrendingUp size={20} />
+        <div style={cardStyle}>
+          <div style={{ ...iconStyle, color: '#10b981', background: '#e6fbf3' }}>
+            <TrendingUp size={isMobileView ? 14 : 20} />
           </div>
           <div>
-            <span style={kpiLabelStyle}>Total Facturado</span>
-            <span style={kpiValueStyle}>S/ {totalFacturado.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span style={labelKpiStyle}>Total Facturado</span>
+            <span style={valueKpiStyle}>S/ {totalFacturado.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
         </div>
-        <div style={kpiCardStyle}>
-          <div style={{ ...iconContainerStyle, color: '#3b82f6', background: '#eff6ff' }}>
-            <Receipt size={20} />
+        <div style={cardStyle}>
+          <div style={{ ...iconStyle, color: '#3b82f6', background: '#eff6ff' }}>
+            <Receipt size={isMobileView ? 14 : 20} />
           </div>
           <div>
-            <span style={kpiLabelStyle}>Transacciones</span>
-            <span style={kpiValueStyle}>{qtyTransacciones} emitidas</span>
+            <span style={labelKpiStyle}>Transacciones</span>
+            <span style={valueKpiStyle}>{qtyTransacciones} {isMobileView ? 'emit.' : 'emitidas'}</span>
           </div>
         </div>
-        <div style={kpiCardStyle}>
-          <div style={{ ...iconContainerStyle, color: '#8b5cf6', background: '#f5f3ff' }}>
-            <TrendingUp size={20} />
+        <div style={cardStyle}>
+          <div style={{ ...iconStyle, color: '#8b5cf6', background: '#f5f3ff' }}>
+            <TrendingUp size={isMobileView ? 14 : 20} />
           </div>
           <div>
-            <span style={kpiLabelStyle}>Ticket Promedio</span>
-            <span style={kpiValueStyle}>S/ {ticketPromedio.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span style={labelKpiStyle}>Ticket Promedio</span>
+            <span style={valueKpiStyle}>S/ {ticketPromedio.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
         </div>
-        <div style={kpiCardStyle}>
-          <div style={{ ...iconContainerStyle, color: '#ef4444', background: '#fdf2f2' }}>
-            <AlertCircle size={20} />
+        <div style={cardStyle}>
+          <div style={{ ...iconStyle, color: '#ef4444', background: '#fdf2f2' }}>
+            <AlertCircle size={isMobileView ? 14 : 20} />
           </div>
           <div>
-            <span style={kpiLabelStyle}>Monto Anulado</span>
-            <span style={kpiValueStyle}>S/ {totalAnulado.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span style={labelKpiStyle}>Monto Anulado</span>
+            <span style={valueKpiStyle}>S/ {totalAnulado.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
         </div>
       </div>
@@ -364,7 +407,7 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
                   initial={{ height: 0, opacity: 0 }} 
                   animate={{ height: 'auto', opacity: 1 }} 
                   exit={{ height: 0, opacity: 0 }} 
-                  style={{ overflow: 'hidden' }}
+                  style={{ overflow: showMobileFilters ? 'visible' : 'hidden' }}
                 >
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', marginTop: '4px' }}>
                     {/* Fechas */}
@@ -529,6 +572,7 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
                 <th style={thStyle} className="hide-mobile">VENDEDOR</th>
                 <th style={thStyle} className="hide-mobile">FECHA / HORA</th>
                 <th style={{ ...thStyle, textAlign: 'right' }} className="hide-mobile">PAGO</th>
+                <th style={thStyle} className="hide-mobile">SUNAT</th>
                 <th style={{ ...thStyle, textAlign: 'right' }}>TOTAL</th>
                 <th style={{ ...thStyle, textAlign: 'center' }}>ACCIONES</th>
               </tr>
@@ -542,9 +586,26 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
                         <span style={docNumStyle}>{sale.ndocu}</span>
                         <span style={docTypeStyle}>{sale.cdocu === '01' ? 'FACTURA' : (sale.cdocu === '03' ? 'BOLETA' : 'NOTA')}</span>
                       </div>
-                      <span style={sale.status === 'ANULADO' ? statusAnuladoStyle : statusActivoStyle}>
-                        {sale.status}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={sale.status === 'ANULADO' ? statusAnuladoStyle : statusActivoStyle}>
+                          {sale.status}
+                        </span>
+                        {(sale.cdocu === '01' || sale.cdocu === '03') && (
+                          <span style={{
+                            fontSize: '7px',
+                            fontWeight: 900,
+                            color: sale.sunatColor,
+                            background: sale.sunatColor === '#10b981' ? '#e6fbf3' : (sale.sunatColor === '#ef4444' ? '#fdf2f2' : '#fffbeb'),
+                            padding: '1px 4px',
+                            borderRadius: '3px',
+                            textTransform: 'uppercase',
+                            width: 'fit-content',
+                            textAlign: 'center'
+                          }}>
+                            {sale.sunatStatus.split(' ')[0]}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td style={tdStyle}>
@@ -579,6 +640,19 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
                       )}
                       <span style={{ fontWeight: 700 }}>{sale.paymentType}</span>
                     </div>
+                  </td>
+                  <td style={tdStyle} className="hide-mobile">
+                    <span style={{
+                      fontSize: '8px',
+                      fontWeight: 900,
+                      color: sale.sunatColor,
+                      background: sale.sunatColor === '#10b981' ? '#e6fbf3' : (sale.sunatColor === '#ef4444' ? '#fdf2f2' : '#fffbeb'),
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      textTransform: 'uppercase'
+                    }}>
+                      {sale.sunatStatus}
+                    </span>
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#3b82f6', fontSize: '12px' }}>
                     S/ {sale.tota.toFixed(2)}
@@ -668,7 +742,7 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
       <AnimatePresence>
         {annulSale && (
           <div style={overlayStyle}>
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} style={{ ...modalStyle, maxWidth: '400px' }}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} style={{ ...modalStyle, maxWidth: '400px', overflow: 'visible' }}>
               <div style={modalHeaderStyle}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }}>
                   <AlertCircle size={18} />
@@ -691,7 +765,7 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
                   />
                 </div>
               </div>
-              <div style={{ ...modalFooterStyle, gap: '12px', padding: '16px 20px' }}>
+              <div style={{ ...modalFooterStyle, gap: '12px', padding: '16px 20px', borderBottomLeftRadius: '24px', borderBottomRightRadius: '24px' }}>
                 <button onClick={() => setAnnulSale(null)} style={cancelBtnStyle} disabled={processingAnnul}>Descartar</button>
                 <button onClick={handleAnnulSale} disabled={processingAnnul} style={annulBtnStyle}>
                   {processingAnnul ? <Loader2 className="animate-spin" size={14} /> : <Trash2 size={14} />}

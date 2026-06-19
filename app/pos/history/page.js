@@ -31,7 +31,7 @@ export default function SalesHistory() {
         try {
             const res = await fetch(`/api/sales/history?date=${filterDate}`);
             const data = await res.json();
-            setSales(data);
+            setSales(Array.isArray(data.sales) ? data.sales : []);
         } catch (e) {
             console.error('History load error:', e);
         } finally {
@@ -123,6 +123,7 @@ export default function SalesHistory() {
                                     <th className="px-6 py-4">Cliente</th>
                                     <th className="px-6 py-4">Total</th>
                                     <th className="px-6 py-4">Estado</th>
+                                    <th className="px-6 py-4">SUNAT</th>
                                     <th className="px-6 py-4">Acción</th>
                                 </tr>
                             </thead>
@@ -130,12 +131,12 @@ export default function SalesHistory() {
                                 {loading ? (
                                     Array(5).fill(0).map((_, i) => (
                                         <tr key={i} className="animate-pulse">
-                                            <td colSpan="6" className="px-6 py-8"><div className="h-4 bg-white/5 rounded w-full"></div></td>
+                                            <td colSpan="7" className="px-6 py-8"><div className="h-4 bg-white/5 rounded w-full"></div></td>
                                         </tr>
                                     ))
                                 ) : sales.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" className="px-6 py-20 text-center text-slate-500 italic">No se encontraron ventas para esta fecha</td>
+                                        <td colSpan="7" className="px-6 py-20 text-center text-slate-500 italic">No se encontraron ventas para esta fecha</td>
                                     </tr>
                                 ) : (
                                     sales.map((sale) => (
@@ -165,6 +166,21 @@ export default function SalesHistory() {
                                                     <span className="px-3 py-1 bg-rose-500/20 text-rose-400 text-[10px] font-black rounded-full border border-rose-500/20">ANULADO</span>
                                                 ) : (
                                                     <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-full border border-emerald-500/20">PAGADO</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {(sale.cdocu === '01' || sale.cdocu === '03') ? (
+                                                    <span style={{
+                                                        color: sale.sunatColor,
+                                                        background: sale.sunatColor === '#10b981' ? '#e6fbf3' : (sale.sunatColor === '#ef4444' ? '#fdf2f2' : '#fffbeb'),
+                                                        borderColor: sale.sunatColor + '20'
+                                                    }} className="px-3 py-1 text-[10px] font-black rounded-full border">
+                                                        {sale.sunatStatus}
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-3 py-1 bg-slate-500/20 text-slate-400 text-[10px] font-black rounded-full border border-slate-500/20">
+                                                        NO APLICA
+                                                    </span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">

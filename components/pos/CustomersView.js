@@ -4,7 +4,7 @@ import { Search, Plus, UserPlus, ShoppingCart, Edit, MessageCircle, Mail, MapPin
 import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
 
-export default function CustomersView({ activeTab = 'customers', onSelectCustomer, onOpenRegisterModal, onAlert, onQueueWhatsApp, companyName }) {
+export default function CustomersView({ activeTab = 'customers', onSelectCustomer, onOpenRegisterModal, onAlert, onQueueWhatsApp, companyName, idApeCaj }) {
     const [customers, setCustomers] = useState([]);
     
     // Estados para crédito y cobros
@@ -55,6 +55,10 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
 
     const handleCollectDebt = async (codcli) => {
         if (!amortizingInvoice || !collectAmount) return;
+        if (!idApeCaj) {
+            onAlert('Error', 'Debe tener una caja abierta para registrar cobros.', 'error');
+            return;
+        }
         setIsSubmittingCollection(true);
         try {
             const res = await fetch('/api/sales/collect', {
@@ -65,7 +69,8 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                     cdocu_ref: amortizingInvoice.cdocu,
                     ndocu_ref: amortizingInvoice.ndocu,
                     amount: parseFloat(collectAmount),
-                    paymentMethod: collectMethod === 'Efectivo' ? 1 : 2
+                    paymentMethod: collectMethod, // Envía 'Efectivo' o 'Tarjeta'
+                    idApeCaj
                 })
             });
             const data = await res.json();
