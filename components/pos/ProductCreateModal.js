@@ -138,7 +138,11 @@ function InlineCreateForm({ type, label, familyId, subfamilyId, families, subfam
 
 
 // ─── COMPONENTE PRINCIPAL ────────────────────────────────────────────────────
-export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
+export default function ProductCreateModal({ isOpen, onClose, onSuccess, productCodi }) {
+  const isEditMode = !!productCodi;
+
+
+
   // Datos maestros cargados del ERP
   const [metadata, setMetadata] = useState({
     families: [],
@@ -151,6 +155,9 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
   
   const [loadingMetadata, setLoadingMetadata] = useState(true);
   const [metadataError, setMetadataError] = useState(null);
+
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [detailsError, setDetailsError] = useState(null);
 
   // Formulario de Producto
   const [formData, setFormData] = useState({
@@ -168,7 +175,8 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
     tipoitm: '1',
     msto: true,
     aigv: true,
-    membershipDays: ''
+    membershipDays: '',
+    estado: true // Para edición
   });
 
   const [saving, setSaving] = useState(false);
@@ -178,7 +186,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
   // Estados de formularios inline de creación al vuelo
   const [inlineCreate, setInlineCreate] = useState(null); // 'family' | 'subfamily' | 'group' | 'brand' | null
 
-  // Cargar metadatos al abrir el modal
+  // Cargar metadatos del ERP
   const fetchMetadata = useCallback(async () => {
     setLoadingMetadata(true);
     setMetadataError(null);
@@ -202,33 +210,77 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
     }
   }, []);
 
+  // Cargar detalles completos del producto (modo edición)
+  const fetchProductDetails = useCallback(async () => {
+    if (!productCodi) return;
+    setLoadingDetails(true);
+    setDetailsError(null);
+    try {
+      const res = await fetch(`/api/products/details?codi=${encodeURIComponent(productCodi)}`);
+      if (!res.ok) throw new Error('Error al cargar los detalles del producto');
+      const data = await res.json();
+      
+      setFormData({
+        descr: data.descr || '',
+        familyId: data.familyId || '',
+        subfamilyId: data.subfamilyId || '',
+        codgru: data.groupId || '',
+        codmar: data.codmar || '',
+        cost: data.cost !== undefined ? data.cost.toString() : '',
+        pvns: data.pvns !== undefined ? data.pvns.toString() : '',
+        codcolor_prod: data.codcolor_prod || '',
+        talla: data.talla || '',
+        codf: data.codf || '',
+        umed: data.umed || 'UND',
+        tipoitm: (data.tipoitm || 1).toString(),
+        msto: !!data.msto,
+        aigv: !!data.aigv,
+        membershipDays: data.membershipDays !== undefined && data.membershipDays > 0 ? data.membershipDays.toString() : '',
+        estado: data.estado !== false
+      });
+    } catch (err) {
+      console.error('[fetchProductDetails] Error:', err);
+      setDetailsError(err.message);
+    } finally {
+      setLoadingDetails(false);
+    }
+  }, [productCodi]);
+
   useEffect(() => {
     if (isOpen) {
       fetchMetadata();
-      setFormData({
-        descr: '',
-        familyId: '',
-        subfamilyId: '',
-        codgru: '',
-        codmar: '',
-        cost: '',
-        pvns: '',
-        codcolor_prod: '',
-        talla: '',
-        codf: '',
-        umed: 'UND',
-        tipoitm: '1',
-        msto: true,
-        aigv: true,
-        membershipDays: ''
-      });
+      if (productCodi) {
+        fetchProductDetails();
+      } else {
+        setFormData({
+          descr: '',
+          familyId: '',
+          subfamilyId: '',
+          codgru: '',
+          codmar: '',
+          cost: '',
+          pvns: '',
+          codcolor_prod: '',
+          talla: '',
+          codf: '',
+          umed: 'UND',
+          tipoitm: '1',
+          msto: true,
+          aigv: true,
+          membershipDays: '',
+          estado: true
+        });
+      }
       setSaveError(null);
       setSaveSuccess(false);
       setInlineCreate(null);
     }
-  }, [isOpen, fetchMetadata]);
+  }, [isOpen, fetchMetadata, productCodi, fetchProductDetails]);
 
   useEffect(() => {
+    // Si es edición no alteramos el UM/Kardex automáticamente para no pisar datos del ERP
+    if (isEditMode) return;
+
     if (formData.tipoitm === '2') {
       setFormData(prev => ({
         ...prev,
@@ -242,7 +294,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
         umed: prev.umed === 'SER' ? 'UND' : prev.umed
       }));
     }
-  }, [formData.tipoitm]);
+  }, [formData.tipoitm, isEditMode]);
 
   if (!isOpen) return null;
 
@@ -255,31 +307,32 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
     grp => grp.subfamilyId === formData.subfamilyId && grp.familyId === formData.familyId
   );
 
-  // Manejar cambios en el formulario
   const handleInputChange = (field, value) => {
-    setFormData(prev => {
-      const next = { ...prev, [field]: value };
-      if (field === 'familyId') {
-        next.subfamilyId = '';
-        next.codgru = '';
-      }
-      if (field === 'subfamilyId') {
-        next.codgru = '';
-      }
-      return next;
-    });
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  // Callback al crear clasificación al vuelo
-  const handleInlineCreated = async (data, type) => {
-    // Recargar metadata
-    await fetchMetadata();
-    
-    // Auto-seleccionar lo creado
+  const handleInlineCreated = (data, type) => {
+    setMetadata(prev => {
+      let updated = { ...prev };
+      if (type === 'family') {
+        updated.families = [...prev.families, data].sort((a,b) => a.name.localeCompare(b.name));
+      } else if (type === 'subfamily') {
+        updated.subfamilies = [...prev.subfamilies, data].sort((a,b) => a.name.localeCompare(b.name));
+      } else if (type === 'group') {
+        updated.groups = [...prev.groups, data].sort((a,b) => a.name.localeCompare(b.name));
+      } else if (type === 'brand') {
+        updated.brands = [...prev.brands, data].sort((a,b) => a.name.localeCompare(b.name));
+      }
+      return updated;
+    });
+
     if (type === 'family') {
-      handleInputChange('familyId', data.id);
+      setFormData(prev => ({ ...prev, familyId: data.id, subfamilyId: '', codgru: '' }));
     } else if (type === 'subfamily') {
-      handleInputChange('subfamilyId', data.id);
+      setFormData(prev => ({ ...prev, subfamilyId: data.id, codgru: '' }));
     } else if (type === 'group') {
       handleInputChange('codgru', data.id);
     } else if (type === 'brand') {
@@ -288,7 +341,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
     setInlineCreate(null);
   };
 
-  // Guardar Producto
+  // Guardar / Actualizar Producto
   const handleProductSubmit = async (e) => {
     e.preventDefault();
     if (!formData.descr.trim() || !formData.subfamilyId || !formData.codmar || !formData.pvns) {
@@ -322,17 +375,25 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
         tipoitm: parseInt(formData.tipoitm, 10),
         msto: formData.msto ? 'S' : 'N',
         aigv: formData.aigv ? 'S' : 'N',
-        membershipDays: formData.tipoitm === '2' ? parseInt(formData.membershipDays || '0', 10) : 0
+        membershipDays: formData.tipoitm === '2' ? parseInt(formData.membershipDays || '0', 10) : 0,
+        estado: formData.estado ? 1 : 0
       };
 
-      const res = await fetch('/api/products/create', {
-        method: 'POST',
+      if (isEditMode) {
+        payload.codi = productCodi;
+      }
+
+      const endpoint = isEditMode ? '/api/products/update' : '/api/products/create';
+      const method = isEditMode ? 'PATCH' : 'POST';
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al registrar el producto');
+      if (!res.ok) throw new Error(data.error || 'Error al procesar el producto');
 
       setSaveSuccess(true);
       setTimeout(() => {
@@ -341,7 +402,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
       }, 1500);
 
     } catch (err) {
-      console.error('[Create Product Submit] Error:', err);
+      console.error('[Product Submit] Error:', err);
       setSaveError(err.message);
     } finally {
       setSaving(false);
@@ -365,8 +426,54 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
     { value: 'GLB', label: 'GLB (Global)' }
   ];
 
+  const showLoading = loadingMetadata || loadingDetails;
+  const showError = metadataError || detailsError;
+
   return (
     <div style={modalOverlayStyle}>
+      <style dangerouslySetInnerHTML={{__html: `
+        .product-modal-grid-prices {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .product-modal-grid-types {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 8px;
+        }
+        .product-modal-grid-2col {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .product-modal-grid-categories {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        @media (max-width: 580px) {
+          .product-modal-grid-types {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 500px) {
+          .product-modal-grid-2col {
+            grid-template-columns: 1fr;
+          }
+          .product-modal-grid-categories {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 400px) {
+          .product-modal-grid-prices {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}} />
       <motion.div 
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -385,8 +492,12 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
               <Package size={16} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>Nuevo Producto ERP</h3>
-              <p style={{ margin: 0, fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Estructura relacional Navasoft</p>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>
+                {isEditMode ? 'Editar Producto ERP' : 'Nuevo Producto ERP'}
+              </h3>
+              <p style={{ margin: 0, fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>
+                {isEditMode ? `Código de Sistema: ${productCodi}` : 'Estructura relacional Navasoft'}
+              </p>
             </div>
           </div>
           <button type="button" onClick={onClose} style={closeModalBtnStyle} disabled={saving}>
@@ -395,17 +506,19 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* ─── CUERPO ──────────────────────────────────────────────────── */}
-        {loadingMetadata ? (
+        {showLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0' }}>
             <Loader2 className="animate-spin" size={32} color="#3b82f6" />
-            <p style={{ marginTop: '12px', fontSize: '13px', fontWeight: 650, color: '#64748b' }}>Cargando clasificaciones del ERP...</p>
+            <p style={{ marginTop: '12px', fontSize: '13px', fontWeight: 650, color: '#64748b' }}>
+              {loadingDetails ? 'Cargando detalles del artículo...' : 'Cargando clasificaciones del ERP...'}
+            </p>
           </div>
-        ) : metadataError ? (
+        ) : showError ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', textAlign: 'center' }}>
             <AlertCircle size={32} color="#ef4444" />
-            <p style={{ color: '#ef4444', fontWeight: 800, marginTop: '8px' }}>Error al cargar estructura del ERP</p>
-            <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 16px' }}>{metadataError}</p>
-            <button type="button" onClick={fetchMetadata} style={retryBtnStyle}>Reintentar</button>
+            <p style={{ color: '#ef4444', fontWeight: 800, marginTop: '8px' }}>Error al cargar datos del ERP</p>
+            <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 16px' }}>{metadataError || detailsError}</p>
+            <button type="button" onClick={productCodi ? fetchProductDetails : fetchMetadata} style={retryBtnStyle}>Reintentar</button>
           </div>
         ) : (
           <form onSubmit={handleProductSubmit} style={formBodyStyle}>
@@ -426,7 +539,8 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
+                {/* Costo Compra y Precio Venta */}
+                <div className="product-modal-grid-prices">
                   <div>
                     <label style={labelStyle}>Costo Compra *</label>
                     <input 
@@ -451,9 +565,14 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       style={inputStyle}
                     />
                   </div>
+                </div>
+
+                {/* Tipo y UM Kardex */}
+                <div className="product-modal-grid-types">
                   <div>
                     <label style={labelStyle}>Tipo *</label>
                     <CustomSelect
+                      disabled={isEditMode}
                       value={formData.tipoitm}
                       onChange={e => handleInputChange('tipoitm', e.target.value)}
                       options={tipoOptions}
@@ -471,7 +590,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div className="product-modal-grid-2col">
                   <div>
                     <label style={labelStyle}>Código de Barras</label>
                     <input 
@@ -482,7 +601,13 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       style={inputStyle}
                     />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', paddingBottom: '4px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-end', 
+                    gap: '12px', 
+                    paddingBottom: '4px',
+                    flexWrap: 'wrap'
+                  }}>
                     <label style={toggleLabelStyle}>
                       <div style={{
                         ...toggleSwitchStyle,
@@ -511,6 +636,20 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                       </div>
                       <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>Stock</span>
                     </label>
+                    {isEditMode && (
+                      <label style={toggleLabelStyle}>
+                        <div style={{
+                          ...toggleSwitchStyle,
+                          background: formData.estado ? '#10b981' : '#cbd5e1'
+                        }} onClick={() => handleInputChange('estado', !formData.estado)}>
+                          <div style={{
+                            ...toggleKnobStyle,
+                            transform: formData.estado ? 'translateX(16px)' : 'translateX(2px)'
+                          }} />
+                        </div>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>Activo</span>
+                      </label>
+                    )}
                   </div>
                 </div>
 
@@ -541,18 +680,19 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
             {/* ═══ SECCIÓN 2: CLASIFICACIÓN + ATRIBUTOS (2 columnas) ════ */}
             <div style={sectionStyle}>
               <span style={sectionLabelStyle}>Clasificación y Atributos</span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="product-modal-grid-categories">
                 {/* COLUMNA IZQUIERDA: Jerarquía */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div>
                     <label style={labelStyle}>Familia *</label>
                     <CustomSelect
                       searchable
+                      disabled={isEditMode}
                       value={formData.familyId}
                       onChange={e => handleInputChange('familyId', e.target.value)}
                       options={familyOptions}
                       placeholder="Seleccionar..."
-                      onAdd={() => setInlineCreate(inlineCreate === 'family' ? null : 'family')}
+                      onAdd={isEditMode ? undefined : () => setInlineCreate(inlineCreate === 'family' ? null : 'family')}
                       addLabel="Crear Familia"
                     />
                     <AnimatePresence>
@@ -571,12 +711,12 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                     <label style={labelStyle}>Subfamilia *</label>
                     <CustomSelect
                       searchable
-                      disabled={!formData.familyId}
+                      disabled={isEditMode || !formData.familyId}
                       value={formData.subfamilyId}
                       onChange={e => handleInputChange('subfamilyId', e.target.value)}
                       options={subfamilyOptions}
                       placeholder={!formData.familyId ? 'Familia primero...' : 'Seleccionar...'}
-                      onAdd={formData.familyId ? () => setInlineCreate(inlineCreate === 'subfamily' ? null : 'subfamily') : undefined}
+                      onAdd={isEditMode ? undefined : (formData.familyId ? () => setInlineCreate(inlineCreate === 'subfamily' ? null : 'subfamily') : undefined)}
                       addLabel="Crear Subfamilia"
                     />
                     <AnimatePresence>
@@ -597,12 +737,12 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                     <label style={labelStyle}>Giro Tipo / Grupo</label>
                     <CustomSelect
                       searchable
-                      disabled={!formData.subfamilyId}
+                      disabled={isEditMode || !formData.subfamilyId}
                       value={formData.codgru}
                       onChange={e => handleInputChange('codgru', e.target.value)}
                       options={groupOptions}
                       placeholder={!formData.subfamilyId ? 'Subfamilia primero...' : 'Seleccionar...'}
-                      onAdd={formData.subfamilyId ? () => setInlineCreate(inlineCreate === 'group' ? null : 'group') : undefined}
+                      onAdd={isEditMode ? undefined : (formData.subfamilyId ? () => setInlineCreate(inlineCreate === 'group' ? null : 'group') : undefined)}
                       addLabel="Crear Grupo"
                       openUp={true}
                     />
@@ -697,7 +837,11 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                   style={successAlertStyle}
                 >
                   <Check size={14} style={{ marginRight: '8px', flexShrink: 0 }} />
-                  <span>¡Artículo guardado y propagado multi-sede con éxito!</span>
+                  <span>
+                    {isEditMode 
+                      ? '¡Artículo actualizado y propagado con éxito!' 
+                      : '¡Artículo guardado y propagado multi-sede con éxito!'}
+                  </span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -709,7 +853,10 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess }) {
                 {saving ? (
                   <><Loader2 className="animate-spin" size={13} style={{ marginRight: '5px' }} />Guardando...</>
                 ) : (
-                  <><Package size={13} style={{ marginRight: '5px' }} />Crear Producto</>
+                  <>
+                    <Package size={13} style={{ marginRight: '5px' }} />
+                    {isEditMode ? 'Guardar Cambios' : 'Crear Producto'}
+                  </>
                 )}
               </button>
             </div>
@@ -766,7 +913,8 @@ const headerIconStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: '#2563eb'
+  color: '#3b82f6',
+  flexShrink: 0
 };
 
 const closeModalBtnStyle = {
@@ -780,15 +928,16 @@ const closeModalBtnStyle = {
   border: 'none',
   color: '#64748b',
   cursor: 'pointer',
-  transition: 'all 0.15s'
+  transition: 'background 0.2s',
+  flexShrink: 0
 };
 
 const formBodyStyle = {
+  padding: 0,
   display: 'flex',
   flexDirection: 'column',
-  gap: '0',
   overflowY: 'auto',
-  padding: '0'
+  flex: 1
 };
 
 const sectionStyle = {
@@ -825,9 +974,9 @@ const inputStyle = {
   fontWeight: 650,
   color: '#1e293b',
   outline: 'none',
-  transition: 'border-color 0.2s',
   boxSizing: 'border-box',
-  background: '#fff'
+  background: '#fff',
+  transition: 'border-color 0.2s'
 };
 
 const toggleRowStyle = {
@@ -846,24 +995,23 @@ const toggleLabelStyle = {
 };
 
 const toggleSwitchStyle = {
-  width: '36px',
-  height: '20px',
-  borderRadius: '10px',
-  position: 'relative',
-  cursor: 'pointer',
-  transition: 'background 0.25s ease',
-  flexShrink: 0
+  width: '32px',
+  height: '18px',
+  borderRadius: '9px',
+  padding: '2px',
+  boxSizing: 'border-box',
+  display: 'flex',
+  alignItems: 'center',
+  transition: 'background 0.2s'
 };
 
 const toggleKnobStyle = {
-  width: '16px',
-  height: '16px',
+  width: '14px',
+  height: '14px',
   borderRadius: '50%',
   background: '#fff',
-  position: 'absolute',
-  top: '2px',
-  transition: 'transform 0.25s ease',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+  boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+  transition: 'transform 0.2s'
 };
 
 const actionsBarStyle = {
