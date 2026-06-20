@@ -12,6 +12,18 @@ export default function ClassificationsManager({ mode = 'classifications' }) {
   useEffect(() => {
     setActiveCategory(mode === 'brands' ? 'brand' : 'family');
   }, [mode]);
+
+  // Detector de tamaño de pantalla reactivo para celulares
+  const [windowWidth, setWindowWidth] = useState(1280);
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobileView = windowWidth < 768;
   
   // Datos cargados
   const [data, setData] = useState({
@@ -167,11 +179,21 @@ export default function ClassificationsManager({ mode = 'classifications' }) {
     <div style={containerStyle}>
       {/* Tabs superiores premium */}
       {mode !== 'brands' && (
-        <div style={tabsHeaderStyle}>
+        <div style={{
+          ...tabsHeaderStyle,
+          width: isMobileView ? '100%' : 'fit-content',
+          overflowX: isMobileView ? 'auto' : 'visible',
+          whiteSpace: isMobileView ? 'nowrap' : 'normal'
+        }}>
           <button 
             type="button"
             onClick={() => setActiveCategory('family')}
-            style={{ ...tabBtnStyle, ...((activeCategory === 'family') ? activeTabStyle : {}) }}
+            style={{ 
+              ...tabBtnStyle, 
+              flex: isMobileView ? 1 : 'none',
+              justifyContent: 'center',
+              ...((activeCategory === 'family') ? activeTabStyle : {}) 
+            }}
           >
             <FolderPlus size={16} />
             <span>Familias</span>
@@ -179,7 +201,12 @@ export default function ClassificationsManager({ mode = 'classifications' }) {
           <button 
             type="button"
             onClick={() => setActiveCategory('subfamily')}
-            style={{ ...tabBtnStyle, ...((activeCategory === 'subfamily') ? activeTabStyle : {}) }}
+            style={{ 
+              ...tabBtnStyle, 
+              flex: isMobileView ? 1 : 'none',
+              justifyContent: 'center',
+              ...((activeCategory === 'subfamily') ? activeTabStyle : {}) 
+            }}
           >
             <FolderOpen size={16} />
             <span>Subfamilias</span>
@@ -187,7 +214,12 @@ export default function ClassificationsManager({ mode = 'classifications' }) {
           <button 
             type="button"
             onClick={() => setActiveCategory('group')}
-            style={{ ...tabBtnStyle, ...((activeCategory === 'group') ? activeTabStyle : {}) }}
+            style={{ 
+              ...tabBtnStyle, 
+              flex: isMobileView ? 1 : 'none',
+              justifyContent: 'center',
+              ...((activeCategory === 'group') ? activeTabStyle : {}) 
+            }}
           >
             <Layers size={16} />
             <span>Giros Tipos (Grupos)</span>
@@ -208,7 +240,10 @@ export default function ClassificationsManager({ mode = 'classifications' }) {
           <button type="button" onClick={fetchMetadata} style={retryBtnStyle}>Reintentar</button>
         </div>
       ) : (
-        <div style={workspaceStyle}>
+        <div style={{
+          ...workspaceStyle,
+          gridTemplateColumns: isMobileView ? '1fr' : '320px 1fr'
+        }}>
           
           {/* COLUMNA IZQUIERDA: Formulario */}
           <div style={formCardStyle}>
@@ -330,7 +365,10 @@ export default function ClassificationsManager({ mode = 'classifications' }) {
           </div>
 
           {/* COLUMNA DERECHA: Listado y Buscador */}
-          <div style={listCardStyle}>
+          <div style={{
+            ...listCardStyle,
+            maxHeight: isMobileView ? '450px' : 'calc(100vh - 200px)'
+          }}>
             <div style={listHeaderStyle}>
               <div>
                 <h3 style={{ ...sectionTitleStyle, margin: 0 }}>Listado Existente</h3>
@@ -364,20 +402,20 @@ export default function ClassificationsManager({ mode = 'classifications' }) {
                 <table style={tableStyle}>
                   <thead>
                     <tr>
-                      <th style={thStyle}>Código</th>
-                      <th style={thStyle}>Nombre / Descripción</th>
+                      <th style={{ ...thStyle, padding: isMobileView ? '8px 10px' : '10px 14px', fontSize: isMobileView ? '9px' : '10px' }}>Código</th>
+                      <th style={{ ...thStyle, padding: isMobileView ? '8px 10px' : '10px 14px', fontSize: isMobileView ? '9px' : '10px' }}>Nombre / Descripción</th>
                       {((activeCategory === 'subfamily' || activeCategory === 'group')) && (
-                        <th style={thStyle}>Pertenece a</th>
+                        <th style={{ ...thStyle, padding: isMobileView ? '8px 10px' : '10px 14px', fontSize: isMobileView ? '9px' : '10px' }}>Pertenece a</th>
                       )}
                     </tr>
                   </thead>
                   <tbody>
                     {filteredList.map(item => (
                       <tr key={item.id} style={trStyle}>
-                        <td style={tdCodeStyle}>{item.id}</td>
-                        <td style={tdNameStyle}>{item.name}</td>
+                        <td style={{ ...tdCodeStyle, padding: isMobileView ? '8px 10px' : '10px 14px', fontSize: isMobileView ? '11px' : '12px' }}>{item.id}</td>
+                        <td style={{ ...tdNameStyle, padding: isMobileView ? '8px 10px' : '10px 14px', fontSize: isMobileView ? '11px' : '12px' }}>{item.name}</td>
                         {((activeCategory === 'subfamily' || activeCategory === 'group')) && (
-                          <td style={tdParentStyle}>{item.parentName}</td>
+                          <td style={{ ...tdParentStyle, padding: isMobileView ? '8px 10px' : '10px 14px', fontSize: isMobileView ? '10px' : '11px' }}>{item.parentName}</td>
                         )}
                       </tr>
                     ))}
