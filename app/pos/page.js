@@ -793,7 +793,7 @@ export default function POSPage() {
     const renderCartContent = (isDrawerMode = false) => {
         return (
             <div style={{ width: isDrawerMode ? '100%' : '300px', height: '100%', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '10px 16px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ padding: '10px 16px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: isDrawerMode ? 'none' : '1px solid #f1f5f9' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {isDrawerMode && (
                             <button 
@@ -804,11 +804,11 @@ export default function POSPage() {
                                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                                 }}
                             >
-                                <X size={16} />
+                                <X size={20} />
                             </button>
                         )}
                         <div style={{ background: '#3b82f6', color: '#fff', borderRadius: '8px', padding: '6px' }}>
-                            <ShoppingCart size={16} />
+                            <ShoppingCart size={20} />
                         </div>
                         <h2 style={{ fontSize: '15px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket ({(cart || []).length})</h2>
                     </div>
@@ -823,7 +823,7 @@ export default function POSPage() {
                             }} 
                             title="Descuento Global"
                         >
-                            <Percent size={16} />
+                            <Percent size={20} />
                         </button>
                         <button 
                             disabled={cart.length === 0}
@@ -835,9 +835,9 @@ export default function POSPage() {
                             }} 
                             title="Vaciar Carrito"
                         >
-                            <Trash2 size={16} />
+                            <Trash2 size={20} />
                         </button>
-                        <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '8px', padding: '6px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={16} /></button>
+                        <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '8px', padding: '6px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={20} /></button>
                     </div>
                 </div>
 
@@ -845,12 +845,12 @@ export default function POSPage() {
                 <div style={{ 
                     padding: '8px 12px', 
                     background: isRegularizing ? '#fffbeb' : '#fff', 
-                    borderBottom: '1px solid #f1f5f9',
+                    borderBottom: isDrawerMode ? 'none' : '1px solid #f1f5f9',
                     transition: 'all 0.3s'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyRules: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Calendar size={14} color={isRegularizing ? '#d97706' : '#94a3b8'} />
+                            <Calendar size={18} color={isRegularizing ? '#d97706' : '#94a3b8'} />
                             <span style={{ fontSize: '10px', fontWeight: 800, color: isRegularizing ? '#92400e' : '#64748b' }}>
                                 INICIO PERSONALIZADO
                             </span>
@@ -990,7 +990,7 @@ export default function POSPage() {
                     <div style={{ 
                         background: '#fff', 
                         height: '50px', 
-                        borderBottom: '1px solid #e2e8f0', 
+                        borderBottom: 'none', 
                         display: 'flex', 
                         alignItems: 'center', 
                         padding: '0 16px',
@@ -1180,7 +1180,7 @@ export default function POSPage() {
                                     </div>
 
                                     <div style={{ width: '160px', position: 'relative' }}>
-                                        <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={12} />
+                                        <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={16} />
                                         <input
                                             type="text"
                                             inputMode="none" // Evita el teclado nativo en tablets
@@ -1204,7 +1204,7 @@ export default function POSPage() {
                                             maxLength={searchType === 'DNI' ? 8 : 11}
                                             style={{ width: '100%', padding: '8px 10px 8px 30px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '12px', fontWeight: 700, outline: 'none' }}
                                         />
-                                        {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '8px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={12} />}
+                                        {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '8px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={16} />}
                                         
                                         {searchType === 'CE' ? (
                                             <AlphanumericKeyboard 
@@ -1242,14 +1242,14 @@ export default function POSPage() {
                                         style={{ background: '#fff1f2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         title="Limpiar Cliente"
                                     >
-                                        <X size={15} />
+                                        <X size={18} />
                                     </button>
                                     <button
                                         onClick={() => setShowManualModal(true)}
                                         style={{ background: '#eff6ff', color: '#3b82f6', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         title="Registro Manual"
                                     >
-                                        <Plus size={15} />
+                                        <Plus size={18} />
                                     </button>
 
                                     {!isMobileDevice && (
@@ -1261,7 +1261,7 @@ export default function POSPage() {
                                                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                                         {customer.expirationDate && (
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, color: customer.daysRemaining > 0 ? '#10b981' : '#ef4444' }}>
-                                                                <Clock size={10} />
+                                                                <Clock size={12} />
                                                                 Vence: {new Date(customer.expirationDate).toLocaleDateString()} ({customer.daysRemaining}d)
                                                             </div>
                                                         )}
@@ -1274,7 +1274,7 @@ export default function POSPage() {
 
                                 {/* Resumen del cliente en móvil */}
                                 {isMobileDevice && (
-                                    <div style={{ padding: '6px 16px', background: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                    <div style={{ padding: '6px 16px', background: '#fff', borderBottom: 'none', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                                         <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Cliente:</span>
                                         <span style={{ fontSize: '11px', fontWeight: 900, color: '#1e293b' }}>{customer.name}</span>
                                         {customer.expirationDate && (
@@ -1286,9 +1286,9 @@ export default function POSPage() {
                                 )}
 
                                 {/* BARRA SUPERIOR POS (AHORA SEGUNDO) */}
-                                <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ background: '#fff', padding: '8px 16px', borderBottom: isMobileDevice ? 'none' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ flex: 1, position: 'relative' }}>
-                                        <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                        <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                         <input 
                                             type="text" 
                                             inputMode="none"
@@ -1324,7 +1324,7 @@ export default function POSPage() {
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                             flexShrink: 0
                                         }} title="Seleccionar Vendedor">
-                                            <User size={14} />
+                                            <User size={18} />
                                             <select
                                                 value={selectedSalesperson}
                                                 onChange={(e) => setSelectedSalesperson(e.target.value)}
@@ -1351,7 +1351,7 @@ export default function POSPage() {
                                 </div>
 
                                 {/* BARRA DE CATEGORÍAS RESTAURADA (AHORA TERCERO) */}
-                                <div style={{ flexShrink: 0, background: '#f8fafc', padding: '6px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '6px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
+                                <div style={{ flexShrink: 0, background: '#f8fafc', padding: '6px 16px', borderBottom: isMobileDevice ? 'none' : '1px solid #e2e8f0', display: 'flex', gap: '6px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
                                     {categories.map(cat => (
                                         <button
                                             key={cat.id}

@@ -159,7 +159,7 @@ export default function Sidebar({
             {/* Logo */}
             <div style={logoContainerStyle}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: isExpanded ? 'flex-start' : 'center', width: isExpanded ? 'auto' : '100%', gap: '8px', overflow: 'hidden' }}>
-                    <Zap size={15} style={{ color: '#fff', fill: '#fff', flexShrink: 0 }} />
+                    <Zap size={18} style={{ color: '#fff', fill: '#fff', flexShrink: 0 }} />
                     {isExpanded && <span style={logoTextStyle}>SYSCOM POS</span>}
                 </div>
                 {isMobileMode && onCloseMobileMenu && (
@@ -167,7 +167,7 @@ export default function Sidebar({
                         onClick={onCloseMobileMenu}
                         style={{ border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <X size={15} />
+                        <X size={18} />
                     </button>
                 )}
             </div>
@@ -179,7 +179,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'pos')}
                     title={isExpanded ? "" : "Punto de Venta"}
                 >
-                    <LayoutGrid size={18} style={{ flexShrink: 0 }} />
+                    <LayoutGrid size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Punto de Venta</span>}
                 </div>
                 
@@ -188,7 +188,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'dashboard')}
                     title={isExpanded ? "" : "Dashboard"}
                 >
-                    <TrendingUp size={18} style={{ flexShrink: 0 }} />
+                    <TrendingUp size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Dashboard</span>}
                 </div>
                 
@@ -197,7 +197,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'sales')}
                     title={isExpanded ? "" : "Historial de Ventas"}
                 >
-                    <History size={18} style={{ flexShrink: 0 }} />
+                    <History size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Historial Ventas</span>}
                 </div>
                 
@@ -206,7 +206,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'memberships')}
                     title={isExpanded ? "" : "Gestión de Membresías"}
                 >
-                    <Users size={18} style={{ flexShrink: 0 }} />
+                    <Users size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Membresías</span>}
                 </div>
 
@@ -215,7 +215,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'promotions')}
                     title={isExpanded ? "" : "Promociones"}
                 >
-                    <Tag size={18} style={{ flexShrink: 0 }} />
+                    <Tag size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Promociones</span>}
                 </div>
 
@@ -224,7 +224,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands')}
                     title={isExpanded ? "" : "Productos"}
                 >
-                    <Package size={18} style={{ flexShrink: 0 }} />
+                    <Package size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Productos</span>}
                 </div>
 
@@ -317,11 +317,11 @@ export default function Sidebar({
                 )}
 
                 <div 
-                    onClick={() => setIsCustomersExpanded(prev => !prev)}
-                    style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays')}
-                    title={isExpanded ? "" : "Gestión de Clientes"}
+                    onClick={() => setActiveTab('customers')}
+                    style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits')}
+                    title={isExpanded ? "" : "Clientes"}
                 >
-                    <Contact size={18} style={{ flexShrink: 0 }} />
+                    <Contact size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Clientes</span>}
                 </div>
                 
@@ -419,7 +419,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp')}
                     title={isExpanded ? "" : "Compras"}
                 >
-                    <ShoppingBag size={18} style={{ flexShrink: 0 }} />
+                    <ShoppingBag size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Compras</span>}
                 </div>
 
@@ -516,7 +516,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'suppliers')}
                     title={isExpanded ? "" : "Proveedores"}
                 >
-                    <Truck size={18} style={{ flexShrink: 0 }} />
+                    <Truck size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Proveedores</span>}
                 </div>
 
@@ -525,7 +525,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash')}
                     title={isExpanded ? "" : "Finanzas"}
                 >
-                    <Banknote size={18} style={{ flexShrink: 0 }} />
+                    <Banknote size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Finanzas</span>}
                 </div>
 
@@ -595,7 +595,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'whatsapp')}
                     title={isExpanded ? "" : "Configuración de WhatsApp"}
                 >
-                    <MessageCircle size={18} style={{ flexShrink: 0 }} />
+                    <MessageCircle size={22} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Config WhatsApp</span>}
                 </div>
             </div>
@@ -611,24 +611,24 @@ export default function Sidebar({
                             background: isFullscreen ? '#eff6ff' : 'transparent' 
                         }}
                     >
-                        {isFullscreen ? <Minimize size={15} style={{ flexShrink: 0 }} /> : <Maximize size={15} style={{ flexShrink: 0 }} />}
+                        {isFullscreen ? <Minimize size={18} style={{ flexShrink: 0 }} /> : <Maximize size={18} style={{ flexShrink: 0 }} />}
                         {isExpanded && <span style={labelTextStyle}>{isFullscreen ? "Salir Completa" : "Pantalla Completa"}</span>}
                     </button>
                 )}
                 <button onClick={onOpenHistory} title={isExpanded ? "" : "Historial de Ventas"} style={getBottomBtnStyle()}>
-                    <History size={15} style={{ flexShrink: 0 }} />
+                    <History size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Historial</span>}
                 </button>
                 <button onClick={onOpenCloseCash} title={isExpanded ? "" : "Cerrar Caja"} style={getBottomBtnStyle()}>
-                    <Lock size={15} style={{ flexShrink: 0 }} />
+                    <Lock size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Cerrar Caja</span>}
                 </button>
                 <button onClick={onOpenSettings} title={isExpanded ? "" : "Ajustes"} style={getBottomBtnStyle()}>
-                    <Settings size={15} style={{ flexShrink: 0 }} />
+                    <Settings size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Ajustes</span>}
                 </button>
                 <button onClick={onSignOut} title={isExpanded ? "" : "Salir"} style={getBottomBtnStyle('#f87171')}>
-                    <LogOut size={15} style={{ flexShrink: 0 }} />
+                    <LogOut size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Cerrar Sesión</span>}
                 </button>
             </div>
