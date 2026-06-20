@@ -5,18 +5,18 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
     const inStock = product.stock > 0;
     const isDark = isMobileDevice;
 
-    const cardBg = isDark ? '#27272a' : '#fff';
-    const cardBorder = isDark ? '1px solid #3f3f46' : '1px solid #e2e8f0';
-    const textColor = isDark ? '#fafafa' : '#1e293b';
-    const codeColor = isDark ? '#a1a1aa' : '#64748b';
-    const iconBg = isDark ? '#3f3f46' : '#f1f5f9';
-    const iconColor = isDark ? '#a1a1aa' : '#94a3b8';
-    const priceColor = isDark ? '#fafafa' : '#0f172a';
-    const stockBg = inStock ? (isDark ? '#14532d' : '#f0fdf4') : (isDark ? '#7f1d1d' : '#fef2f2');
-    const stockColor = inStock ? (isDark ? '#4ade80' : '#16a34a') : (isDark ? '#f87171' : '#dc2626');
-    const stockBorder = inStock ? (isDark ? '1px solid #166534' : '1px solid #dcfce7') : (isDark ? '1px solid #991b1b' : '1px solid #fee2e2');
-    const addBg = isDark ? '#3f3f46' : 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)';
-    const addColor = isDark ? '#fb7185' : '#4f46e5';
+    const cardBg = isDark ? '#1e222d' : '#fff';
+    const cardBorder = isDark ? '1px solid #2d323f' : '1px solid #e2e8f0';
+    const textColor = isDark ? '#f1f5f9' : '#1e293b';
+    const codeColor = isDark ? '#94a3b8' : '#64748b';
+    const iconBg = isDark ? '#2d323f' : '#f1f5f9';
+    const iconColor = isDark ? '#94a3b8' : '#94a3b8';
+    const priceColor = isDark ? '#f1f5f9' : '#0f172a';
+    const stockBg = inStock ? (isDark ? '#143a28' : '#f0fdf4') : (isDark ? '#641e16' : '#fef2f2');
+    const stockColor = inStock ? (isDark ? '#58d68d' : '#16a34a') : (isDark ? '#ec7063' : '#dc2626');
+    const stockBorder = inStock ? (isDark ? '1px solid #196f3d' : '1px solid #dcfce7') : (isDark ? '1px solid #922b21' : '1px solid #fee2e2');
+    const addBg = isDark ? '#2d323f' : 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)';
+    const addColor = isDark ? '#60a5fa' : '#4f46e5';
     const addShadow = isDark ? 'none' : '0 2px 6px rgba(79, 70, 229, 0.15)';
     
     return (
@@ -89,7 +89,7 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
             {/* Footer Area */}
             <div style={{
                 marginTop: 'auto',
-                borderTop: isDark ? '1px solid #3f3f46' : '1px solid #f1f5f9',
+                borderTop: isDark ? '1px solid #2d323f' : '1px solid #f1f5f9',
                 paddingTop: '6px',
             }}>
                 {/* Stock info */}
