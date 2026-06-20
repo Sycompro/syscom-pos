@@ -933,64 +933,14 @@ export default function POSPage() {
                 />
             )}
 
-            {/* Sidebar flotante para celulares (Drawer) */}
-            <AnimatePresence>
-                {isMobileDevice && showMobileMenu && (
-                    <div 
-                        onClick={() => setShowMobileMenu(false)}
-                        style={{ 
-                            position: 'fixed', 
-                            top: 0, 
-                            left: 0, 
-                            right: 0, 
-                            bottom: 0, 
-                            background: 'rgba(15, 23, 42, 0.4)', 
-                            backdropFilter: 'blur(3px)',
-                            zIndex: 1500, 
-                            display: 'flex',
-                            justifyContent: 'flex-end'
-                        }}
-                    >
-                        <motion.div 
-                            initial={{ x: 280 }}
-                            animate={{ x: 0 }}
-                            exit={{ x: 280 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            onClick={(e) => e.stopPropagation()} 
-                            style={{ 
-                                width: '280px', 
-                                height: '100%', 
-                                display: 'flex', 
-                                flexDirection: 'column',
-                                boxShadow: '-10px 0 30px rgba(0,0,0,0.15)'
-                            }}
-                        >
-                            <Sidebar
-                                onSignOut={() => signOut()}
-                                onOpenCloseCash={() => setShowCloseModal(true)}
-                                onOpenHistory={() => setShowHistoryModal(true)}
-                                onOpenSettings={() => setShowSettingsModal(true)} 
-                                onToggleFullscreen={toggleFullscreen}
-                                isFullscreen={isFullscreen}
-                                activeTab={activeTab} 
-                                setActiveTab={(tab) => {
-                                    setActiveTab(tab);
-                                    setShowMobileMenu(false); // Cerrar automáticamente en móvil al navegar
-                                }} 
-                                isMobileMode={true}
-                                onCloseMobileMenu={() => setShowMobileMenu(false)}
-                            />
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+            {/* Sidebar flotante para celulares (Drawer) trasladado al final del layout */}
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 {/* Cabecera Global Móvil para celulares */}
                 {isMobileDevice && (
                     <div style={{ 
                         background: '#fff', 
-                        height: '50px', 
+                        height: '56px', 
                         borderBottom: 'none', 
                         display: 'flex', 
                         alignItems: 'center', 
@@ -999,22 +949,22 @@ export default function POSPage() {
                         flexShrink: 0
                     }}>
                         {activeTab === 'pos' ? (
-                            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', gap: '3px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '10px', padding: '3px', gap: '3px', border: '1px solid #e2e8f0' }}>
                                 {['03', '01', '65'].map(t => (
                                     <button
                                         key={t}
                                         onClick={() => setDocType(t)}
                                         style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '6px',
+                                            padding: '8px 16px',
+                                            borderRadius: '8px',
                                             border: 'none',
                                             cursor: 'pointer',
-                                            fontSize: '11px',
+                                            fontSize: '12px',
                                             fontWeight: 900,
                                             background: docType === t ? '#ffffff' : 'transparent',
                                             color: docType === t ? '#3b82f6' : '#64748b',
-                                            boxShadow: docType === t ? '0 2px 4px rgba(15, 23, 42, 0.08)' : 'none',
-                                            transition: 'all 0.2s ease',
+                                            boxShadow: docType === t ? '0 3px 6px rgba(15, 23, 42, 0.08)' : 'none',
+                                            transition: 'all 0.25s ease',
                                         }}
                                     >
                                         {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
@@ -1170,7 +1120,14 @@ export default function POSPage() {
                                 <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
 
                                     {/* Selector de Tipo DNI/RUC/CE */}
-                                    <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '2px', gap: '2px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        background: '#f1f5f9', 
+                                        borderRadius: isMobileDevice ? '10px' : '8px', 
+                                        padding: isMobileDevice ? '3px' : '2px', 
+                                        gap: isMobileDevice ? '3px' : '2px', 
+                                        border: '1px solid #e2e8f0' 
+                                    }}>
                                         {['DNI', 'RUC', 'CE'].map(type => (
                                             <button
                                                 key={type}
@@ -1182,16 +1139,16 @@ export default function POSPage() {
                                                     setShowCEKeyboard(false);
                                                 }}
                                                 style={{
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
+                                                    padding: isMobileDevice ? '8px 14px' : '4px 8px',
+                                                    borderRadius: isMobileDevice ? '8px' : '6px',
                                                     border: 'none',
                                                     cursor: 'pointer',
-                                                    fontSize: '10px',
-                                                    fontWeight: 800,
+                                                    fontSize: isMobileDevice ? '12px' : '10px',
+                                                    fontWeight: isMobileDevice ? 900 : 800,
                                                     background: searchType === type ? '#fff' : 'transparent',
                                                     color: searchType === type ? '#3b82f6' : '#64748b',
-                                                    boxShadow: searchType === type ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                                                    transition: 'all 0.2s'
+                                                    boxShadow: searchType === type ? (isMobileDevice ? '0 2px 5px rgba(15, 23, 42, 0.08)' : '0 2px 4px rgba(0,0,0,0.05)') : 'none',
+                                                    transition: 'all 0.25s ease'
                                                 }}
                                             >
                                                 {type}
@@ -1407,7 +1364,7 @@ export default function POSPage() {
                             <>
                                 {/* Botón Flotante */}
                                 <AnimatePresence>
-                                    {!showMobileCart && (
+                                    {!showMobileCart && !showMobileMenu && (
                                         <motion.button
                                             initial={{ scale: 0, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
@@ -2073,6 +2030,58 @@ export default function POSPage() {
                     setCustomerSearch(newCli.ruccli);
                 }}
             />
+
+            {/* Sidebar flotante para celulares (Drawer) */}
+            <AnimatePresence>
+                {isMobileDevice && showMobileMenu && (
+                    <div 
+                        onClick={() => setShowMobileMenu(false)}
+                        style={{ 
+                            position: 'fixed', 
+                            top: 0, 
+                            left: 0, 
+                            right: 0, 
+                            bottom: 0, 
+                            background: 'rgba(15, 23, 42, 0.4)', 
+                            backdropFilter: 'blur(3px)',
+                            zIndex: 9500, 
+                            display: 'flex',
+                            justifyContent: 'flex-end'
+                        }}
+                    >
+                        <motion.div 
+                            initial={{ x: 280 }}
+                            animate={{ x: 0 }}
+                            exit={{ x: 280 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            onClick={(e) => e.stopPropagation()} 
+                            style={{ 
+                                width: '280px', 
+                                height: '100%', 
+                                display: 'flex', 
+                                flexDirection: 'column',
+                                boxShadow: '-10px 0 30px rgba(0,0,0,0.15)'
+                            }}
+                        >
+                            <Sidebar
+                                onSignOut={() => signOut()}
+                                onOpenCloseCash={() => { setShowCloseModal(true); setShowMobileMenu(false); }}
+                                onOpenHistory={() => { setShowHistoryModal(true); setShowMobileMenu(false); }}
+                                onOpenSettings={() => { setShowSettingsModal(true); setShowMobileMenu(false); }}
+                                onToggleFullscreen={toggleFullscreen}
+                                isFullscreen={isFullscreen}
+                                activeTab={activeTab} 
+                                setActiveTab={(tab) => {
+                                    setActiveTab(tab);
+                                    setShowMobileMenu(false); // Cerrar automáticamente en móvil al navegar
+                                }} 
+                                isMobileMode={true}
+                                onCloseMobileMenu={() => setShowMobileMenu(false)}
+                            />
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
