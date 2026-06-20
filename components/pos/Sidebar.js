@@ -186,7 +186,20 @@ export default function Sidebar({
                                 display: 'flex', 
                                 alignItems: 'center', 
                                 justifyContent: 'center',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = '#fee2e2';
+                                e.currentTarget.style.color = '#ef4444';
+                                e.currentTarget.style.transform = 'rotate(90deg) scale(1.05)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = '#f1f5f9';
+                                e.currentTarget.style.color = '#64748b';
+                                e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                            }}
+                            onMouseDown={e => {
+                                e.currentTarget.style.transform = 'rotate(90deg) scale(0.95)';
                             }}
                         >
                             <X size={18} />

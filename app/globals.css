@@ -100,3 +100,74 @@ body {
 #print-ticket {
     display: none;
 }
+
+/* Botón de Hamburguesa Moderno y Animado */
+.modern-burger-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.modern-burger-container:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.modern-burger-container:active {
+  transform: scale(0.95);
+  background: #f1f5f9;
+}
+
+.modern-burger-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 20px;
+  height: 14px;
+}
+
+.modern-burger-line {
+  height: 2px;
+  background-color: #0f172a;
+  border-radius: 4px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.modern-burger-line-1 {
+  width: 100%;
+}
+
+.modern-burger-line-2 {
+  width: 65%;
+  align-self: flex-start;
+}
+
+.modern-burger-line-3 {
+  width: 85%;
+  align-self: flex-start;
+}
+
+/* Animaciones al hacer hover */
+.modern-burger-container:hover .modern-burger-line-1 {
+  width: 75%;
+}
+
+.modern-burger-container:hover .modern-burger-line-2 {
+  width: 100%;
+}
+
+.modern-burger-container:hover .modern-burger-line-3 {
+  width: 65%;
+}
+

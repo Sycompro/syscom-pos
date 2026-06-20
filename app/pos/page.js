@@ -947,13 +947,14 @@ export default function POSPage() {
                             background: 'rgba(15, 23, 42, 0.4)', 
                             backdropFilter: 'blur(3px)',
                             zIndex: 100, 
-                            display: 'flex'
+                            display: 'flex',
+                            justifyContent: 'flex-end'
                         }}
                     >
                         <motion.div 
-                            initial={{ x: -280 }}
+                            initial={{ x: 280 }}
                             animate={{ x: 0 }}
-                            exit={{ x: -280 }}
+                            exit={{ x: 280 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                             onClick={(e) => e.stopPropagation()} 
                             style={{ 
@@ -961,7 +962,7 @@ export default function POSPage() {
                                 height: '100%', 
                                 display: 'flex', 
                                 flexDirection: 'column',
-                                boxShadow: '10px 0 30px rgba(0,0,0,0.15)'
+                                boxShadow: '-10px 0 30px rgba(0,0,0,0.15)'
                             }}
                         >
                             <Sidebar
@@ -997,23 +998,7 @@ export default function POSPage() {
                         justifyContent: 'space-between',
                         flexShrink: 0
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <button 
-                                onClick={() => setShowMobileMenu(true)} 
-                                style={{ 
-                                    border: 'none', 
-                                    background: 'transparent', 
-                                    backgroundColor: 'transparent',
-                                    padding: '4px', 
-                                    color: '#0f172a', 
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <Menu size={26} />
-                            </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 {activeTab === 'pos' ? 'Punto de Venta' : 
                                  activeTab === 'dashboard' ? 'Dashboard' : 
@@ -1034,10 +1019,21 @@ export default function POSPage() {
                                  activeTab === 'classifications' ? 'Clasificaciones' :
                                  activeTab === 'brands' ? 'Marcas ERP' : 'POS'}
                             </span>
+                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase' }}>
+                                {companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
+                            </span>
                         </div>
-                        <div style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe', textTransform: 'uppercase' }}>
-                            {companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
-                        </div>
+                        <button 
+                            onClick={() => setShowMobileMenu(true)} 
+                            className="modern-burger-container"
+                            aria-label="Abrir menú"
+                        >
+                            <div className="modern-burger-icon">
+                                <span className="modern-burger-line modern-burger-line-1"></span>
+                                <span className="modern-burger-line modern-burger-line-2"></span>
+                                <span className="modern-burger-line modern-burger-line-3"></span>
+                            </div>
+                        </button>
                     </div>
                 )}
 
