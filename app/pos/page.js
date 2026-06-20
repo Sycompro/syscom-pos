@@ -1003,17 +1003,16 @@ export default function POSPage() {
                                 style={{ 
                                     border: 'none', 
                                     background: 'transparent', 
-                                    padding: '6px', 
-                                    color: '#475569', 
+                                    backgroundColor: 'transparent',
+                                    padding: '4px', 
+                                    color: '#0f172a', 
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    borderRadius: '8px',
-                                    backgroundColor: '#f1f5f9'
                                 }}
                             >
-                                <Menu size={18} />
+                                <Menu size={26} />
                             </button>
                             <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 {activeTab === 'pos' ? 'Punto de Venta' : 
