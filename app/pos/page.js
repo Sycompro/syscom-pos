@@ -1172,8 +1172,8 @@ export default function POSPage() {
                                     }}>
                                         {['DNI', 'RUC', 'CE'].map(type => {
                                             const isSelected = searchType === type;
-                                            let activeBg = isMobileDevice ? '#60a5fa' : '#eff6ff';
-                                            let activeColor = isMobileDevice ? '#131722' : '#3b82f6';
+                                            let activeBg = isMobileDevice ? '#3b82f6' : '#eff6ff';
+                                            let activeColor = isMobileDevice ? '#ffffff' : '#3b82f6';
                                             let activeBorder = isMobileDevice ? 'none' : '1px solid #bfdbfe';
 
                                             return (
@@ -1234,12 +1234,12 @@ export default function POSPage() {
                                                 paddingRight: isMobileDevice ? (customerSearch ? '32px' : '10px') : '10px', 
                                                 paddingTop: isMobileDevice ? '10px' : '8px', 
                                                 paddingBottom: isMobileDevice ? '10px' : '8px', 
-                                                background: isMobileDevice ? '#1e222d' : '#ffffff', 
-                                                border: isMobileDevice ? '1px solid #2d323f' : '1px solid #e2e8f0', 
+                                                background: isMobileDevice ? '#ffffff' : '#ffffff', 
+                                                border: isMobileDevice ? '1px solid #e2e8f0' : '1px solid #e2e8f0', 
                                                 borderRadius: isMobileDevice ? '24px' : '10px', 
                                                 fontSize: isMobileDevice ? '13px' : '12px', 
                                                 fontWeight: 700, 
-                                                color: isMobileDevice ? '#f1f5f9' : '#1e293b',
+                                                color: isMobileDevice ? '#0f172a' : '#1e293b',
                                                 outline: 'none' 
                                             }}
                                         />
@@ -1392,11 +1392,11 @@ export default function POSPage() {
                                               <div style={{ 
                                                   position: 'relative', width: '36px', height: '36px', borderRadius: isMobileDevice ? '50%' : '10px', 
                                                   border: isMobileDevice ? '1px solid #2d323f' : '1px solid #e2e8f0', 
-                                                  background: selectedSalesperson ? (isMobileDevice ? '#60a5fa' : '#eff6ff') : (isMobileDevice ? '#1e222d' : '#fff'), 
-                                                  borderColor: selectedSalesperson ? (isMobileDevice ? '#60a5fa' : '#bfdbfe') : (isMobileDevice ? '#2d323f' : '#e2e8f0'),
-                                                  color: selectedSalesperson ? (isMobileDevice ? '#131722' : '#3b82f6') : (isMobileDevice ? '#94a3b8' : '#64748b'), 
+                                                  background: selectedSalesperson ? (isMobileDevice ? '#3b82f6' : '#eff6ff') : (isMobileDevice ? '#1e222d' : '#fff'), 
+                                                  borderColor: selectedSalesperson ? (isMobileDevice ? '#3b82f6' : '#bfdbfe') : (isMobileDevice ? '#2d323f' : '#e2e8f0'),
+                                                  color: selectedSalesperson ? (isMobileDevice ? '#ffffff' : '#3b82f6') : (isMobileDevice ? '#94a3b8' : '#64748b'), 
                                                   display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                  boxShadow: selectedSalesperson ? (isMobileDevice ? '0 2px 6px rgba(251, 113, 133, 0.15)' : '0 2px 6px rgba(79, 70, 229, 0.1)') : 'none',
+                                                  boxShadow: selectedSalesperson ? (isMobileDevice ? '0 2px 6px rgba(59, 130, 246, 0.3)' : '0 2px 6px rgba(79, 70, 229, 0.1)') : 'none',
                                                   flexShrink: 0
                                               }} title="Seleccionar Vendedor">
                                                   <User size={18} />
@@ -1474,12 +1474,12 @@ export default function POSPage() {
                                                   width: '100%', 
                                                   padding: isMobileDevice ? '12px 44px 12px 40px' : '9px 40px 9px 36px', 
                                                   borderRadius: isMobileDevice ? '28px' : '24px', 
-                                                  border: isMobileDevice ? '1px solid #2d323f' : '1px solid #e2e8f0', 
+                                                  border: isMobileDevice ? '1px solid #e2e8f0' : '1px solid #e2e8f0', 
                                                   outline: 'none', 
                                                   fontSize: isMobileDevice ? '15px' : '13px',
                                                   fontWeight: isMobileDevice ? 700 : 500,
-                                                  background: isMobileDevice ? '#1e222d' : '#ffffff',
-                                                  color: isMobileDevice ? '#f1f5f9' : '#1e293b',
+                                                  background: isMobileDevice ? '#ffffff' : '#ffffff',
+                                                  color: isMobileDevice ? '#0f172a' : '#1e293b',
                                                   boxShadow: isMobileDevice ? 'none' : '0 2px 6px rgba(15, 23, 42, 0.03)'
                                               }} 
                                           />
@@ -1496,14 +1496,14 @@ export default function POSPage() {
                                                  display: 'flex',
                                                  alignItems: 'center',
                                                  justifyContent: 'center',
-                                                 color: isMobileDevice ? '#60a5fa' : '#3b82f6',
+                                                 color: isMobileDevice ? '#3b82f6' : '#3b82f6',
                                                  padding: '4px',
                                                  borderRadius: '50%',
                                                  transition: 'all 0.2s'
                                              }}
                                              title="Escanear Código de Barras / QR"
-                                             onMouseEnter={e => e.currentTarget.style.color = isMobileDevice ? '#3b82f6' : '#1d4ed8'}
-                                             onMouseLeave={e => e.currentTarget.style.color = isMobileDevice ? '#60a5fa' : '#3b82f6'}
+                                             onMouseEnter={e => e.currentTarget.style.color = isMobileDevice ? '#1d4ed8' : '#1d4ed8'}
+                                             onMouseLeave={e => e.currentTarget.style.color = isMobileDevice ? '#3b82f6' : '#3b82f6'}
                                          >
                                              <ScanBarcode size={isMobileDevice ? 22 : 18} />
                                          </button>
@@ -1584,9 +1584,9 @@ export default function POSPage() {
                                                 fontWeight: 800, 
                                                 border: isMobileDevice ? (selectedCategory === cat.id ? 'none' : '1px solid #2d323f') : 'none', 
                                                 cursor: 'pointer',
-                                                background: selectedCategory === cat.id ? (isMobileDevice ? '#60a5fa' : '#3b82f6') : (isMobileDevice ? '#1e222d' : '#fff'),
-                                                color: selectedCategory === cat.id ? (isMobileDevice ? '#131722' : '#fff') : (isMobileDevice ? '#94a3b8' : '#64748b'),
-                                                boxShadow: selectedCategory === cat.id ? (isMobileDevice ? '0 4px 10px rgba(96, 165, 250, 0.2)' : '0 2px 4px rgba(0,0,0,0.04)') : 'none', 
+                                                background: selectedCategory === cat.id ? (isMobileDevice ? '#3b82f6' : '#3b82f6') : (isMobileDevice ? '#1e222d' : '#fff'),
+                                                color: selectedCategory === cat.id ? (isMobileDevice ? '#ffffff' : '#fff') : (isMobileDevice ? '#94a3b8' : '#64748b'),
+                                                boxShadow: selectedCategory === cat.id ? (isMobileDevice ? '0 4px 10px rgba(59, 130, 246, 0.25)' : '0 2px 4px rgba(0,0,0,0.04)') : 'none', 
                                                 transition: 'all 0.2s'
                                             }}
                                         >
@@ -1622,12 +1622,12 @@ export default function POSPage() {
                                                 position: 'fixed',
                                                 bottom: '24px',
                                                 right: '24px',
-                                                background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+                                                background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
                                                 color: '#fff',
                                                 border: 'none',
                                                 borderRadius: '50px',
                                                 padding: '12px 20px',
-                                                boxShadow: '0 10px 25px rgba(59, 130, 246, 0.3), 0 4px 10px rgba(0,0,0,0.15)',
+                                                boxShadow: '0 10px 25px rgba(59, 130, 246, 0.35), 0 4px 10px rgba(0,0,0,0.15)',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',

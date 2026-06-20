@@ -3,7 +3,7 @@ import { Package, Plus } from 'lucide-react';
 
 export default function ProductCard({ product, onAdd, isMobileDevice }) {
     const inStock = product.stock > 0;
-    const isDark = isMobileDevice;
+    const isDark = false;
 
     const cardBg = isDark ? '#1e222d' : '#fff';
     const cardBorder = isDark ? '1px solid #2d323f' : '1px solid #e2e8f0';
@@ -16,8 +16,8 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
     const stockColor = inStock ? (isDark ? '#58d68d' : '#16a34a') : (isDark ? '#ec7063' : '#dc2626');
     const stockBorder = inStock ? (isDark ? '1px solid #196f3d' : '1px solid #dcfce7') : (isDark ? '1px solid #922b21' : '1px solid #fee2e2');
     const addBg = isDark ? '#2d323f' : 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)';
-    const addColor = isDark ? '#60a5fa' : '#4f46e5';
-    const addShadow = isDark ? 'none' : '0 2px 6px rgba(79, 70, 229, 0.15)';
+    const addColor = isDark ? '#60a5fa' : '#3b82f6';
+    const addShadow = isDark ? 'none' : '0 2px 6px rgba(59, 130, 246, 0.15)';
     
     return (
         <div
