@@ -20,8 +20,21 @@ export default function Sidebar({
     const [isPurchasesExpanded, setIsPurchasesExpanded] = useState(
         activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp'
     );
+    const [supportsFullscreen, setSupportsFullscreen] = useState(false);
 
     const isExpanded = isMobileMode ? true : isExpandedInternal;
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const supported = !!(
+                document.documentElement.requestFullscreen ||
+                document.documentElement.webkitRequestFullscreen ||
+                document.documentElement.mozRequestFullScreen ||
+                document.documentElement.msRequestFullscreen
+            );
+            setSupportsFullscreen(supported);
+        }
+    }, []);
 
     useEffect(() => {
         if (activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits') {
@@ -589,7 +602,7 @@ export default function Sidebar({
 
             {/* Bottom icons */}
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginTop: 'auto' }}>
-                {!isMobileMode && (
+                {supportsFullscreen && (
                     <button 
                         onClick={onToggleFullscreen} 
                         title={isExpanded ? "" : (isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa")} 

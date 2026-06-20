@@ -103,19 +103,43 @@ export default function POSPage() {
         loadKeyboardPreference();
 
         const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
+            const isFull = !!(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement
+            );
+            setIsFullscreen(isFull);
         };
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+
+        const events = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
+        events.forEach(event => document.addEventListener(event, handleFullscreenChange));
+        return () => {
+            events.forEach(event => document.removeEventListener(event, handleFullscreenChange));
+        };
     }, []);
 
     const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.error(`Error al intentar modo pantalla completa: ${err.message}`);
-            });
+        const docEl = document.documentElement;
+        const isFull = !!(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement
+        );
+
+        if (!isFull) {
+            const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+            if (req) {
+                req.call(docEl).catch(err => {
+                    console.error(`Error al intentar modo pantalla completa: ${err.message}`);
+                });
+            }
         } else {
-            document.exitFullscreen();
+            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exit) {
+                exit.call(document);
+            }
         }
     };
 
