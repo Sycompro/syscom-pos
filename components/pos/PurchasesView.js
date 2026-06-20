@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Search, Trash2, Calendar, Loader2, Save, ShoppingCart, 
   User, Receipt, ArrowRight, Check, AlertCircle, RefreshCw,
