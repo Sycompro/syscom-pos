@@ -5,8 +5,8 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
     const inStock = product.stock > 0;
     const isDark = isMobileDevice;
 
-    const cardBg = isDark ? 'rgba(255, 255, 255, 0.12)' : '#fff';
-    const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e2e8f0';
+    const cardBg = isDark ? '#0d1017' : '#fff';
+    const cardBorder = isDark ? 'none' : '1px solid #e2e8f0';
     const textColor = isDark ? '#ffffff' : '#1e293b';
     const codeColor = isDark ? '#94a3b8' : '#64748b';
     const iconBg = isDark ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9';
@@ -14,7 +14,7 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
     const priceColor = isDark ? '#ffffff' : '#0f172a';
     const stockBg = inStock ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#f0fdf4') : (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2');
     const stockColor = inStock ? (isDark ? '#34d399' : '#16a34a') : (isDark ? '#f87171' : '#dc2626');
-    const stockBorder = inStock ? (isDark ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid #dcfce7') : (isDark ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid #fee2e2');
+    const stockBorder = inStock ? (isDark ? 'none' : '1px solid #dcfce7') : (isDark ? 'none' : '1px solid #fee2e2');
     const addBg = isDark ? 'rgba(96, 165, 250, 0.15)' : 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)';
     const addColor = isDark ? '#60a5fa' : '#3b82f6';
     const addShadow = isDark ? 'none' : '0 2px 6px rgba(59, 130, 246, 0.15)';
@@ -91,7 +91,7 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
             {/* Footer Area */}
             <div style={{
                 marginTop: 'auto',
-                borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #f1f5f9',
+                borderTop: isDark ? 'none' : '1px solid #f1f5f9',
                 paddingTop: '6px',
             }}>
                 {/* Stock info */}
