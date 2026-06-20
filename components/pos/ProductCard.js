@@ -5,10 +5,10 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
     const inStock = product.stock > 0;
     const isDark = false;
 
-    const cardBg = isDark ? '#1e222d' : '#e2e8f0';
-    const cardBorder = isDark ? '1px solid #2d323f' : '1px solid #cbd5e1';
-    const textColor = isDark ? '#f1f5f9' : '#1e293b';
-    const codeColor = isDark ? '#94a3b8' : '#64748b';
+    const cardBg = isDark ? '#1e222d' : 'rgba(255, 255, 255, 0.92)';
+    const cardBorder = isDark ? '1px solid #2d323f' : '1px solid rgba(255, 255, 255, 0.6)';
+    const textColor = isDark ? '#f1f5f9' : '#0f172a';
+    const codeColor = isDark ? '#94a3b8' : '#475569';
     const iconBg = isDark ? '#2d323f' : '#ffffff';
     const iconColor = isDark ? '#94a3b8' : '#94a3b8';
     const priceColor = isDark ? '#f1f5f9' : '#0f172a';
@@ -35,7 +35,9 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
                 position: 'relative',
                 transition: 'all 0.2s ease',
                 overflow: 'hidden',
-                boxShadow: isDark ? '0 4px 6px rgba(0, 0, 0, 0.15)' : '0 2px 10px rgba(0,0,0,0.02)'
+                backdropFilter: isDark ? 'none' : 'blur(10px)',
+                WebkitBackdropFilter: isDark ? 'none' : 'blur(10px)',
+                boxShadow: isDark ? '0 4px 6px rgba(0, 0, 0, 0.15)' : '0 8px 20px rgba(0, 0, 0, 0.06)'
             }}
             onMouseEnter={e => {
                 if (isDark) return;
@@ -89,7 +91,7 @@ export default function ProductCard({ product, onAdd, isMobileDevice }) {
             {/* Footer Area */}
             <div style={{
                 marginTop: 'auto',
-                borderTop: isDark ? '1px solid #2d323f' : '1px solid #cbd5e1',
+                borderTop: isDark ? '1px solid #2d323f' : '1px solid rgba(0, 0, 0, 0.06)',
                 paddingTop: '6px',
             }}>
                 {/* Stock info */}
