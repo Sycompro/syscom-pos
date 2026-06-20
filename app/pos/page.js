@@ -951,13 +951,13 @@ export default function POSPage() {
                         }}
                     >
                         <motion.div 
-                            initial={{ x: -200 }}
+                            initial={{ x: -280 }}
                             animate={{ x: 0 }}
-                            exit={{ x: -200 }}
+                            exit={{ x: -280 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                             onClick={(e) => e.stopPropagation()} 
                             style={{ 
-                                width: '200px', 
+                                width: '280px', 
                                 height: '100%', 
                                 display: 'flex', 
                                 flexDirection: 'column',

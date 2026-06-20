@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp, ShoppingBag, Truck } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp, ShoppingBag, Truck, ChevronDown, ChevronUp } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 export default function Sidebar({ 
     onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, 
     onToggleFullscreen, isFullscreen, activeTab, setActiveTab,
     isMobileMode = false, onCloseMobileMenu 
 }) {
+    const { data: session } = useSession();
     const [isExpandedInternal, setIsExpandedInternal] = useState(false);
     const [isCustomersExpanded, setIsCustomersExpanded] = useState(
         activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits'
@@ -149,6 +151,341 @@ export default function Sidebar({
         whiteSpace: 'nowrap',
         marginLeft: isExpanded ? '10px' : '0px',
     };
+
+    if (isMobileMode) {
+        const userName = session?.user?.name || "Syscom";
+        const userEmail = session?.user?.email || "syscomecosistemadigital@gmail.com";
+        const avatarLetter = userName.charAt(0).toUpperCase();
+
+        return (
+            <aside style={{
+                width: '100%',
+                height: '100%',
+                background: '#ffffff',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '16px 12px',
+                overflowY: 'auto',
+                boxSizing: 'border-box',
+                gap: '4px'
+            }} className="no-scrollbar">
+                {/* Cabecera del Menú */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a' }}>Menú</span>
+                    {onCloseMobileMenu && (
+                        <button 
+                            onClick={onCloseMobileMenu}
+                            style={{ 
+                                border: 'none', 
+                                background: '#f1f5f9', 
+                                color: '#64748b', 
+                                cursor: 'pointer', 
+                                width: '32px', 
+                                height: '32px', 
+                                borderRadius: '50%', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <X size={18} />
+                        </button>
+                    )}
+                </div>
+
+                {/* Perfil del Usuario */}
+                <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '12px', 
+                    background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+                    borderRadius: '12px', 
+                    padding: '12px', 
+                    border: '1px solid #e2e8f0',
+                    marginBottom: '16px',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                }}>
+                    <div style={{ 
+                        width: '40px', 
+                        height: '40px', 
+                        borderRadius: '50%', 
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        color: '#fff', 
+                        fontWeight: 900, 
+                        fontSize: '18px', 
+                        boxShadow: '0 4px 10px rgba(59, 130, 246, 0.2)',
+                        border: '2px solid #fff',
+                        flexShrink: 0
+                    }}>
+                        {avatarLetter}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</span>
+                        <span style={{ fontSize: '10px', color: '#64748b', wordBreak: 'break-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userEmail}</span>
+                    </div>
+                </div>
+
+                {/* NAVEGACIÓN SECTION */}
+                <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '8px 4px 6px 4px', textTransform: 'uppercase' }}>
+                    Navegación
+                </div>
+
+                {/* Punto de Venta */}
+                <div 
+                    onClick={() => setActiveTab('pos')}
+                    style={getNavBtnStyle(activeTab === 'pos')}
+                >
+                    <LayoutGrid size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Punto de Venta</span>
+                </div>
+
+                {/* Dashboard */}
+                <div 
+                    onClick={() => setActiveTab('dashboard')}
+                    style={getNavBtnStyle(activeTab === 'dashboard')}
+                >
+                    <TrendingUp size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Dashboard</span>
+                </div>
+
+                {/* Historial Ventas */}
+                <div 
+                    onClick={() => setActiveTab('sales')}
+                    style={getNavBtnStyle(activeTab === 'sales')}
+                >
+                    <History size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Historial Ventas</span>
+                </div>
+
+                {/* Membresías */}
+                <div 
+                    onClick={() => setActiveTab('memberships')}
+                    style={getNavBtnStyle(activeTab === 'memberships')}
+                >
+                    <Users size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Membresías</span>
+                </div>
+
+                {/* Promociones */}
+                <div 
+                    onClick={() => setActiveTab('promotions')}
+                    style={getNavBtnStyle(activeTab === 'promotions')}
+                >
+                    <Tag size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Promociones</span>
+                </div>
+
+                {/* Productos (Expandible) */}
+                <div 
+                    onClick={() => setIsProductsExpanded(prev => !prev)}
+                    style={getNavBtnStyle(activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands')}
+                >
+                    <Package size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Productos</span>
+                    {isProductsExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
+                </div>
+
+                {isProductsExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: '1.5px solid #e2e8f0', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                        <div onClick={() => setActiveTab('products')} style={{ width: '100%', height: '34px', background: activeTab === 'products' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'products' ? 800 : 600, color: activeTab === 'products' ? '#3b82f6' : '#64748b' }}>Catálogo</span>
+                        </div>
+                        <div onClick={() => setActiveTab('classifications')} style={{ width: '100%', height: '34px', background: activeTab === 'classifications' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'classifications' ? 800 : 600, color: activeTab === 'classifications' ? '#3b82f6' : '#64748b' }}>Clasificaciones</span>
+                        </div>
+                        <div onClick={() => setActiveTab('brands')} style={{ width: '100%', height: '34px', background: activeTab === 'brands' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'brands' ? 800 : 600, color: activeTab === 'brands' ? '#3b82f6' : '#64748b' }}>Marcas</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Clientes (Expandible) */}
+                <div 
+                    onClick={() => setIsCustomersExpanded(prev => !prev)}
+                    style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits')}
+                >
+                    <Contact size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Clientes</span>
+                    {isCustomersExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
+                </div>
+
+                {isCustomersExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: '1.5px solid #e2e8f0', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                        <div onClick={() => setActiveTab('customers')} style={{ width: '100%', height: '34px', background: activeTab === 'customers' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'customers' ? 800 : 600, color: activeTab === 'customers' ? '#3b82f6' : '#64748b' }}>Gestión Clientes</span>
+                        </div>
+                        <div onClick={() => setActiveTab('birthdays')} style={{ width: '100%', height: '34px', background: activeTab === 'birthdays' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'birthdays' ? 800 : 600, color: activeTab === 'birthdays' ? '#3b82f6' : '#64748b' }}>Cumpleaños</span>
+                        </div>
+                        <div onClick={() => setActiveTab('credits')} style={{ width: '100%', height: '34px', background: activeTab === 'credits' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'credits' ? 800 : 600, color: activeTab === 'credits' ? '#3b82f6' : '#64748b' }}>Créditos</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Compras (Expandible) */}
+                <div 
+                    onClick={() => setIsPurchasesExpanded(prev => !prev)}
+                    style={getNavBtnStyle(activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp')}
+                >
+                    <ShoppingBag size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Compras</span>
+                    {isPurchasesExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
+                </div>
+
+                {isPurchasesExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: '1.5px solid #e2e8f0', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                        <div onClick={() => setActiveTab('purchases-ocm')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-ocm' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'purchases-ocm' ? 800 : 600, color: activeTab === 'purchases-ocm' ? '#3b82f6' : '#64748b' }}>Orden de Compra</span>
+                        </div>
+                        <div onClick={() => setActiveTab('purchases-gim')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-gim' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'purchases-gim' ? 800 : 600, color: activeTab === 'purchases-gim' ? '#3b82f6' : '#64748b' }}>Ingreso Almacén (GIM)</span>
+                        </div>
+                        <div onClick={() => setActiveTab('purchases-ccp')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-ccp' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'purchases-ccp' ? 800 : 600, color: activeTab === 'purchases-ccp' ? '#3b82f6' : '#64748b' }}>Factura/Boletas</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Proveedores */}
+                <div 
+                    onClick={() => setActiveTab('suppliers')}
+                    style={getNavBtnStyle(activeTab === 'suppliers')}
+                >
+                    <Truck size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Proveedores</span>
+                </div>
+
+                {/* Finanzas (Expandible) */}
+                <div 
+                    onClick={() => setIsFinanceExpanded(prev => !prev)}
+                    style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash')}
+                >
+                    <Banknote size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Finanzas</span>
+                    {isFinanceExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
+                </div>
+
+                {isFinanceExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: '1.5px solid #e2e8f0', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                        <div onClick={() => setActiveTab('expenses')} style={{ width: '100%', height: '34px', background: activeTab === 'expenses' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'expenses' ? 800 : 600, color: activeTab === 'expenses' ? '#3b82f6' : '#64748b' }}>Egresos / Gastos</span>
+                        </div>
+                        <div onClick={() => setActiveTab('general-cash')} style={{ width: '100%', height: '34px', background: activeTab === 'general-cash' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'general-cash' ? 800 : 600, color: activeTab === 'general-cash' ? '#3b82f6' : '#64748b' }}>Caja General</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* CONFIGURACIÓN / MI CUENTA SECTION */}
+                <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '20px 4px 6px 4px', textTransform: 'uppercase' }}>
+                    Mi Cuenta
+                </div>
+
+                {/* Config WhatsApp */}
+                <div 
+                    onClick={() => setActiveTab('whatsapp')}
+                    style={getNavBtnStyle(activeTab === 'whatsapp')}
+                >
+                    <MessageCircle size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Config WhatsApp</span>
+                </div>
+
+                {/* Historial (Modal) */}
+                <button 
+                    onClick={onOpenHistory} 
+                    style={{
+                        ...getBottomBtnStyle(),
+                        width: '100%',
+                        height: '40px',
+                        borderRadius: '10px',
+                        padding: '0 12px',
+                        gap: '12px',
+                        color: activeTab === 'history' ? '#3b82f6' : '#475569',
+                        fontSize: '11px',
+                        fontWeight: 800
+                    }}
+                >
+                    <History size={22} style={{ flexShrink: 0 }} />
+                    <span>Historial Ventas</span>
+                </button>
+
+                {/* Cerrar Caja */}
+                <button 
+                    onClick={onOpenCloseCash} 
+                    style={{
+                        ...getBottomBtnStyle(),
+                        width: '100%',
+                        height: '40px',
+                        borderRadius: '10px',
+                        padding: '0 12px',
+                        gap: '12px',
+                        fontSize: '11px',
+                        fontWeight: 800
+                    }}
+                >
+                    <Lock size={22} style={{ flexShrink: 0 }} />
+                    <span>Cerrar Caja</span>
+                </button>
+
+                {/* Ajustes */}
+                <button 
+                    onClick={onOpenSettings} 
+                    style={{
+                        ...getBottomBtnStyle(),
+                        width: '100%',
+                        height: '40px',
+                        borderRadius: '10px',
+                        padding: '0 12px',
+                        gap: '12px',
+                        fontSize: '11px',
+                        fontWeight: 800
+                    }}
+                >
+                    <Settings size={22} style={{ flexShrink: 0 }} />
+                    <span>Ajustes POS</span>
+                </button>
+
+                {/* Botón de Cerrar Sesión Estilo Cápsula */}
+                <div style={{ marginTop: '24px', marginBottom: '16px', padding: '0 4px', width: '100%', boxSizing: 'border-box' }}>
+                    <button 
+                        onClick={onSignOut} 
+                        style={{
+                            width: '100%',
+                            height: '44px',
+                            borderRadius: '24px',
+                            border: '1.5px solid #fca5a5',
+                            background: '#ffffff',
+                            color: '#ef4444',
+                            fontWeight: 900,
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 6px rgba(239, 68, 68, 0.05)'
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = '#fef2f2';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = '#ffffff';
+                        }}
+                    >
+                        <LogOut size={18} style={{ flexShrink: 0 }} />
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </div>
+            </aside>
+        );
+    }
 
     return (
         <aside 
