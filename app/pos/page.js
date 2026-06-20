@@ -949,46 +949,10 @@ export default function POSPage() {
                         flexShrink: 0
                     }}>
                         {activeTab === 'pos' ? (
-                            <div style={{ display: 'flex', background: 'transparent', padding: 0, gap: '8px' }}>
-                                {['03', '01', '65'].map(t => {
-                                    const isSelected = docType === t;
-                                    let activeBg = '#eff6ff'; // Boleta: Azul
-                                    let activeColor = '#3b82f6';
-                                    let activeBorder = '1px solid #bfdbfe';
-                                    
-                                    if (t === '01') { // Factura: Verde/Esmeralda
-                                        activeBg = '#ecfdf5';
-                                        activeColor = '#10b981';
-                                        activeBorder = '1px solid #a7f3d0';
-                                    } else if (t === '65') { // Nota: Naranja corporativo
-                                        activeBg = '#fff7ed';
-                                        activeColor = '#f97316';
-                                        activeBorder = '1px solid #ffedd5';
-                                    }
-
-                                    return (
-                                        <button
-                                            key={t}
-                                            onClick={() => setDocType(t)}
-                                            style={{
-                                                padding: '8px 16px',
-                                                borderRadius: '12px',
-                                                border: isSelected ? activeBorder : '1px solid #e2e8f0',
-                                                cursor: 'pointer',
-                                                fontSize: '12px',
-                                                fontWeight: 900,
-                                                background: isSelected ? activeBg : '#ffffff',
-                                                color: isSelected ? activeColor : '#64748b',
-                                                boxShadow: isSelected ? '0 4px 10px rgba(15, 23, 42, 0.05)' : '0 2px 4px rgba(0,0,0,0.02)',
-                                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                outline: 'none',
-                                            }}
-                                        >
-                                            {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '19px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                                <span style={{ color: '#4f7df9' }}>Syscom</span>
+                                <span style={{ color: '#0f172a' }}>.click</span>
+                            </span>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -1355,15 +1319,45 @@ export default function POSPage() {
                                              </select>
                                          </div>
                                      )}
-                                    {!isMobileDevice && (
-                                        <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '6px', padding: '2px', gap: '2px' }}>
-                                            {['03', '01', '65'].map(t => (
-                                                <button key={t} onClick={() => setDocType(t)} style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, background: docType === t ? '#fff' : 'transparent', color: docType === t ? '#3b82f6' : '#64748b' }}>
+                                    <div style={{ display: 'flex', background: isMobileDevice ? 'transparent' : '#f1f5f9', borderRadius: isMobileDevice ? '12px' : '6px', padding: isMobileDevice ? '0' : '2px', gap: isMobileDevice ? '6px' : '2px', border: isMobileDevice ? 'none' : '1px solid #e2e8f0' }}>
+                                        {['03', '01', '65'].map(t => {
+                                            const isSelected = docType === t;
+                                            let activeBg = '#eff6ff'; // Boleta: Azul
+                                            let activeColor = '#3b82f6';
+                                            let activeBorder = '1px solid #bfdbfe';
+                                            
+                                            if (t === '01') { // Factura: Verde/Esmeralda
+                                                activeBg = '#ecfdf5';
+                                                activeColor = '#10b981';
+                                                activeBorder = '1px solid #a7f3d0';
+                                            } else if (t === '65') { // Nota: Naranja corporativo
+                                                activeBg = '#fff7ed';
+                                                activeColor = '#f97316';
+                                                activeBorder = '1px solid #ffedd5';
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => setDocType(t)}
+                                                    style={{
+                                                        padding: isMobileDevice ? '8px 14px' : '4px 8px',
+                                                        borderRadius: isMobileDevice ? '12px' : '4px',
+                                                        border: isSelected ? (isMobileDevice ? activeBorder : 'none') : '1px solid #e2e8f0',
+                                                        cursor: 'pointer',
+                                                        fontSize: isMobileDevice ? '12px' : '10px',
+                                                        fontWeight: isMobileDevice ? 900 : 700,
+                                                        background: isSelected ? (isMobileDevice ? activeBg : '#fff') : (isMobileDevice ? '#ffffff' : 'transparent'),
+                                                        color: isSelected ? (isMobileDevice ? activeColor : '#3b82f6') : '#64748b',
+                                                        boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(15, 23, 42, 0.05)' : '0 2px 4px rgba(0,0,0,0.05)') : (isMobileDevice ? '0 2px 4px rgba(0,0,0,0.02)' : 'none'),
+                                                        transition: 'all 0.25s ease'
+                                                    }}
+                                                >
                                                     {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
                                                 </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
 
                                 {/* BARRA DE CATEGORÍAS RESTAURADA (AHORA TERCERO) */}
