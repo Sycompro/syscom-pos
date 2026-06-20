@@ -223,7 +223,6 @@ export default function POSPage() {
     const [exchangeRate, setExchangeRate] = useState(1);
     const [mounted, setMounted] = useState(false);
     const [showNumpad, setShowNumpad] = useState(false);
-    const [showPhoneNumpad, setShowPhoneNumpad] = useState(false);
     const [categories, setCategories] = useState([
         { id: 'all', name: 'Todos', icon: LayoutGrid }
     ]);
@@ -238,8 +237,6 @@ export default function POSPage() {
     const [isMobileDevice, setIsMobileDevice] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showMobileCart, setShowMobileCart] = useState(false);
-    const [showMobilePhoneModal, setShowMobilePhoneModal] = useState(false);
-    const [showMobileBirthdateModal, setShowMobileBirthdateModal] = useState(false);
     const [inspectCashId, setInspectCashId] = useState(null);
     const [showInspectCashModal, setShowInspectCashModal] = useState(false);
     const [inspectCashReadOnly, setInspectCashReadOnly] = useState(true);
@@ -407,22 +404,7 @@ export default function POSPage() {
         });
     };
 
-    const handlePhoneNumpadKeyPress = (key) => {
-        setCustomer(prev => {
-            const newVal = ((prev.phone || '') + key).slice(0, 9);
-            if (newVal.length === 9) {
-                setTimeout(() => setShowPhoneNumpad(false), 100);
-            }
-            return { ...prev, phone: newVal };
-        });
-    };
 
-    const handlePhoneNumpadDelete = () => {
-        setCustomer(prev => {
-            const newVal = (prev.phone || '').slice(0, -1);
-            return { ...prev, phone: newVal };
-        });
-    };
 
     const addToCart = (product) => {
         // Excepción para el ítem de descuento DS00
@@ -1247,83 +1229,8 @@ export default function POSPage() {
                                         <Plus size={15} />
                                     </button>
 
-                                    {isMobileDevice && (
-                                        <>
-                                            {/* Botón Celular Móvil */}
-                                            <button
-                                                onClick={() => setShowMobilePhoneModal(true)}
-                                                style={{
-                                                    width: '32px', height: '32px', borderRadius: '6px', border: '1px solid #e2e8f0',
-                                                    background: customer.phone ? '#ecfdf5' : '#fff',
-                                                    borderColor: customer.phone ? '#a7f3d0' : '#e2e8f0',
-                                                    color: customer.phone ? '#10b981' : '#64748b',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                    position: 'relative'
-                                                }}
-                                                title="Celular del Cliente"
-                                            >
-                                                <Phone size={14} />
-                                                {customer.phone && (
-                                                    <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
-                                                )}
-                                            </button>
-
-                                            {/* Botón Cumpleaños Móvil */}
-                                            <button
-                                                onClick={() => setShowMobileBirthdateModal(true)}
-                                                style={{
-                                                    width: '32px', height: '32px', borderRadius: '6px', border: '1px solid #e2e8f0',
-                                                    background: customer.birthdate ? '#eff6ff' : '#fff',
-                                                    borderColor: customer.birthdate ? '#bfdbfe' : '#e2e8f0',
-                                                    color: customer.birthdate ? '#3b82f6' : '#64748b',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                    position: 'relative'
-                                                }}
-                                                title="Fecha de Nacimiento"
-                                            >
-                                                <Calendar size={14} />
-                                                {customer.birthdate && (
-                                                    <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6' }} />
-                                                )}
-                                            </button>
-                                        </>
-                                    )}
-
                                     {!isMobileDevice && (
                                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid #f1f5f9', paddingLeft: '16px' }}>
-                                            <div style={{ width: '100px', borderRight: '1px solid #f1f5f9', paddingRight: '12px' }}>
-                                                <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Celular</p>
-                                                <div style={{ position: 'relative' }}>
-                                                    <Phone size={8} style={{ position: 'absolute', left: '6px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                                    <input
-                                                        type="text"
-                                                        inputMode="none"
-                                                        placeholder="999..."
-                                                        value={customer.phone || ''}
-                                                        onFocus={() => useScreenKeyboards && setShowPhoneNumpad(true)}
-                                                        onChange={e => setCustomer({ ...customer, phone: e.target.value })}
-                                                        maxLength={9}
-                                                        style={{ width: '100%', padding: '4px 6px 4px 20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '10px', fontWeight: 700, outline: 'none' }}
-                                                    />
-                                                    <NumericKeypad 
-                                                        isOpen={showPhoneNumpad} 
-                                                        onClose={() => setShowPhoneNumpad(false)} 
-                                                        onKeyPress={handlePhoneNumpadKeyPress} 
-                                                        onDelete={handlePhoneNumpadDelete} 
-                                                        value={customer.phone || ''}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div style={{ width: '120px', borderRight: '1px solid #f1f5f9', paddingRight: '12px' }}>
-                                                <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>F. Nacimiento</p>
-                                                <CustomDatePicker
-                                                    value={customer.birthdate}
-                                                    onChange={(val) => setCustomer({ ...customer, birthdate: val })}
-                                                    compact={true}
-                                                />
-                                            </div>
-
                                             <div style={{ flex: 1, minWidth: '150px' }}>
                                                 <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1808,214 +1715,7 @@ export default function POSPage() {
                 useScreenKeyboards={useScreenKeyboards}
             />
 
-            {/* Modal Celular Móvil */}
-            <AnimatePresence>
-                {showMobilePhoneModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'rgba(15, 23, 42, 0.6)',
-                            backdropFilter: 'blur(4px)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            zIndex: 9999,
-                            padding: '16px'
-                        }}
-                        onClick={() => setShowMobilePhoneModal(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                            style={{
-                                background: '#fff',
-                                borderRadius: '24px',
-                                width: '100%',
-                                maxWidth: '360px',
-                                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                                overflow: 'hidden'
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            {/* Header */}
-                            <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Phone size={16} />
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Celular del Cliente</h3>
-                                        <p style={{ fontSize: '10px', color: '#64748b', margin: 0 }}>Para alertas y envíos de WhatsApp</p>
-                                    </div>
-                                </div>
-                                <button onClick={() => setShowMobilePhoneModal(false)} style={{ border: 'none', background: 'transparent', color: '#64748b', cursor: 'pointer', padding: '4px' }}>
-                                    <X size={18} />
-                                </button>
-                            </div>
 
-                            {/* Contenido */}
-                            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <div style={{ position: 'relative' }}>
-                                    <Phone size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                    <input
-                                        type="tel"
-                                        placeholder="999999999"
-                                        value={customer.phone || ''}
-                                        onChange={e => setCustomer({ ...customer, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 9) })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 12px 10px 36px',
-                                            background: '#f8fafc',
-                                            border: '1px solid #e2e8f0',
-                                            borderRadius: '12px',
-                                            fontSize: '16px',
-                                            fontWeight: 800,
-                                            outline: 'none',
-                                            color: '#0f172a',
-                                            boxSizing: 'border-box'
-                                        }}
-                                        autoFocus
-                                    />
-                                    {customer.phone && (
-                                        <button
-                                            onClick={() => setCustomer({ ...customer, phone: '' })}
-                                            style={{
-                                                position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                                                border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', padding: '2px'
-                                            }}
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    )}
-                                </div>
-
-                                <button
-                                    onClick={() => setShowMobilePhoneModal(false)}
-                                    style={{
-                                        background: '#10b981',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        padding: '12px',
-                                        fontSize: '14px',
-                                        fontWeight: 800,
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        width: '100%',
-                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
-                                    }}
-                                >
-                                    Guardar Cambios
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Modal Cumpleaños Móvil */}
-            <AnimatePresence>
-                {showMobileBirthdateModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'rgba(15, 23, 42, 0.6)',
-                            backdropFilter: 'blur(4px)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            zIndex: 9999,
-                            padding: '16px'
-                        }}
-                        onClick={() => setShowMobileBirthdateModal(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                            style={{
-                                background: '#fff',
-                                borderRadius: '24px',
-                                width: '100%',
-                                maxWidth: '360px',
-                                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                                overflow: 'visible'
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            {/* Header */}
-                            <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#eff6ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Calendar size={16} />
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Fecha de Nacimiento</h3>
-                                        <p style={{ fontSize: '10px', color: '#64748b', margin: 0 }}>Para promociones de cumpleaños</p>
-                                    </div>
-                                </div>
-                                <button onClick={() => setShowMobileBirthdateModal(false)} style={{ border: 'none', background: 'transparent', color: '#64748b', cursor: 'pointer', padding: '4px' }}>
-                                    <X size={18} />
-                                </button>
-                            </div>
-
-                            {/* Contenido */}
-                            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <div style={{ position: 'relative', width: '100%' }}>
-                                    <CustomDatePicker
-                                        value={customer.birthdate}
-                                        onChange={(val) => setCustomer({ ...customer, birthdate: val })}
-                                        label="Seleccionar Fecha"
-                                        inline={true}
-                                    />
-                                </div>
-
-                                <button
-                                    onClick={() => setShowMobileBirthdateModal(false)}
-                                    style={{
-                                        background: '#3b82f6',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        padding: '12px',
-                                        fontSize: '14px',
-                                        fontWeight: 800,
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        width: '100%',
-                                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)'
-                                    }}
-                                >
-                                    Guardar Cambios
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* COMPONENTE DE IMPRESIÓN PROFESIONAL (REPLICA EXACTA) */}
             <div id="ticket-print" className="no-screen">

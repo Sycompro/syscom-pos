@@ -138,7 +138,7 @@ function InlineCreateForm({ type, label, familyId, subfamilyId, families, subfam
 
 
 // ─── COMPONENTE PRINCIPAL ────────────────────────────────────────────────────
-export default function ProductCreateModal({ isOpen, onClose, onSuccess, productCodi }) {
+export default function ProductCreateModal({ isOpen, onClose, onSuccess, productCodi, initialDescr = '' }) {
   const isEditMode = !!productCodi;
 
 
@@ -253,7 +253,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess, product
         fetchProductDetails();
       } else {
         setFormData({
-          descr: '',
+          descr: initialDescr.toUpperCase(),
           familyId: '',
           subfamilyId: '',
           codgru: '',
@@ -275,7 +275,7 @@ export default function ProductCreateModal({ isOpen, onClose, onSuccess, product
       setSaveSuccess(false);
       setInlineCreate(null);
     }
-  }, [isOpen, fetchMetadata, productCodi, fetchProductDetails]);
+  }, [isOpen, fetchMetadata, productCodi, fetchProductDetails, initialDescr]);
 
   useEffect(() => {
     // Si es edición no alteramos el UM/Kardex automáticamente para no pisar datos del ERP

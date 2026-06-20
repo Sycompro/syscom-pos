@@ -55,13 +55,16 @@ export async function GET(req) {
         } else {
             // Listar todas las notas de ingreso que no estén facturadas en mst01ccp
             const resList = await pool.request().query(`
-                SELECT DISTINCT 
+                SELECT 
                     g.fecha, LTRIM(RTRIM(g.ndocu)) as ndocu, LTRIM(RTRIM(g.codpro)) as codpro, 
                     LTRIM(RTRIM(g.nompro)) as nompro, LTRIM(RTRIM(g.rucpro)) as rucpro, 
                     g.totn
                 FROM mst01gim g WITH(nolock)
-                LEFT JOIN mst01ccp c WITH(nolock) ON g.ndocu = c.nrefe AND c.crefe = '29' AND c.codpro = g.codpro
-                WHERE g.cdocu = '29' AND c.ndocu IS NULL AND g.flag = '0'
+                WHERE g.cdocu = '29' AND g.flag = '0'
+                  AND NOT EXISTS (
+                      SELECT 1 FROM mst01ccp c WITH(nolock) 
+                      WHERE g.ndocu = c.nrefe AND c.crefe = '29' AND c.codpro = g.codpro
+                  )
                 ORDER BY g.fecha DESC, g.ndocu DESC
             `);
 

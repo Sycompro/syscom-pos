@@ -57,13 +57,16 @@ export async function GET(req) {
         } else {
             // Listar todas las órdenes de compra con saldo pendiente
             const resList = await pool.request().query(`
-                SELECT DISTINCT 
+                SELECT 
                     o.fecha, LTRIM(RTRIM(o.ndocu)) as ndocu, LTRIM(RTRIM(o.codpro)) as codpro, 
                     LTRIM(RTRIM(o.nompro)) as nompro, LTRIM(RTRIM(o.rucpro)) as rucpro, 
                     o.totn
                 FROM mst01ocm o WITH(nolock)
-                INNER JOIN dtl01ocm d WITH(nolock) ON o.ndocu = d.ndocu AND o.cdocu = d.cdocu
-                WHERE o.flag = '1' AND d.cant > d.recib
+                WHERE o.flag = '1'
+                  AND EXISTS (
+                      SELECT 1 FROM dtl01ocm d WITH(nolock) 
+                      WHERE o.ndocu = d.ndocu AND o.cdocu = d.cdocu AND d.cant > d.recib
+                  )
                 ORDER BY o.fecha DESC, o.ndocu DESC
             `);
 

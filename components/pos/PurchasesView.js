@@ -6,6 +6,7 @@ import {
   FileText, Clipboard, Link as LinkIcon, Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProductCreateModal from './ProductCreateModal';
 
 export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab }) {
   // Pestañas principales: 'ocm' = Orden de Compra, 'gim' = Nota de Ingreso, 'ccp' = Facturas/Boletas
@@ -50,6 +51,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   const [productResults, setProductResults] = useState([]);
   const [searchingProduct, setSearchingProduct] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [isProductCreateOpen, setIsProductCreateOpen] = useState(false);
 
   // Estados específicos de OCM (Creación)
   const [fechaOCMEmision, setFechaOCMEmision] = useState('');
@@ -407,27 +409,47 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     }
   };
 
-  // Búsqueda de Productos
+  // Búsqueda de Productos (Función Callback y filtrado con debounce)
+  const fetchProducts = useCallback(async (query) => {
+    setSearchingProduct(true);
+    try {
+      const res = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (Array.isArray(data)) setProductResults(data);
+    } catch (err) {
+      console.error('Error searching products:', err);
+    } finally {
+      setSearchingProduct(false);
+    }
+  }, []);
+
   useEffect(() => {
-    if (productSearchQuery.length < 2) {
-      setProductResults([]);
+    if (productSearchQuery.length === 0) {
+      fetchProducts('');
       return;
     }
-    const delayDebounceFn = setTimeout(async () => {
-      setSearchingProduct(true);
-      try {
-        const res = await fetch(`/api/products/search?q=${encodeURIComponent(productSearchQuery)}`);
-        const data = await res.json();
-        if (Array.isArray(data)) setProductResults(data);
-      } catch (err) {
-        console.error('Error searching products:', err);
-      } finally {
-        setSearchingProduct(false);
-      }
-    }, 400);
 
+    const delayDebounceFn = setTimeout(() => {
+      fetchProducts(productSearchQuery);
+    }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [productSearchQuery]);
+  }, [productSearchQuery, fetchProducts]);
+
+  // Callback ejecutado cuando se crea un producto al vuelo
+  const handleProductCreated = async (newProductData) => {
+    if (!newProductData || !newProductData.codi) return;
+    try {
+      // Consultar el producto recién creado para obtenerlo en el formato de carrito
+      const res = await fetch(`/api/products/search?q=${encodeURIComponent(newProductData.codi)}`);
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const prod = data[0];
+        handleAddProductToCart(prod);
+      }
+    } catch (err) {
+      console.error('Error al recuperar producto creado rápido:', err);
+    }
+  };
 
   const handleSelectSupplier = (supplier) => {
     setSelectedSupplier(supplier);
@@ -721,6 +743,69 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
 
   return (
     <div style={containerStyle}>
+      <style dangerouslySetInnerHTML={{__html: `
+        .search-dropdown-item {
+          padding: 10px 14px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 12px;
+          color: #334155;
+          margin: 2px 4px;
+          font-weight: 750;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .search-dropdown-item:hover {
+          background-color: #f1f5f9;
+          color: #0f172a;
+        }
+        
+        .quick-create-option {
+          padding: 10px 14px;
+          border-radius: 8px;
+          margin: 4px;
+          background-color: #ecfdf5; /* verde pastel fuerte */
+          border: 1px dashed #a7f3d0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #047857; /* verde fuerte */
+          font-weight: 850;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 0.2s ease;
+        }
+        .quick-create-option:hover {
+          background-color: #d1fae5;
+          border-color: #6ee7b7;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(4,120,87,0.06);
+        }
+        
+        .quick-lookup-option {
+          padding: 10px 14px;
+          border-radius: 8px;
+          margin: 4px;
+          background-color: #eff6ff; /* azul/celeste pastel fuerte */
+          border: 1px dashed #bfdbfe;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #1d4ed8; /* azul fuerte */
+          font-weight: 850;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 0.2s ease;
+        }
+        .quick-lookup-option:hover {
+          background-color: #dbeafe;
+          border-color: #93c5fd;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(29,78,216,0.06);
+        }
+      `}} />
       {/* Cabecera Principal */}
       <div style={headerStyle}>
         <div>
@@ -938,7 +1023,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                                         setShowOcmDropdown(false);
                                         setOcmSearchQuery('');
                                       }}
-                                      style={dropdownItemStyle}
+                                      className="search-dropdown-item"
                                     >
                                       <div style={{ fontWeight: 800, color: '#334155' }}>{ocm.ndocu}</div>
                                       <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
@@ -1065,7 +1150,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                                         setShowGimDropdown(false);
                                         setGimSearchQuery('');
                                       }}
-                                      style={dropdownItemStyle}
+                                      className="search-dropdown-item"
                                     >
                                       <div style={{ fontWeight: 800, color: '#334155' }}>{gim.ndocu}</div>
                                       <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
@@ -1187,7 +1272,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                           <div 
                             key={idx} 
                             onClick={() => handleSelectSupplier(s)}
-                            style={dropdownItemStyle}
+                            className="search-dropdown-item"
                           >
                             <div style={{ fontWeight: 800, color: '#334155' }}>{s.nompro}</div>
                             <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
@@ -1202,18 +1287,9 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                               handleQuickLookup(supplierSearchQuery);
                               setShowSupplierDropdown(false);
                             }}
-                            style={{
-                              ...dropdownItemStyle,
-                              background: '#f0fdfa',
-                              borderTop: '1px solid #ccfbf1',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              color: '#0f766e',
-                              fontWeight: 700
-                            }}
+                            className="quick-lookup-option"
                           >
-                            <Search size={14} color="#0f766e" />
+                            <Search size={14} color="#1d4ed8" />
                             <span>Consultar {supplierSearchQuery.length === 11 ? 'RUC' : 'DNI'} "{supplierSearchQuery}" en SUNAT/RENIEC...</span>
                             {searchingQuickLookup && <Loader2 className="animate-spin" size={12} style={{ marginLeft: 'auto' }} />}
                           </div>
@@ -1494,19 +1570,24 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                         setProductSearchQuery(e.target.value);
                         setShowProductDropdown(true);
                       }}
-                      onFocus={() => setShowProductDropdown(true)}
+                      onFocus={() => {
+                        setShowProductDropdown(true);
+                        if (productSearchQuery === '' && productResults.length === 0) {
+                          fetchProducts('');
+                        }
+                      }}
                       style={inputStyle}
                     />
                     {searchingProduct && <Loader2 className="animate-spin" size={14} color="#3b82f6" />}
                   </div>
 
-                  {showProductDropdown && productResults.length > 0 && (
+                  {showProductDropdown && (
                     <div style={dropdownListStyle}>
                       {productResults.map((p, idx) => (
                         <div 
                           key={idx} 
                           onClick={() => handleAddProductToCart(p)}
-                          style={dropdownItemStyle}
+                          className="search-dropdown-item"
                         >
                           <div style={{ fontWeight: 800, color: '#334155' }}>{p.name}</div>
                           <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', display: 'flex', justifyContent: 'space-between' }}>
@@ -1515,6 +1596,25 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                           </div>
                         </div>
                       ))}
+
+                      {productSearchQuery.trim().length > 0 && (
+                        <div 
+                          onClick={() => {
+                            setIsProductCreateOpen(true);
+                            setShowProductDropdown(false);
+                          }}
+                          className="quick-create-option"
+                        >
+                          <Plus size={14} color="#0f766e" />
+                          <span>Crear y registrar nuevo artículo "{productSearchQuery}"...</span>
+                        </div>
+                      )}
+
+                      {productResults.length === 0 && !searchingProduct && productSearchQuery.trim().length === 0 && (
+                        <div className="quick-lookup-option" style={{ textAlign: 'center', color: '#64748b', cursor: 'default' }}>
+                          No se encontraron productos.
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1691,6 +1791,13 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ProductCreateModal 
+        isOpen={isProductCreateOpen}
+        onClose={() => setIsProductCreateOpen(false)}
+        onSuccess={handleProductCreated}
+        initialDescr={productSearchQuery}
+      />
     </div>
   );
 }
@@ -1990,31 +2097,33 @@ const selectedSupplierBadgeStyle = {
 };
 
 const quickLookupCardStyle = {
-  background: '#f0fdfa',
-  border: '1px solid #ccfbf1',
-  borderRadius: '10px',
-  padding: '12px',
+  background: '#eff6ff',
+  border: '1px solid #dbeafe',
+  borderRadius: '12px',
+  padding: '14px',
   marginTop: '10px',
   display: 'flex',
   flexDirection: 'column',
-  gap: '6px'
+  gap: '6px',
+  boxShadow: '0 2px 8px rgba(37,99,235,0.03)'
 };
 
 const quickLookupRegisterBtnStyle = {
-  background: '#0d9488',
+  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
   color: '#ffffff',
   border: 'none',
-  borderRadius: '8px',
-  padding: '8px 12px',
+  borderRadius: '10px',
+  padding: '10px 14px',
   fontSize: '12px',
-  fontWeight: 800,
+  fontWeight: 900,
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   gap: '6px',
-  marginTop: '4px',
-  transition: 'background-color 0.15s'
+  marginTop: '6px',
+  transition: 'all 0.2s ease',
+  boxShadow: '0 4px 12px rgba(37,99,235,0.15)'
 };
 
 const activeTabBtnStyle = {
