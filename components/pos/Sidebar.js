@@ -27,7 +27,6 @@ export default function Sidebar({
     const isExpanded = isMobileMode ? true : isExpandedInternal;
 
     const userName = session?.user?.name || "Syscom";
-    const userEmail = session?.user?.email || "syscomecosistemadigital@gmail.com";
     const avatarLetter = userName.charAt(0).toUpperCase();
 
     useEffect(() => {
@@ -484,7 +483,7 @@ export default function Sidebar({
                 boxSizing: 'border-box',
                 transition: 'all 0.3s ease',
                 minHeight: '44px'
-            }} title={isExpanded ? "" : `${userName} - ${userEmail}`}>
+            }} title={isExpanded ? "" : userName}>
                 <div style={{
                     width: '32px',
                     height: '32px',
@@ -503,9 +502,8 @@ export default function Sidebar({
                     {avatarLetter}
                 </div>
                 {isExpanded && (
-                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, justifyContent: 'center' }}>
                         <span style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</span>
-                        <span style={{ fontSize: '9px', color: '#64748b', wordBreak: 'break-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userEmail}</span>
                     </div>
                 )}
             </div>
