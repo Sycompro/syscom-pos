@@ -229,9 +229,8 @@ export default function ProductsView({ currentTab }) {
               onClick={() => setSelectedCategory(cat.id)}
               style={{
                 ...categoryTabStyle,
-                background: selectedCategory === cat.id ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' : '#fff',
+                background: selectedCategory === cat.id ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' : '#f1f5f9',
                 color: selectedCategory === cat.id ? '#fff' : '#475569',
-                borderColor: selectedCategory === cat.id ? '#0f172a' : '#e2e8f0',
                 fontWeight: selectedCategory === cat.id ? 850 : 650,
                 boxShadow: selectedCategory === cat.id ? '0 4px 10px rgba(15,23,42,0.1)' : 'none'
               }}
@@ -535,8 +534,8 @@ const refreshBtnStyle = {
   width: '40px',
   height: '40px',
   borderRadius: '12px',
-  background: '#fff',
-  border: '1px solid #e2e8f0',
+  background: '#f1f5f9',
+  border: 'none',
   color: '#475569',
   cursor: 'pointer',
   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
@@ -555,16 +554,17 @@ const searchWrapperStyle = {
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
-  background: '#fff',
+  background: '#f1f5f9',
   padding: '10px 16px',
   borderRadius: '14px',
-  border: '1px solid #e2e8f0',
+  border: 'none',
   boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
 };
 
 const searchInputStyle = {
   border: 'none',
   outline: 'none',
+  background: 'transparent',
   width: '100%',
   fontSize: '13px',
   fontWeight: 650,
@@ -574,7 +574,7 @@ const searchInputStyle = {
 const categoryTabStyle = {
   padding: '10px 16px',
   borderRadius: '12px',
-  border: '1px solid',
+  border: 'none',
   fontSize: '12px',
   cursor: 'pointer',
   transition: 'all 0.2s',
@@ -585,8 +585,8 @@ const contentCardStyle = {
   flex: 1,
   background: '#fff',
   borderRadius: '24px',
-  border: '1px solid #e2e8f0',
-  boxShadow: '0 4px 20px -2px rgba(15,23,42,0.02)',
+  border: 'none',
+  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.03)',
   overflow: 'hidden',
   display: 'flex',
   flexDirection: 'column',
@@ -648,7 +648,7 @@ const tableStyle = {
 const thStyle = {
   padding: '16px 20px',
   background: '#f8fafc',
-  borderBottom: '1px solid #e2e8f0',
+  borderBottom: '1px solid #f1f5f9',
   color: '#475569',
   fontSize: '11px',
   fontWeight: 900,
@@ -677,7 +677,7 @@ const actionBtnSedeStyle = {
   borderRadius: '8px',
   background: '#eff6ff',
   color: '#3b82f6',
-  border: '1px solid #dbeafe',
+  border: 'none',
   cursor: 'pointer',
   transition: 'all 0.2s'
 };
@@ -689,9 +689,9 @@ const actionBtnEditStyle = {
   width: '32px',
   height: '32px',
   borderRadius: '8px',
-  background: '#f8fafc',
+  background: '#f1f5f9',
   color: '#475569',
-  border: '1px solid #e2e8f0',
+  border: 'none',
   cursor: 'pointer',
   transition: 'all 0.2s'
 };
@@ -699,19 +699,19 @@ const actionBtnEditStyle = {
 // Estilos móviles específicos
 const mobileCardStyle = {
   background: '#fff',
-  border: '1px solid #e2e8f0',
+  border: 'none',
   borderRadius: '16px',
   padding: '14px',
   display: 'flex',
   flexDirection: 'column',
   gap: '12px',
-  boxShadow: '0 2px 6px rgba(0,0,0,0.01)'
+  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.03)'
 };
 
 const cardFooterActionsStyle = {
   display: 'flex',
   gap: '10px',
-  borderTop: '1px solid #f1f5f9',
+  borderTop: 'none',
   paddingTop: '10px',
   marginTop: '4px'
 };
@@ -726,7 +726,7 @@ const cardActionBtnStyle = {
   borderRadius: '8px',
   background: '#eff6ff',
   color: '#3b82f6',
-  border: '1px solid #dbeafe',
+  border: 'none',
   fontSize: '11px',
   fontWeight: 750,
   cursor: 'pointer'
@@ -740,9 +740,9 @@ const cardActionBtnEditStyle = {
   gap: '6px',
   padding: '8px',
   borderRadius: '8px',
-  background: '#f8fafc',
+  background: '#f1f5f9',
   color: '#475569',
-  border: '1px solid #e2e8f0',
+  border: 'none',
   fontSize: '11px',
   fontWeight: 750,
   cursor: 'pointer'
@@ -767,7 +767,7 @@ const modalOverlayStyle = {
 const modalContentStyle = {
   background: '#fff',
   borderRadius: '24px',
-  border: '1px solid #e2e8f0',
+  border: 'none',
   boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
   display: 'flex',
   flexDirection: 'column',
@@ -802,7 +802,8 @@ const inputStyle = {
   width: '100%',
   padding: '10px 14px',
   borderRadius: '10px',
-  border: '1px solid #e2e8f0',
+  border: 'none',
+  background: '#f1f5f9',
   fontSize: '13px',
   fontWeight: 650,
   color: '#1e293b',

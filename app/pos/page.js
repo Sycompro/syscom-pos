@@ -812,8 +812,8 @@ export default function POSPage() {
 
     const renderCartContent = (isDrawerMode = false) => {
         return (
-            <div style={{ width: isDrawerMode ? '100%' : '300px', height: '100%', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '10px 16px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: isDrawerMode ? 'none' : '1px solid #f1f5f9' }}>
+            <div style={{ width: isDrawerMode ? '100%' : '300px', height: '100%', background: '#fff', display: 'flex', flexDirection: 'column', boxShadow: isDrawerMode ? 'none' : '-4px 0 20px rgba(15, 23, 42, 0.02)', zIndex: 10 }}>
+                <div style={{ padding: '10px 16px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 'none' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {isDrawerMode && (
                             <button 
@@ -865,7 +865,7 @@ export default function POSPage() {
                 <div style={{ 
                     padding: '8px 12px', 
                     background: isRegularizing ? '#fffbeb' : '#fff', 
-                    borderBottom: isDrawerMode ? 'none' : '1px solid #f1f5f9',
+                    borderBottom: 'none',
                     transition: 'all 0.3s'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyRules: 'space-between' }}>
@@ -1065,9 +1065,9 @@ export default function POSPage() {
 
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
                                 {!isMobileDevice && (
-                                    <div style={{ background: '#fff', padding: '10px 16px', minHeight: '60px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ background: '#fff', padding: '10px 16px', minHeight: '60px', borderBottom: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <div style={{ background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe' }}>
+                                            <div style={{ background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: 'none' }}>
                                             <p style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
                                         </div>
                                         <div>
@@ -1174,7 +1174,7 @@ export default function POSPage() {
                                             const isSelected = searchType === type;
                                             let activeBg = isMobileDevice ? '#3b82f6' : '#eff6ff';
                                             let activeColor = isMobileDevice ? '#ffffff' : '#3b82f6';
-                                            let activeBorder = isMobileDevice ? 'none' : '1px solid #bfdbfe';
+                                            let activeBorder = 'none';
 
                                             return (
                                                 <button
@@ -1343,7 +1343,7 @@ export default function POSPage() {
                                     )}
 
                                     {!isMobileDevice && (
-                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid #f1f5f9', paddingLeft: '16px' }}>
+                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', borderLeft: 'none', paddingLeft: '16px' }}>
                                             <div style={{ flex: 1, minWidth: '150px' }}>
                                                 <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>

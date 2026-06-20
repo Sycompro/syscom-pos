@@ -321,23 +321,24 @@ export default function PaymentSection({
 }
 
 // Estilos
-const containerStyle = { flexShrink: 0, background: '#fff', borderTop: '1px solid #e2e8f0', padding: '10px' };
+const containerStyle = { flexShrink: 0, background: '#fff', borderTop: 'none', padding: '10px' };
 const headerActionStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' };
 const labelStyle = { fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 };
 const modeBtnStyle = { background: 'none', border: 'none', fontSize: '9px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' };
 const gridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '8px' };
-const methodBtnStyle = { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', borderRadius: '8px', border: '2px solid', fontSize: '10px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' };
+const methodBtnStyle = { display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px', borderRadius: '8px', border: 'none', fontSize: '10px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' };
 const methodNameStyle = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const mixedPanelStyle = { background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', borderRadius: '12px', padding: '8px', marginBottom: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' };
+const mixedPanelStyle = { background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', borderRadius: '12px', padding: '8px', marginBottom: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' };
 const inputGroupStyle = { display: 'flex', gap: '6px', marginBottom: '6px' };
-const inputStyle = { flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', outline: 'none' };
+const inputStyle = { flex: 1, padding: '8px 12px', borderRadius: '6px', border: 'none', background: '#f1f5f9', fontSize: '12px', outline: 'none' };
 const addBtnStyle = { background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', padding: '0 8px', cursor: 'pointer' };
-const paymentsListStyle = { display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid #e2e8f0', paddingTop: '6px' };
+const paymentsListStyle = { display: 'flex', flexDirection: 'column', gap: '4px', borderTop: 'none', paddingTop: '6px' };
 const paymentRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#1e293b' };
 const deleteBtnStyle = { background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer' };
-const totalsBoxStyle = { background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '12px', padding: '10px', marginBottom: '8px', border: '1px solid #e2e8f0', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' };
+const totalsBoxStyle = { background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '12px', padding: '10px', marginBottom: '8px', border: 'none', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' };
 const summaryRowStyle = { display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748b', marginBottom: '2px' };
-const totalRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '6px', borderTop: '1px solid #e2e8f0' };
+const totalRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '6px', borderTop: 'none' };
 const totalLabelStyle = { fontSize: '9px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' };
 const totalValueStyle = { fontSize: '18px', fontWeight: 900, lineHeight: 1 };
 const finalizeBtnStyle = { width: '100%', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' };
+

@@ -65,10 +65,10 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
             gap: '8px',
             background: '#fff',
             borderRadius: '10px',
-            border: '1px solid #eef2ff',
+            border: 'none',
             padding: '8px',
             marginBottom: '6px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.02)',
+            boxShadow: '0 4px 12px rgba(15, 23, 42, 0.03)',
             transition: 'all 0.2s'
         }}>
             {/* Control de Cantidad */}
@@ -174,8 +174,8 @@ const qtyBtnStyle = {
     width: '20px',
     height: '20px',
     borderRadius: '6px',
-    background: '#f8fafc',
-    border: '1px solid #e2e8f0',
+    background: '#f1f5f9',
+    border: 'none',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

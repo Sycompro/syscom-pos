@@ -71,7 +71,7 @@ export default function Sidebar({
     const asideStyle = {
         width: isExpanded ? '200px' : '56px',
         background: '#ffffff',
-        borderRight: '1px solid #e2e8f0',
+        borderRight: 'none',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -80,7 +80,7 @@ export default function Sidebar({
         flexShrink: 0,
         zIndex: 40,
         transition: isMobileMode ? 'none' : 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: isExpanded && !isMobileMode ? '4px 0 25px rgba(15, 23, 42, 0.08)' : 'none',
+        boxShadow: !isMobileMode ? (isExpanded ? '4px 0 25px rgba(15, 23, 42, 0.05)' : '2px 0 15px rgba(15, 23, 42, 0.02)') : 'none',
         overflow: 'hidden',
         height: isMobileMode ? '100%' : 'auto'
     };
@@ -122,7 +122,7 @@ export default function Sidebar({
             justifyContent: isExpanded ? 'flex-start' : 'center',
             padding: isExpanded ? '0 12px' : '0',
             color: isActive ? '#3b82f6' : '#475569',
-            border: isActive ? '1px solid rgba(59,130,246,0.2)' : '1px solid transparent',
+            border: 'none',
             cursor: 'pointer',
             transition: 'all 0.2s ease-in-out',
         };
@@ -170,7 +170,7 @@ export default function Sidebar({
                 gap: '4px'
             }} className="no-scrollbar">
                 {/* Cabecera del Menú */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', borderBottom: 'none', marginBottom: '12px' }}>
                     <span style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a' }}>Menú</span>
                     {onCloseMobileMenu && (
                         <button 
@@ -268,7 +268,7 @@ export default function Sidebar({
                 </div>
 
                 {isProductsExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: '1.5px solid #e2e8f0', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
                         <div onClick={() => setActiveTab('products')} style={{ width: '100%', height: '34px', background: activeTab === 'products' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'products' ? 800 : 600, color: activeTab === 'products' ? '#3b82f6' : '#64748b' }}>Catálogo</span>
                         </div>
@@ -292,7 +292,7 @@ export default function Sidebar({
                 </div>
 
                 {isCustomersExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: '1.5px solid #e2e8f0', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
                         <div onClick={() => setActiveTab('customers')} style={{ width: '100%', height: '34px', background: activeTab === 'customers' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'customers' ? 800 : 600, color: activeTab === 'customers' ? '#3b82f6' : '#64748b' }}>Gestión Clientes</span>
                         </div>
@@ -316,7 +316,7 @@ export default function Sidebar({
                 </div>
 
                 {isPurchasesExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: '1.5px solid #e2e8f0', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
                         <div onClick={() => setActiveTab('purchases-ocm')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-ocm' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'purchases-ocm' ? 800 : 600, color: activeTab === 'purchases-ocm' ? '#3b82f6' : '#64748b' }}>Orden de Compra</span>
                         </div>
@@ -349,7 +349,7 @@ export default function Sidebar({
                 </div>
 
                 {isFinanceExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: '1.5px solid #e2e8f0', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
                         <div onClick={() => setActiveTab('expenses')} style={{ width: '100%', height: '34px', background: activeTab === 'expenses' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'expenses' ? 800 : 600, color: activeTab === 'expenses' ? '#3b82f6' : '#64748b' }}>Egresos / Gastos</span>
                         </div>
@@ -418,8 +418,8 @@ export default function Sidebar({
                             width: '100%',
                             height: '44px',
                             borderRadius: '24px',
-                            border: '1.5px solid #fca5a5',
-                            background: '#ffffff',
+                            border: 'none',
+                            background: '#fee2e2',
                             color: '#ef4444',
                             fontWeight: 900,
                             fontSize: '12px',
@@ -477,7 +477,8 @@ export default function Sidebar({
                 background: isExpanded ? 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' : 'transparent',
                 borderRadius: '12px',
                 padding: isExpanded ? '10px' : '4px 0',
-                border: isExpanded ? '1px solid #e2e8f0' : 'none',
+                border: 'none',
+                boxShadow: isExpanded ? '0 2px 8px rgba(15, 23, 42, 0.02)' : 'none',
                 margin: '10px 12px 14px 12px',
                 width: isExpanded ? 'calc(100% - 24px)' : 'auto',
                 boxSizing: 'border-box',

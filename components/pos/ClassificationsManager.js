@@ -446,7 +446,7 @@ const tabsHeaderStyle = {
   background: '#f1f5f9',
   padding: '4px',
   borderRadius: '14px',
-  border: '1px solid #e2e8f0',
+  border: 'none',
   width: 'fit-content'
 };
 
@@ -483,17 +483,17 @@ const workspaceStyle = {
 const formCardStyle = {
   background: '#fff',
   borderRadius: '20px',
-  border: '1px solid #e2e8f0',
+  border: 'none',
   padding: '20px',
-  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.01)'
+  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
 };
 
 const listCardStyle = {
   background: '#fff',
   borderRadius: '20px',
-  border: '1px solid #e2e8f0',
+  border: 'none',
   padding: '20px',
-  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.01)',
+  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
   display: 'flex',
   flexDirection: 'column',
   gap: '12px',
@@ -533,14 +533,15 @@ const labelStyle = {
 
 const inputStyle = {
   width: '100%',
-  padding: '10px 12px',
+  padding: '10px 14px',
   borderRadius: '10px',
-  border: '1px solid #e2e8f0',
+  border: 'none',
+  background: '#f1f5f9',
   fontSize: '13px',
   fontWeight: 650,
   color: '#1e293b',
   outline: 'none',
-  transition: 'border-color 0.2s'
+  transition: 'background-color 0.2s'
 };
 
 const submitBtnStyle = {
@@ -567,7 +568,7 @@ const searchWrapperStyle = {
   background: '#f8fafc',
   padding: '8px 12px',
   borderRadius: '10px',
-  border: '1px solid #e2e8f0'
+  border: 'none'
 };
 
 const searchInputStyle = {
@@ -583,7 +584,7 @@ const searchInputStyle = {
 const listScrollStyle = {
   overflowY: 'auto',
   flex: 1,
-  border: '1px solid #f1f5f9',
+  border: 'none',
   borderRadius: '12px'
 };
 
@@ -596,7 +597,7 @@ const tableStyle = {
 const thStyle = {
   padding: '10px 14px',
   background: '#f8fafc',
-  borderBottom: '1px solid #e2e8f0',
+  borderBottom: '1px solid #f1f5f9',
   color: '#64748b',
   fontSize: '10px',
   fontWeight: 900,
@@ -639,7 +640,8 @@ const loadingContainerStyle = {
   padding: '50px',
   background: '#fff',
   borderRadius: '20px',
-  border: '1px solid #e2e8f0'
+  border: 'none',
+  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
 };
 
 const errorContainerStyle = {
@@ -652,7 +654,8 @@ const errorContainerStyle = {
   textAlign: 'center',
   background: '#fff',
   borderRadius: '20px',
-  border: '1px solid #e2e8f0'
+  border: 'none',
+  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
 };
 
 const retryBtnStyle = {
@@ -674,8 +677,8 @@ const refreshBtnStyle = {
   width: '32px',
   height: '32px',
   borderRadius: '8px',
-  background: '#fff',
-  border: '1px solid #e2e8f0',
+  background: '#f1f5f9',
+  border: 'none',
   color: '#475569',
   cursor: 'pointer',
   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
