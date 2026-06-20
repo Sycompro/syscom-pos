@@ -409,24 +409,6 @@ export default function Sidebar({
                     <span style={labelTextStyle}>Config WhatsApp</span>
                 </div>
 
-                {/* Historial (Modal) */}
-                <button 
-                    onClick={onOpenHistory} 
-                    style={{
-                        ...getBottomBtnStyle(),
-                        width: '100%',
-                        height: '40px',
-                        borderRadius: '10px',
-                        padding: '0 12px',
-                        gap: '12px',
-                        color: activeTab === 'history' ? '#3b82f6' : '#475569',
-                        fontSize: '11px',
-                        fontWeight: 800
-                    }}
-                >
-                    <History size={22} style={{ flexShrink: 0 }} />
-                    <span>Historial Ventas</span>
-                </button>
 
                 {/* Cerrar Caja */}
                 <button 
@@ -542,15 +524,7 @@ export default function Sidebar({
                     {isExpanded && <span style={labelTextStyle}>Dashboard</span>}
                 </div>
                 
-                <div 
-                    onClick={() => setActiveTab('sales')}
-                    style={getNavBtnStyle(activeTab === 'sales')}
-                    title={isExpanded ? "" : "Historial de Ventas"}
-                >
-                    <History size={22} style={{ flexShrink: 0 }} />
-                    {isExpanded && <span style={labelTextStyle}>Historial Ventas</span>}
-                </div>
-                
+
                 <div 
                     onClick={() => setActiveTab('memberships')}
                     style={getNavBtnStyle(activeTab === 'memberships')}

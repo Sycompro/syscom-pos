@@ -11,7 +11,7 @@ import {
     BellRing, Smartphone, RefreshCw, AlertCircle, Calendar, Menu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Maximize, Minimize } from 'lucide-react';
+import { Maximize, Minimize, History } from 'lucide-react';
 import Image from 'next/image';
 
 import Sidebar from '@/components/pos/Sidebar';
@@ -979,17 +979,38 @@ export default function POSPage() {
                                 </span>
                             </div>
                         )}
-                        <button 
-                            onClick={() => setShowMobileMenu(true)} 
-                            className="modern-burger-container"
-                            aria-label="Abrir menú"
-                        >
-                            <div className="modern-burger-icon">
-                                <span className="modern-burger-line modern-burger-line-1"></span>
-                                <span className="modern-burger-line modern-burger-line-2"></span>
-                                <span className="modern-burger-line modern-burger-line-3"></span>
-                            </div>
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                                onClick={toggleFullscreen}
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: '#0d1b3e', // azul noche
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '6px',
+                                    borderRadius: '50%',
+                                    transition: 'background 0.2s, transform 0.2s',
+                                    outline: 'none'
+                                }}
+                                aria-label="Pantalla completa"
+                            >
+                                {isFullscreen ? <Minimize size={22} /> : <Maximize size={22} />}
+                            </button>
+                            <button 
+                                onClick={() => setShowMobileMenu(true)} 
+                                className="modern-burger-container"
+                                aria-label="Abrir menú"
+                            >
+                                <div className="modern-burger-icon">
+                                    <span className="modern-burger-line modern-burger-line-1"></span>
+                                    <span className="modern-burger-line modern-burger-line-2"></span>
+                                    <span className="modern-burger-line modern-burger-line-3"></span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -1155,7 +1176,7 @@ export default function POSPage() {
                                         })}
                                     </div>
 
-                                    <div style={{ width: '160px', position: 'relative' }}>
+                                    <div style={{ flex: isMobileDevice ? 1 : 'none', width: isMobileDevice ? 'auto' : '160px', position: 'relative' }}>
                                         <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={16} />
                                         <input
                                             type="text"
@@ -1219,6 +1240,24 @@ export default function POSPage() {
                                         title="Limpiar Cliente"
                                     >
                                         <X size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => setShowHistoryModal(true)}
+                                        style={{ 
+                                            background: '#f1f5f9', 
+                                            color: '#0d1b3e', 
+                                            border: 'none', 
+                                            borderRadius: '6px', 
+                                            padding: '8px', 
+                                            cursor: 'pointer', 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        title="Historial de Ventas"
+                                    >
+                                        <History size={18} />
                                     </button>
                                     {!isMobileDevice && (
                                         <button
