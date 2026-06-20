@@ -3,7 +3,7 @@ import { Package, Plus } from 'lucide-react';
 
 export default function ProductCard({ product, onAdd, isMobileDevice }) {
     const inStock = product.stock > 0;
-    const isDark = isMobileDevice;
+    const isDark = false;
 
     const cardBg = isDark ? 'rgba(255, 255, 255, 0.12)' : '#fff';
     const cardBorder = isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e2e8f0';
