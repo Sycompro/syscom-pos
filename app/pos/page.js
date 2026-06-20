@@ -1061,7 +1061,7 @@ export default function POSPage() {
                             style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
                         >
                             {/* AREA DE VENTAS */}
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden' }}>
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: isMobileDevice ? '#131722' : '#f8fafc', overflow: 'hidden' }}>
 
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
                                 {!isMobileDevice && (
@@ -1597,7 +1597,7 @@ export default function POSPage() {
 
                                 {/* GRID PRODUCTOS */}
                                 <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px' }}>
-                                     {loading ? <p style={{ fontSize: '12px', padding: '10px', color: '#64748b' }}>Cargando...</p> : (products || []).map(p => <ProductCard key={p.id} product={p} onAdd={() => addToCart(p)} isMobileDevice={isMobileDevice} />)}
+                                     {loading ? <p style={{ fontSize: '12px', padding: '10px', color: isMobileDevice ? '#94a3b8' : '#64748b' }}>Cargando...</p> : (products || []).map(p => <ProductCard key={p.id} product={p} onAdd={() => addToCart(p)} isMobileDevice={isMobileDevice} />)}
                                 </div>
                             </div>
 
