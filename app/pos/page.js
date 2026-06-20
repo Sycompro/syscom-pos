@@ -1159,16 +1159,16 @@ export default function POSPage() {
                                 )}
 
                                 {/* LÍNEA 2: BARRA CLIENTE POS (PROFESIONAL) */}
-                                <div style={{ background: '#fff', padding: isMobileDevice ? '10px 12px' : '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: isMobileDevice ? '8px' : '12px' }}>
+                                <div style={{ background: isMobileDevice ? '#131722' : '#fff', padding: isMobileDevice ? '10px 12px' : '8px 16px', borderBottom: isMobileDevice ? '1px solid #1e222d' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: isMobileDevice ? '8px' : '12px' }}>
 
                                     {/* Selector de Tipo DNI/RUC/CE */}
                                     <div style={{ 
                                         display: 'flex', 
-                                        background: '#f1f5f9', 
+                                        background: isMobileDevice ? 'transparent' : '#f1f5f9', 
                                         borderRadius: isMobileDevice ? '20px' : '8px', 
-                                        padding: '2px', 
-                                        gap: '2px', 
-                                        border: '1px solid #e2e8f0' 
+                                        padding: isMobileDevice ? '0' : '2px', 
+                                        gap: isMobileDevice ? '6px' : '2px', 
+                                        border: isMobileDevice ? 'none' : '1px solid #e2e8f0' 
                                     }}>
                                         {['DNI', 'RUC', 'CE'].map(type => {
                                             const isSelected = searchType === type;
@@ -1189,12 +1189,12 @@ export default function POSPage() {
                                                     style={{
                                                         padding: isMobileDevice ? '7px 12px' : '4px 8px',
                                                         borderRadius: isMobileDevice ? '20px' : '6px',
-                                                        border: isSelected ? activeBorder : '1px solid #e2e8f0',
+                                                        border: isSelected ? activeBorder : (isMobileDevice ? '1px solid #2d323f' : '1px solid #e2e8f0'),
                                                         cursor: 'pointer',
                                                         fontSize: isMobileDevice ? '12px' : '10px',
                                                         fontWeight: isMobileDevice ? 900 : 800,
-                                                        background: isSelected ? activeBg : '#ffffff',
-                                                        color: isSelected ? activeColor : '#64748b',
+                                                        background: isSelected ? activeBg : (isMobileDevice ? '#1e222d' : '#ffffff'),
+                                                        color: isSelected ? activeColor : (isMobileDevice ? '#94a3b8' : '#64748b'),
                                                         boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(96, 165, 250, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)') : 'none',
                                                         transition: 'all 0.25s ease'
                                                     }}
@@ -1234,12 +1234,12 @@ export default function POSPage() {
                                                 paddingRight: isMobileDevice ? (customerSearch ? '32px' : '10px') : '10px', 
                                                 paddingTop: isMobileDevice ? '10px' : '8px', 
                                                 paddingBottom: isMobileDevice ? '10px' : '8px', 
-                                                background: '#ffffff', 
-                                                border: '1px solid #e2e8f0', 
+                                                background: isMobileDevice ? '#1e222d' : '#ffffff', 
+                                                border: isMobileDevice ? '1px solid #2d323f' : '1px solid #e2e8f0', 
                                                 borderRadius: isMobileDevice ? '24px' : '10px', 
                                                 fontSize: isMobileDevice ? '13px' : '12px', 
                                                 fontWeight: 700, 
-                                                color: '#1e293b',
+                                                color: isMobileDevice ? '#ffffff' : '#1e293b',
                                                 outline: 'none' 
                                             }}
                                         />
@@ -1364,9 +1364,9 @@ export default function POSPage() {
 
                                 {/* Resumen del cliente en móvil */}
                                 {isMobileDevice && (
-                                    <div style={{ padding: '6px 16px', background: '#ffffff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                    <div style={{ padding: '6px 16px', background: '#131722', borderBottom: '1px solid #1e222d', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                                         <span style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Cliente:</span>
-                                        <span style={{ fontSize: '13px', fontWeight: 900, color: '#1e293b' }}>{customer.name}</span>
+                                        <span style={{ fontSize: '13px', fontWeight: 900, color: '#f1f5f9' }}>{customer.name}</span>
                                         {customer.expirationDate && (
                                             <span style={{ fontSize: '10px', fontWeight: 700, color: customer.daysRemaining > 0 ? '#10b981' : '#ef4444', marginLeft: 'auto' }}>
                                                 Vence: {new Date(customer.expirationDate).toLocaleDateString()} ({customer.daysRemaining}d)
@@ -1377,9 +1377,9 @@ export default function POSPage() {
 
                                 {/* BARRA SUPERIOR POS (AHORA SEGUNDO) */}
                                 <div style={{
-                                      background: '#ffffff', 
+                                      background: isMobileDevice ? '#131722' : '#ffffff', 
                                       padding: isMobileDevice ? '10px 12px' : '8px 16px', 
-                                      borderBottom: '1px solid #e2e8f0', 
+                                      borderBottom: isMobileDevice ? '1px solid #1e222d' : '1px solid #e2e8f0', 
                                       display: 'flex', 
                                       flexDirection: isMobileDevice ? 'column' : 'row',
                                       alignItems: isMobileDevice ? 'stretch' : 'center', 
@@ -1391,10 +1391,10 @@ export default function POSPage() {
                                               {/* Selector de Vendedor */}
                                               <div style={{ 
                                                   position: 'relative', width: '36px', height: '36px', borderRadius: isMobileDevice ? '50%' : '10px', 
-                                                  border: '1px solid #e2e8f0', 
-                                                  background: selectedSalesperson ? (isMobileDevice ? '#3b82f6' : '#eff6ff') : '#ffffff', 
-                                                  borderColor: selectedSalesperson ? (isMobileDevice ? '#3b82f6' : '#bfdbfe') : '#e2e8f0',
-                                                  color: selectedSalesperson ? (isMobileDevice ? '#ffffff' : '#3b82f6') : '#64748b', 
+                                                  border: isMobileDevice ? '1px solid #2d323f' : '1px solid #e2e8f0', 
+                                                  background: selectedSalesperson ? (isMobileDevice ? '#3b82f6' : '#eff6ff') : (isMobileDevice ? '#1e222d' : '#ffffff'), 
+                                                  borderColor: selectedSalesperson ? (isMobileDevice ? '#3b82f6' : '#bfdbfe') : (isMobileDevice ? '#2d323f' : '#e2e8f0'),
+                                                  color: selectedSalesperson ? (isMobileDevice ? '#ffffff' : '#3b82f6') : (isMobileDevice ? '#94a3b8' : '#64748b'), 
                                                   display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                   boxShadow: selectedSalesperson ? (isMobileDevice ? '0 2px 6px rgba(59, 130, 246, 0.3)' : '0 2px 6px rgba(79, 70, 229, 0.1)') : 'none',
                                                   flexShrink: 0
@@ -1442,12 +1442,12 @@ export default function POSPage() {
                                                                   flex: 1,
                                                                   height: isMobileDevice ? '38px' : '36px',
                                                                   borderRadius: isMobileDevice ? '20px' : '10px',
-                                                                  border: isSelected ? activeBorder : '1px solid #e2e8f0',
+                                                                  border: isSelected ? activeBorder : (isMobileDevice ? '1px solid #2d323f' : '1px solid #e2e8f0'),
                                                                   cursor: 'pointer',
                                                                   fontSize: '11px',
                                                                   fontWeight: 900,
-                                                                  background: isSelected ? activeBg : '#ffffff',
-                                                                  color: isSelected ? activeColor : '#64748b',
+                                                                  background: isSelected ? activeBg : (isMobileDevice ? '#1e222d' : '#ffffff'),
+                                                                  color: isSelected ? activeColor : (isMobileDevice ? '#94a3b8' : '#64748b'),
                                                                   boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(0,0,0,0.1)' : '0 4px 10px rgba(15, 23, 42, 0.05)') : 'none',
                                                                   transition: 'all 0.25s ease'
                                                               }}
@@ -1474,12 +1474,12 @@ export default function POSPage() {
                                                   width: '100%', 
                                                   padding: isMobileDevice ? '12px 44px 12px 40px' : '9px 40px 9px 36px', 
                                                   borderRadius: isMobileDevice ? '28px' : '24px', 
-                                                  border: '1px solid #e2e8f0', 
+                                                  border: isMobileDevice ? '1px solid #2d323f' : '1px solid #e2e8f0', 
                                                   outline: 'none', 
                                                   fontSize: isMobileDevice ? '15px' : '13px',
                                                   fontWeight: isMobileDevice ? 700 : 500,
-                                                  background: '#ffffff',
-                                                  color: '#1e293b',
+                                                  background: isMobileDevice ? '#1e222d' : '#ffffff',
+                                                  color: isMobileDevice ? '#ffffff' : '#1e293b',
                                                   boxShadow: isMobileDevice ? 'none' : '0 2px 6px rgba(15, 23, 42, 0.03)'
                                               }} 
                                           />
@@ -1572,7 +1572,7 @@ export default function POSPage() {
                                 </div>
 
                                 {/* BARRA DE CATEGORÍAS RESTAURADA (AHORA TERCERO) */}
-                                <div style={{ flexShrink: 0, background: '#ffffff', padding: isMobileDevice ? '6px 12px' : '6px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '6px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
+                                <div style={{ flexShrink: 0, background: isMobileDevice ? '#131722' : '#f8fafc', padding: isMobileDevice ? '6px 12px' : '6px 16px', borderBottom: isMobileDevice ? '1px solid #1e222d' : '1px solid #e2e8f0', display: 'flex', gap: '6px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
                                     {categories.map(cat => (
                                         <button
                                             key={cat.id}
@@ -1582,11 +1582,11 @@ export default function POSPage() {
                                                 borderRadius: isMobileDevice ? '20px' : '8px', 
                                                 fontSize: '11px', 
                                                 fontWeight: 800, 
-                                                border: selectedCategory === cat.id ? 'none' : '1px solid #e2e8f0', 
+                                                border: isMobileDevice ? (selectedCategory === cat.id ? 'none' : '1px solid #2d323f') : 'none', 
                                                 cursor: 'pointer',
-                                                background: selectedCategory === cat.id ? '#3b82f6' : '#ffffff',
-                                                color: selectedCategory === cat.id ? '#ffffff' : '#64748b',
-                                                boxShadow: selectedCategory === cat.id ? '0 4px 10px rgba(59, 130, 246, 0.25)' : 'none', 
+                                                background: selectedCategory === cat.id ? '#3b82f6' : (isMobileDevice ? '#1e222d' : '#ffffff'),
+                                                color: selectedCategory === cat.id ? '#ffffff' : (isMobileDevice ? '#94a3b8' : '#64748b'),
+                                                boxShadow: selectedCategory === cat.id ? (isMobileDevice ? '0 4px 10px rgba(59, 130, 246, 0.25)' : 'none') : 'none', 
                                                 transition: 'all 0.2s'
                                             }}
                                         >
