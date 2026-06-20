@@ -981,6 +981,25 @@ export default function POSPage() {
                         )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <button
+                                onClick={() => setShowHistoryModal(true)}
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: '#0d1b3e', // azul noche
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '6px',
+                                    borderRadius: '50%',
+                                    transition: 'background 0.2s, transform 0.2s',
+                                    outline: 'none'
+                                }}
+                                aria-label="Historial de Ventas"
+                            >
+                                <History size={22} />
+                            </button>
+                            <button
                                 onClick={toggleFullscreen}
                                 style={{
                                     border: 'none',
@@ -1282,24 +1301,26 @@ export default function POSPage() {
                                             <X size={18} />
                                         </button>
                                     )}
-                                    <button
-                                        onClick={() => setShowHistoryModal(true)}
-                                        style={{ 
-                                            background: '#f1f5f9', 
-                                            color: '#0d1b3e', 
-                                            border: 'none', 
-                                            borderRadius: '6px', 
-                                            padding: '8px', 
-                                            cursor: 'pointer', 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            justifyContent: 'center',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        title="Historial de Ventas"
-                                    >
-                                        <History size={18} />
-                                    </button>
+                                    {!isMobileDevice && (
+                                        <button
+                                            onClick={() => setShowHistoryModal(true)}
+                                            style={{ 
+                                                background: '#f1f5f9', 
+                                                color: '#0d1b3e', 
+                                                border: 'none', 
+                                                borderRadius: '6px', 
+                                                padding: '8px', 
+                                                cursor: 'pointer', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center', 
+                                                transition: 'all 0.2s'
+                                            }}
+                                            title="Historial de Ventas"
+                                        >
+                                            <History size={18} />
+                                        </button>
+                                    )}
                                     {!isMobileDevice && (
                                         <button
                                             onClick={() => setShowManualModal(true)}
