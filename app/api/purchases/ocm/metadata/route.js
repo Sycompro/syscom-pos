@@ -13,11 +13,11 @@ export async function GET(req) {
 
         const pool = await getConnection(session.user.company);
         
-        // Obtener condiciones de pago de tbl01cdv
+        // Obtener condiciones de pago de tbl01cdc (Condiciones de Compra)
         const condResult = await pool.request().query(`
-            SELECT LTRIM(RTRIM(codcdv)) as codcdv, LTRIM(RTRIM(nomcdv)) as nomcdv 
-            FROM tbl01cdv WITH(nolock) 
-            ORDER BY codcdv
+            SELECT LTRIM(RTRIM(codcdc)) as codcdv, LTRIM(RTRIM(nomcdc)) as nomcdv 
+            FROM tbl01cdc WITH(nolock) 
+            ORDER BY codcdc
         `);
 
         // Obtener clasificaciones de OCM de tbl01Coc
