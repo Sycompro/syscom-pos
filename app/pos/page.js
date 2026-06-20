@@ -1356,100 +1356,171 @@ export default function POSPage() {
                                 )}
 
                                 {/* BARRA SUPERIOR POS (AHORA SEGUNDO) */}
-                                <div style={{ background: '#fff', padding: '8px 16px', borderBottom: isMobileDevice ? 'none' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ flex: 1, position: 'relative' }}>
-                                        <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                        <input 
-                                            type="text" 
-                                            inputMode="none"
-                                            placeholder="Busca productos..." 
-                                            value={searchTerm} 
-                                            onChange={e => setSearchTerm(e.target.value)} 
-                                            onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
-                                            style={{ width: '100%', padding: '8px 10px 8px 32px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '12px' }} 
-                                        />
-                                        <AlphanumericKeyboard 
-                                            isOpen={showSearchKeyboard}
-                                            onClose={() => setShowSearchKeyboard(false)}
-                                            onKeyPress={(key) => setSearchTerm(prev => prev + key)}
-                                            onDelete={() => setSearchTerm(prev => prev.slice(0, -1))}
-                                            value={searchTerm}
-                                        />
-                                    </div>
-                                    {!isMobileDevice ? (
-                                        <div style={{ minWidth: '180px' }}>
-                                            <CustomSelect
-                                                value={selectedSalesperson}
-                                                onChange={(val) => setSelectedSalesperson(val)}
-                                                options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
-                                                placeholder="Seleccionar Vendedor"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div style={{ 
-                                            position: 'relative', width: '32px', height: '32px', borderRadius: '6px', 
-                                            border: '1px solid #e2e8f0', background: selectedSalesperson ? '#eff6ff' : '#fff', 
-                                            borderColor: selectedSalesperson ? '#bfdbfe' : '#e2e8f0',
-                                            color: selectedSalesperson ? '#3b82f6' : '#64748b', 
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                            flexShrink: 0
-                                        }} title="Seleccionar Vendedor">
-                                            <User size={18} />
-                                            <select
-                                                value={selectedSalesperson}
-                                                onChange={(e) => setSelectedSalesperson(e.target.value)}
-                                                style={{
-                                                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                                                    opacity: 0, cursor: 'pointer', zIndex: 10
-                                                }}
-                                            >
-                                                {salespeople.map(v => (
-                                                    <option key={v.id} value={v.id}>
-                                                        {v.name.trim()}
-                                                     </option>
-                                                 ))}
-                                             </select>
+                                <div style={{ 
+                                     background: '#fff', 
+                                     padding: '8px 16px', 
+                                     borderBottom: isMobileDevice ? 'none' : '1px solid #e2e8f0', 
+                                     display: 'flex', 
+                                     flexDirection: isMobileDevice ? 'column' : 'row',
+                                     alignItems: isMobileDevice ? 'stretch' : 'center', 
+                                     gap: isMobileDevice ? '8px' : '12px' 
+                                 }}>
+                                     {/* En móviles, la fila de botones (Vendedor + Comprobantes) va primero */}
+                                     {isMobileDevice && (
+                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                             {/* Selector de Vendedor */}
+                                             <div style={{ 
+                                                 position: 'relative', width: '36px', height: '36px', borderRadius: '8px', 
+                                                 border: '1px solid #e2e8f0', background: selectedSalesperson ? '#eff6ff' : '#fff', 
+                                                 borderColor: selectedSalesperson ? '#bfdbfe' : '#e2e8f0',
+                                                 color: selectedSalesperson ? '#3b82f6' : '#64748b', 
+                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                                 flexShrink: 0
+                                             }} title="Seleccionar Vendedor">
+                                                 <User size={20} />
+                                                 <select
+                                                     value={selectedSalesperson}
+                                                     onChange={(e) => setSelectedSalesperson(e.target.value)}
+                                                     style={{
+                                                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                                         opacity: 0, cursor: 'pointer', zIndex: 10
+                                                     }}
+                                                 >
+                                                     {salespeople.map(v => (
+                                                         <option key={v.id} value={v.id}>
+                                                             {v.name.trim()}
+                                                         </option>
+                                                     ))}
+                                                 </select>
+                                             </div>
+
+                                             {/* Selector de Boleta/Factura/Nota */}
+                                             <div style={{ display: 'flex', gap: '6px', flex: 1, justifyContent: 'flex-end' }}>
+                                                 {['03', '01', '65'].map(t => {
+                                                     const isSelected = docType === t;
+                                                     let activeBg = '#eff6ff'; // Boleta: Azul
+                                                     let activeColor = '#3b82f6';
+                                                     let activeBorder = '1px solid #bfdbfe';
+                                                     
+                                                     if (t === '01') { // Factura: Verde/Esmeralda
+                                                         activeBg = '#ecfdf5';
+                                                         activeColor = '#10b981';
+                                                         activeBorder = '1px solid #a7f3d0';
+                                                     } else if (t === '65') { // Nota: Naranja corporativo
+                                                         activeBg = '#fff7ed';
+                                                         activeColor = '#f97316';
+                                                         activeBorder = '1px solid #ffedd5';
+                                                     }
+
+                                                     return (
+                                                         <button
+                                                             key={t}
+                                                             onClick={() => setDocType(t)}
+                                                             style={{
+                                                                 flex: 1,
+                                                                 padding: '8px 10px',
+                                                                 borderRadius: '10px',
+                                                                 border: isSelected ? activeBorder : '1px solid #e2e8f0',
+                                                                 cursor: 'pointer',
+                                                                 fontSize: '12px',
+                                                                 fontWeight: 900,
+                                                                 background: isSelected ? activeBg : '#ffffff',
+                                                                 color: isSelected ? activeColor : '#64748b',
+                                                                 boxShadow: isSelected ? '0 4px 10px rgba(15, 23, 42, 0.05)' : '0 2px 4px rgba(0,0,0,0.02)',
+                                                                 transition: 'all 0.25s ease'
+                                                             }}
+                                                         >
+                                                             {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
+                                                         </button>
+                                                     );
+                                                 })}
+                                             </div>
                                          </div>
                                      )}
-                                    <div style={{ display: 'flex', background: isMobileDevice ? 'transparent' : '#f1f5f9', borderRadius: isMobileDevice ? '12px' : '6px', padding: isMobileDevice ? '0' : '2px', gap: isMobileDevice ? '6px' : '2px', border: isMobileDevice ? 'none' : '1px solid #e2e8f0' }}>
-                                        {['03', '01', '65'].map(t => {
-                                            const isSelected = docType === t;
-                                            let activeBg = '#eff6ff'; // Boleta: Azul
-                                            let activeColor = '#3b82f6';
-                                            let activeBorder = '1px solid #bfdbfe';
-                                            
-                                            if (t === '01') { // Factura: Verde/Esmeralda
-                                                activeBg = '#ecfdf5';
-                                                activeColor = '#10b981';
-                                                activeBorder = '1px solid #a7f3d0';
-                                            } else if (t === '65') { // Nota: Naranja corporativo
-                                                activeBg = '#fff7ed';
-                                                activeColor = '#f97316';
-                                                activeBorder = '1px solid #ffedd5';
-                                            }
 
-                                            return (
-                                                <button
-                                                    key={t}
-                                                    onClick={() => setDocType(t)}
-                                                    style={{
-                                                        padding: isMobileDevice ? '8px 14px' : '4px 8px',
-                                                        borderRadius: isMobileDevice ? '12px' : '4px',
-                                                        border: isSelected ? (isMobileDevice ? activeBorder : 'none') : '1px solid #e2e8f0',
-                                                        cursor: 'pointer',
-                                                        fontSize: isMobileDevice ? '12px' : '10px',
-                                                        fontWeight: isMobileDevice ? 900 : 700,
-                                                        background: isSelected ? (isMobileDevice ? activeBg : '#fff') : (isMobileDevice ? '#ffffff' : 'transparent'),
-                                                        color: isSelected ? (isMobileDevice ? activeColor : '#3b82f6') : '#64748b',
-                                                        boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(15, 23, 42, 0.05)' : '0 2px 4px rgba(0,0,0,0.05)') : (isMobileDevice ? '0 2px 4px rgba(0,0,0,0.02)' : 'none'),
-                                                        transition: 'all 0.25s ease'
-                                                    }}
-                                                >
-                                                    {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                                     {/* El Buscador de Productos */}
+                                     <div style={{ flex: 1, position: 'relative' }}>
+                                         <Search size={isMobileDevice ? 20 : 18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                         <input 
+                                             type="text" 
+                                             inputMode="none"
+                                             placeholder="Busca productos..." 
+                                             value={searchTerm} 
+                                             onChange={e => setSearchTerm(e.target.value)} 
+                                             onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
+                                             style={{ 
+                                                 width: '100%', 
+                                                 padding: isMobileDevice ? '12px 12px 12px 40px' : '8px 10px 8px 32px', 
+                                                 borderRadius: isMobileDevice ? '12px' : '8px', 
+                                                 border: '1px solid #e2e8f0', 
+                                                 outline: 'none', 
+                                                 fontSize: isMobileDevice ? '14px' : '12px',
+                                                 fontWeight: isMobileDevice ? 700 : 500,
+                                                 background: '#ffffff'
+                                             }} 
+                                         />
+                                         <AlphanumericKeyboard 
+                                             isOpen={showSearchKeyboard}
+                                             onClose={() => setShowSearchKeyboard(false)}
+                                             onKeyPress={(key) => setSearchTerm(prev => prev + key)}
+                                             onDelete={() => setSearchTerm(prev => prev.slice(0, -1))}
+                                             value={searchTerm}
+                                         />
+                                     </div>
+
+                                     {/* En escritorio, el vendedor y comprobantes van en la misma fila */}
+                                     {!isMobileDevice && (
+                                         <>
+                                             <div style={{ minWidth: '180px' }}>
+                                                 <CustomSelect
+                                                     value={selectedSalesperson}
+                                                     onChange={(val) => setSelectedSalesperson(val)}
+                                                     options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
+                                                     placeholder="Seleccionar Vendedor"
+                                                 />
+                                             </div>
+
+                                             <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '6px', padding: '2px', gap: '2px', border: '1px solid #e2e8f0' }}>
+                                                 {['03', '01', '65'].map(t => {
+                                                     const isSelected = docType === t;
+                                                     let activeBg = '#eff6ff'; // Boleta: Azul
+                                                     let activeColor = '#3b82f6';
+                                                     let activeBorder = '1px solid #bfdbfe';
+                                                     
+                                                     if (t === '01') { // Factura: Verde/Esmeralda
+                                                         activeBg = '#ecfdf5';
+                                                         activeColor = '#10b981';
+                                                         activeBorder = '1px solid #a7f3d0';
+                                                     } else if (t === '65') { // Nota: Naranja corporativo
+                                                         activeBg = '#fff7ed';
+                                                         activeColor = '#f97316';
+                                                         activeBorder = '1px solid #ffedd5';
+                                                     }
+
+                                                     return (
+                                                         <button
+                                                             key={t}
+                                                             onClick={() => setDocType(t)}
+                                                             style={{
+                                                                 padding: '4px 8px',
+                                                                 borderRadius: '4px',
+                                                                 border: isSelected ? 'none' : '1px solid #e2e8f0',
+                                                                 cursor: 'pointer',
+                                                                 fontSize: '10px',
+                                                                 fontWeight: 700,
+                                                                 background: isSelected ? activeBg : '#fff',
+                                                                 color: isSelected ? activeColor : '#64748b',
+                                                                 boxShadow: isSelected ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                                                 transition: 'all 0.25s ease'
+                                                             }}
+                                                         >
+                                                             {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
+                                                         </button>
+                                                     );
+                                                 })}
+                                             </div>
+                                         </>
+                                     )}
                                 </div>
 
                                 {/* BARRA DE CATEGORÍAS RESTAURADA (AHORA TERCERO) */}
