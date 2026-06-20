@@ -1168,11 +1168,11 @@ export default function POSPage() {
                                                         setShowCEKeyboard(false);
                                                     }}
                                                     style={{
-                                                        padding: isMobileDevice ? '10px 12px' : '4px 8px',
-                                                        borderRadius: isMobileDevice ? '12px' : '6px',
+                                                        padding: isMobileDevice ? '8px 10px' : '4px 8px',
+                                                        borderRadius: isMobileDevice ? '10px' : '6px',
                                                         border: isSelected ? (isMobileDevice ? activeBorder : 'none') : '1px solid #e2e8f0',
                                                         cursor: 'pointer',
-                                                        fontSize: isMobileDevice ? '13px' : '10px',
+                                                        fontSize: isMobileDevice ? '12px' : '10px',
                                                         fontWeight: isMobileDevice ? 900 : 800,
                                                         background: isSelected ? (isMobileDevice ? activeBg : '#fff') : (isMobileDevice ? '#ffffff' : 'transparent'),
                                                         color: isSelected ? (isMobileDevice ? activeColor : '#3b82f6') : '#64748b',
@@ -1211,14 +1211,14 @@ export default function POSPage() {
                                             maxLength={searchType === 'DNI' ? 8 : 11}
                                             style={{ 
                                                 width: '100%', 
-                                                paddingLeft: isMobileDevice ? '12px' : '30px', 
+                                                paddingLeft: isMobileDevice ? '10px' : '30px', 
                                                 paddingRight: isMobileDevice ? (customerSearch ? '32px' : '10px') : '10px', 
-                                                paddingTop: isMobileDevice ? '11px' : '8px', 
-                                                paddingBottom: isMobileDevice ? '11px' : '8px', 
+                                                paddingTop: isMobileDevice ? '9px' : '8px', 
+                                                paddingBottom: isMobileDevice ? '9px' : '8px', 
                                                 background: '#ffffff', 
                                                 border: '1px solid #e2e8f0', 
-                                                borderRadius: isMobileDevice ? '12px' : '10px', 
-                                                fontSize: isMobileDevice ? '14px' : '12px', 
+                                                borderRadius: isMobileDevice ? '10px' : '10px', 
+                                                fontSize: isMobileDevice ? '13px' : '12px', 
                                                 fontWeight: 700, 
                                                 outline: 'none' 
                                             }}
@@ -1370,14 +1370,14 @@ export default function POSPage() {
                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                                              {/* Selector de Vendedor */}
                                              <div style={{ 
-                                                 position: 'relative', width: '52px', height: '52px', borderRadius: '12px', 
+                                                 position: 'relative', width: '36px', height: '36px', borderRadius: '10px', 
                                                  border: '1px solid #e2e8f0', background: selectedSalesperson ? '#eff6ff' : '#fff', 
                                                  borderColor: selectedSalesperson ? '#bfdbfe' : '#e2e8f0',
                                                  color: selectedSalesperson ? '#3b82f6' : '#64748b', 
                                                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                  flexShrink: 0
                                              }} title="Seleccionar Vendedor">
-                                                 <User size={28} />
+                                                 <User size={18} />
                                                  <select
                                                      value={selectedSalesperson}
                                                      onChange={(e) => setSelectedSalesperson(e.target.value)}
@@ -1418,11 +1418,11 @@ export default function POSPage() {
                                                              onClick={() => setDocType(t)}
                                                              style={{
                                                                  flex: 1,
-                                                                 height: '52px',
-                                                                 borderRadius: '12px',
+                                                                 height: '36px',
+                                                                 borderRadius: '10px',
                                                                  border: isSelected ? activeBorder : '1px solid #e2e8f0',
                                                                  cursor: 'pointer',
-                                                                 fontSize: '15px',
+                                                                 fontSize: '11px',
                                                                  fontWeight: 900,
                                                                  background: isSelected ? activeBg : '#ffffff',
                                                                  color: isSelected ? activeColor : '#64748b',
@@ -1440,7 +1440,7 @@ export default function POSPage() {
 
                                      {/* El Buscador de Productos */}
                                      <div style={{ flex: 1, position: 'relative' }}>
-                                         <Search size={isMobileDevice ? 26 : 18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                         <Search size={isMobileDevice ? 18 : 18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                          <input 
                                              type="text" 
                                              inputMode="none"
@@ -1450,11 +1450,11 @@ export default function POSPage() {
                                              onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
                                              style={{ 
                                                  width: '100%', 
-                                                 padding: isMobileDevice ? '18px 16px 18px 52px' : '8px 10px 8px 32px', 
-                                                 borderRadius: isMobileDevice ? '16px' : '8px', 
+                                                 padding: isMobileDevice ? '10px 12px 10px 38px' : '8px 10px 8px 32px', 
+                                                 borderRadius: isMobileDevice ? '12px' : '8px', 
                                                  border: '1px solid #e2e8f0', 
                                                  outline: 'none', 
-                                                 fontSize: isMobileDevice ? '18px' : '12px',
+                                                 fontSize: isMobileDevice ? '14px' : '12px',
                                                  fontWeight: isMobileDevice ? 700 : 500,
                                                  background: '#ffffff'
                                              }} 
