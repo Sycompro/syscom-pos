@@ -1152,19 +1152,10 @@ export default function POSPage() {
                                     }}>
                                         {['DNI', 'RUC', 'CE'].map(type => {
                                             const isSelected = searchType === type;
-                                            let activeBg = '#eff6ff'; // DNI: Azul
+                                            // Diseño de color sobrio y unificado para DNI/RUC/CE (Azul suave)
+                                            let activeBg = '#eff6ff';
                                             let activeColor = '#3b82f6';
                                             let activeBorder = '1px solid #bfdbfe';
-                                            
-                                            if (type === 'RUC') { // RUC: Verde/Esmeralda
-                                                activeBg = '#ecfdf5';
-                                                activeColor = '#10b981';
-                                                activeBorder = '1px solid #a7f3d0';
-                                            } else if (type === 'CE') { // CE: Púrpura
-                                                activeBg = '#faf5ff';
-                                                activeColor = '#a855f7';
-                                                activeBorder = '1px solid #e9d5ff';
-                                            }
 
                                             return (
                                                 <button
@@ -1224,7 +1215,7 @@ export default function POSPage() {
                                                 paddingRight: isMobileDevice ? (customerSearch ? '32px' : '10px') : '10px', 
                                                 paddingTop: '8px', 
                                                 paddingBottom: '8px', 
-                                                background: '#f8fafc', 
+                                                background: '#ffffff', 
                                                 border: '1px solid #e2e8f0', 
                                                 borderRadius: '10px', 
                                                 fontSize: '12px', 
