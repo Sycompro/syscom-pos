@@ -949,27 +949,45 @@ export default function POSPage() {
                         flexShrink: 0
                     }}>
                         {activeTab === 'pos' ? (
-                            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '10px', padding: '3px', gap: '3px', border: '1px solid #e2e8f0' }}>
-                                {['03', '01', '65'].map(t => (
-                                    <button
-                                        key={t}
-                                        onClick={() => setDocType(t)}
-                                        style={{
-                                            padding: '8px 16px',
-                                            borderRadius: '8px',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            fontSize: '12px',
-                                            fontWeight: 900,
-                                            background: docType === t ? '#ffffff' : 'transparent',
-                                            color: docType === t ? '#3b82f6' : '#64748b',
-                                            boxShadow: docType === t ? '0 3px 6px rgba(15, 23, 42, 0.08)' : 'none',
-                                            transition: 'all 0.25s ease',
-                                        }}
-                                    >
-                                        {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
-                                    </button>
-                                ))}
+                            <div style={{ display: 'flex', background: 'transparent', padding: 0, gap: '8px' }}>
+                                {['03', '01', '65'].map(t => {
+                                    const isSelected = docType === t;
+                                    let activeBg = '#eff6ff'; // Boleta: Azul
+                                    let activeColor = '#3b82f6';
+                                    let activeBorder = '1px solid #bfdbfe';
+                                    
+                                    if (t === '01') { // Factura: Verde/Esmeralda
+                                        activeBg = '#ecfdf5';
+                                        activeColor = '#10b981';
+                                        activeBorder = '1px solid #a7f3d0';
+                                    } else if (t === '65') { // Nota: Naranja corporativo
+                                        activeBg = '#fff7ed';
+                                        activeColor = '#f97316';
+                                        activeBorder = '1px solid #ffedd5';
+                                    }
+
+                                    return (
+                                        <button
+                                            key={t}
+                                            onClick={() => setDocType(t)}
+                                            style={{
+                                                padding: '8px 16px',
+                                                borderRadius: '12px',
+                                                border: isSelected ? activeBorder : '1px solid #e2e8f0',
+                                                cursor: 'pointer',
+                                                fontSize: '12px',
+                                                fontWeight: 900,
+                                                background: isSelected ? activeBg : '#ffffff',
+                                                color: isSelected ? activeColor : '#64748b',
+                                                boxShadow: isSelected ? '0 4px 10px rgba(15, 23, 42, 0.05)' : '0 2px 4px rgba(0,0,0,0.02)',
+                                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                outline: 'none',
+                                            }}
+                                        >
+                                            {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -1122,38 +1140,55 @@ export default function POSPage() {
                                     {/* Selector de Tipo DNI/RUC/CE */}
                                     <div style={{ 
                                         display: 'flex', 
-                                        background: '#f1f5f9', 
-                                        borderRadius: isMobileDevice ? '10px' : '8px', 
-                                        padding: isMobileDevice ? '3px' : '2px', 
-                                        gap: isMobileDevice ? '3px' : '2px', 
-                                        border: '1px solid #e2e8f0' 
+                                        background: isMobileDevice ? 'transparent' : '#f1f5f9', 
+                                        borderRadius: isMobileDevice ? '12px' : '8px', 
+                                        padding: isMobileDevice ? '0' : '2px', 
+                                        gap: isMobileDevice ? '6px' : '2px', 
+                                        border: isMobileDevice ? 'none' : '1px solid #e2e8f0' 
                                     }}>
-                                        {['DNI', 'RUC', 'CE'].map(type => (
-                                            <button
-                                                key={type}
-                                                onClick={() => {
-                                                    setSearchType(type);
-                                                    setCustomerSearch('');
-                                                    setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
-                                                    setShowNumpad(false);
-                                                    setShowCEKeyboard(false);
-                                                }}
-                                                style={{
-                                                    padding: isMobileDevice ? '8px 14px' : '4px 8px',
-                                                    borderRadius: isMobileDevice ? '8px' : '6px',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    fontSize: isMobileDevice ? '12px' : '10px',
-                                                    fontWeight: isMobileDevice ? 900 : 800,
-                                                    background: searchType === type ? '#fff' : 'transparent',
-                                                    color: searchType === type ? '#3b82f6' : '#64748b',
-                                                    boxShadow: searchType === type ? (isMobileDevice ? '0 2px 5px rgba(15, 23, 42, 0.08)' : '0 2px 4px rgba(0,0,0,0.05)') : 'none',
-                                                    transition: 'all 0.25s ease'
-                                                }}
-                                            >
-                                                {type}
-                                            </button>
-                                        ))}
+                                        {['DNI', 'RUC', 'CE'].map(type => {
+                                            const isSelected = searchType === type;
+                                            let activeBg = '#eff6ff'; // DNI: Azul
+                                            let activeColor = '#3b82f6';
+                                            let activeBorder = '1px solid #bfdbfe';
+                                            
+                                            if (type === 'RUC') { // RUC: Verde/Esmeralda
+                                                activeBg = '#ecfdf5';
+                                                activeColor = '#10b981';
+                                                activeBorder = '1px solid #a7f3d0';
+                                            } else if (type === 'CE') { // CE: Púrpura
+                                                activeBg = '#faf5ff';
+                                                activeColor = '#a855f7';
+                                                activeBorder = '1px solid #e9d5ff';
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={type}
+                                                    onClick={() => {
+                                                        setSearchType(type);
+                                                        setCustomerSearch('');
+                                                        setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
+                                                        setShowNumpad(false);
+                                                        setShowCEKeyboard(false);
+                                                    }}
+                                                    style={{
+                                                        padding: isMobileDevice ? '8px 14px' : '4px 8px',
+                                                        borderRadius: isMobileDevice ? '12px' : '6px',
+                                                        border: isSelected ? (isMobileDevice ? activeBorder : 'none') : '1px solid #e2e8f0',
+                                                        cursor: 'pointer',
+                                                        fontSize: isMobileDevice ? '12px' : '10px',
+                                                        fontWeight: isMobileDevice ? 900 : 800,
+                                                        background: isSelected ? (isMobileDevice ? activeBg : '#fff') : (isMobileDevice ? '#ffffff' : 'transparent'),
+                                                        color: isSelected ? (isMobileDevice ? activeColor : '#3b82f6') : '#64748b',
+                                                        boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(15, 23, 42, 0.05)' : '0 2px 4px rgba(0,0,0,0.05)') : (isMobileDevice ? '0 2px 4px rgba(0,0,0,0.02)' : 'none'),
+                                                        transition: 'all 0.25s ease'
+                                                    }}
+                                                >
+                                                    {type}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
 
                                     <div style={{ width: '160px', position: 'relative' }}>
