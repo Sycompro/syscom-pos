@@ -946,7 +946,7 @@ export default function POSPage() {
                             bottom: 0, 
                             background: 'rgba(15, 23, 42, 0.4)', 
                             backdropFilter: 'blur(3px)',
-                            zIndex: 100, 
+                            zIndex: 1500, 
                             display: 'flex',
                             justifyContent: 'flex-end'
                         }}
@@ -998,31 +998,61 @@ export default function POSPage() {
                         justifyContent: 'space-between',
                         flexShrink: 0
                     }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                {activeTab === 'pos' ? 'Punto de Venta' : 
-                                 activeTab === 'dashboard' ? 'Dashboard' : 
-                                 activeTab === 'memberships' ? 'Membresías' : 
-                                 activeTab === 'promotions' ? 'Promociones' : 
-                                 activeTab === 'customers' ? 'Clientes' : 
-                                 activeTab === 'birthdays' ? 'Cumpleaños' : 
-                                 activeTab === 'credits' ? 'Gestión de Créditos' :
-                                 activeTab === 'expenses' ? 'Egresos' :
-                                 activeTab === 'purchases-ocm' ? 'Orden de Compra' :
-                                 activeTab === 'purchases-gim' ? 'Nota de Ingreso' :
-                                 activeTab === 'purchases-ccp' ? 'Facturas / Boletas' :
-                                 activeTab === 'suppliers' ? 'Proveedores' :
-                                 activeTab === 'general-cash' ? 'Caja General' :
-                                 activeTab === 'whatsapp' ? 'Config WhatsApp' : 
-                                 activeTab === 'sales' ? 'Historial Ventas' : 
-                                 activeTab === 'products' ? 'Catálogo Artículos' :
-                                 activeTab === 'classifications' ? 'Clasificaciones' :
-                                 activeTab === 'brands' ? 'Marcas ERP' : 'POS'}
-                            </span>
-                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase' }}>
-                                {companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
-                            </span>
-                        </div>
+                        {activeTab === 'pos' ? (
+                            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', gap: '3px', border: '1px solid #e2e8f0' }}>
+                                {['DNI', 'RUC', 'CE'].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => {
+                                            setSearchType(type);
+                                            setCustomerSearch('');
+                                            setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
+                                            setShowNumpad(false);
+                                            setShowCEKeyboard(false);
+                                        }}
+                                        style={{
+                                            padding: '6px 12px',
+                                            borderRadius: '6px',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            fontSize: '11px',
+                                            fontWeight: 900,
+                                            background: searchType === type ? '#ffffff' : 'transparent',
+                                            color: searchType === type ? '#3b82f6' : '#64748b',
+                                            boxShadow: searchType === type ? '0 2px 4px rgba(15, 23, 42, 0.08)' : 'none',
+                                            transition: 'all 0.2s ease',
+                                        }}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    {activeTab === 'dashboard' ? 'Dashboard' : 
+                                     activeTab === 'memberships' ? 'Membresías' : 
+                                     activeTab === 'promotions' ? 'Promociones' : 
+                                     activeTab === 'customers' ? 'Clientes' : 
+                                     activeTab === 'birthdays' ? 'Cumpleaños' : 
+                                     activeTab === 'credits' ? 'Gestión de Créditos' :
+                                     activeTab === 'expenses' ? 'Egresos' :
+                                     activeTab === 'purchases-ocm' ? 'Orden de Compra' :
+                                     activeTab === 'purchases-gim' ? 'Nota de Ingreso' :
+                                     activeTab === 'purchases-ccp' ? 'Facturas / Boletas' :
+                                     activeTab === 'suppliers' ? 'Proveedores' :
+                                     activeTab === 'general-cash' ? 'Caja General' :
+                                     activeTab === 'whatsapp' ? 'Config WhatsApp' : 
+                                     activeTab === 'sales' ? 'Historial Ventas' : 
+                                     activeTab === 'products' ? 'Catálogo Artículos' :
+                                     activeTab === 'classifications' ? 'Clasificaciones' :
+                                     activeTab === 'brands' ? 'Marcas ERP' : 'POS'}
+                                </span>
+                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase' }}>
+                                    {companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
+                                </span>
+                            </div>
+                        )}
                         <button 
                             onClick={() => setShowMobileMenu(true)} 
                             className="modern-burger-container"
@@ -1146,34 +1176,36 @@ export default function POSPage() {
                                 <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
 
                                     {/* Selector de Tipo DNI/RUC/CE */}
-                                    <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '2px', gap: '2px', border: '1px solid #e2e8f0' }}>
-                                        {['DNI', 'RUC', 'CE'].map(type => (
-                                            <button
-                                                key={type}
-                                                onClick={() => {
-                                                    setSearchType(type);
-                                                    setCustomerSearch('');
-                                                    setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
-                                                    setShowNumpad(false);
-                                                    setShowCEKeyboard(false);
-                                                }}
-                                                style={{
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    fontSize: '10px',
-                                                    fontWeight: 800,
-                                                    background: searchType === type ? '#fff' : 'transparent',
-                                                    color: searchType === type ? '#3b82f6' : '#64748b',
-                                                    boxShadow: searchType === type ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                {type}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    {!isMobileDevice && (
+                                        <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '2px', gap: '2px', border: '1px solid #e2e8f0' }}>
+                                            {['DNI', 'RUC', 'CE'].map(type => (
+                                                <button
+                                                    key={type}
+                                                    onClick={() => {
+                                                        setSearchType(type);
+                                                        setCustomerSearch('');
+                                                        setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
+                                                        setShowNumpad(false);
+                                                        setShowCEKeyboard(false);
+                                                    }}
+                                                    style={{
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        fontSize: '10px',
+                                                        fontWeight: 800,
+                                                        background: searchType === type ? '#fff' : 'transparent',
+                                                        color: searchType === type ? '#3b82f6' : '#64748b',
+                                                        boxShadow: searchType === type ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    {type}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     <div style={{ width: '160px', position: 'relative' }}>
                                         <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={16} />
