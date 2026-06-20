@@ -11,7 +11,7 @@ import {
     BellRing, Smartphone, RefreshCw, AlertCircle, Calendar, Menu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Maximize, Minimize, History } from 'lucide-react';
+import { Maximize, Minimize, History, ScanBarcode } from 'lucide-react';
 import Image from 'next/image';
 
 import Sidebar from '@/components/pos/Sidebar';
@@ -42,6 +42,7 @@ import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
 import CustomSelect from '@/components/pos/CustomSelect';
 import AlphanumericKeyboard from '@/components/pos/AlphanumericKeyboard';
+import BarcodeScannerModal from '@/components/pos/BarcodeScannerModal';
 
 export default function POSPage() {
     const { data: session } = useSession();
@@ -236,6 +237,7 @@ export default function POSPage() {
     const [showManualModal, setShowManualModal] = useState(false);
     const [showCartModal, setShowCartModal] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [showScannerModal, setShowScannerModal] = useState(false);
     const [showCloseModal, setShowCloseModal] = useState(false);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [showErpModal, setShowErpModal] = useState(false);
@@ -428,7 +430,25 @@ export default function POSPage() {
         });
     };
 
-
+    const handleScanSuccess = async (code) => {
+        if (!code) return;
+        try {
+            const url = `/api/products/search?q=${encodeURIComponent(code)}&alm=${warehouse}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            
+            if (Array.isArray(data) && data.length === 1) {
+                const scannedProduct = data[0];
+                addToCart(scannedProduct);
+            } else {
+                setSearchTerm(code);
+            }
+        } catch (err) {
+            console.error("Error al buscar producto escaneado:", err);
+            setSearchTerm(code);
+        }
+        setShowScannerModal(false);
+    };
 
     const addToCart = (product) => {
         // Excepción para el ítem de descuento DS00
@@ -1430,7 +1450,7 @@ export default function POSPage() {
                                                                  transition: 'all 0.25s ease'
                                                              }}
                                                          >
-                                                             {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
+                                                    {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
                                                          </button>
                                                      );
                                                  })}
@@ -1440,7 +1460,7 @@ export default function POSPage() {
 
                                      {/* El Buscador de Productos */}
                                      <div style={{ flex: 1, position: 'relative' }}>
-                                         <Search size={isMobileDevice ? 18 : 18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                         <Search size={isMobileDevice ? 18 : 18} style={{ position: 'absolute', left: isMobileDevice ? '14px' : '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                          <input 
                                              type="text" 
                                              inputMode="none"
@@ -1450,15 +1470,40 @@ export default function POSPage() {
                                              onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
                                              style={{ 
                                                  width: '100%', 
-                                                 padding: isMobileDevice ? '10px 12px 10px 38px' : '8px 10px 8px 32px', 
-                                                 borderRadius: isMobileDevice ? '12px' : '8px', 
+                                                 padding: isMobileDevice ? '12px 44px 12px 40px' : '9px 40px 9px 36px', 
+                                                 borderRadius: isMobileDevice ? '28px' : '24px', 
                                                  border: '1px solid #e2e8f0', 
                                                  outline: 'none', 
-                                                 fontSize: isMobileDevice ? '14px' : '12px',
+                                                 fontSize: isMobileDevice ? '15px' : '13px',
                                                  fontWeight: isMobileDevice ? 700 : 500,
-                                                 background: '#ffffff'
+                                                 background: '#ffffff',
+                                                 boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)'
                                              }} 
                                          />
+                                         <button
+                                             onClick={() => setShowScannerModal(true)}
+                                             style={{
+                                                 position: 'absolute',
+                                                 right: isMobileDevice ? '14px' : '12px',
+                                                 top: '50%',
+                                                 transform: 'translateY(-50%)',
+                                                 border: 'none',
+                                                 background: 'none',
+                                                 cursor: 'pointer',
+                                                 display: 'flex',
+                                                 alignItems: 'center',
+                                                 justifyContent: 'center',
+                                                 color: '#3b82f6',
+                                                 padding: '4px',
+                                                 borderRadius: '50%',
+                                                 transition: 'all 0.2s'
+                                             }}
+                                             title="Escanear Código de Barras / QR"
+                                             onMouseEnter={e => e.currentTarget.style.color = '#1d4ed8'}
+                                             onMouseLeave={e => e.currentTarget.style.color = '#3b82f6'}
+                                         >
+                                             <ScanBarcode size={isMobileDevice ? 22 : 18} />
+                                         </button>
                                          <AlphanumericKeyboard 
                                              isOpen={showSearchKeyboard}
                                              onClose={() => setShowSearchKeyboard(false)}
@@ -1909,6 +1954,11 @@ export default function POSPage() {
                 idapecaj={idApeCaj}
                 codpto={session?.user?.company?.codpto || '01'}
                 useScreenKeyboards={useScreenKeyboards}
+            />
+            <BarcodeScannerModal
+                isOpen={showScannerModal}
+                onClose={() => setShowScannerModal(false)}
+                onScanSuccess={handleScanSuccess}
             />
 
 

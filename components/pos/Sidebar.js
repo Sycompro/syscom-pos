@@ -26,6 +26,10 @@ export default function Sidebar({
 
     const isExpanded = isMobileMode ? true : isExpandedInternal;
 
+    const userName = session?.user?.name || "Syscom";
+    const userEmail = session?.user?.email || "syscomecosistemadigital@gmail.com";
+    const avatarLetter = userName.charAt(0).toUpperCase();
+
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const supported = !!(
@@ -153,10 +157,6 @@ export default function Sidebar({
     };
 
     if (isMobileMode) {
-        const userName = session?.user?.name || "Syscom";
-        const userEmail = session?.user?.email || "syscomecosistemadigital@gmail.com";
-        const avatarLetter = userName.charAt(0).toUpperCase();
-
         return (
             <aside style={{
                 width: '100%',
@@ -205,42 +205,6 @@ export default function Sidebar({
                             <X size={18} />
                         </button>
                     )}
-                </div>
-
-                {/* Perfil del Usuario */}
-                <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '12px', 
-                    background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
-                    borderRadius: '12px', 
-                    padding: '12px', 
-                    border: '1px solid #e2e8f0',
-                    marginBottom: '16px',
-                    width: '100%',
-                    boxSizing: 'border-box'
-                }}>
-                    <div style={{ 
-                        width: '40px', 
-                        height: '40px', 
-                        borderRadius: '50%', 
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        color: '#fff', 
-                        fontWeight: 900, 
-                        fontSize: '18px', 
-                        boxShadow: '0 4px 10px rgba(59, 130, 246, 0.2)',
-                        border: '2px solid #fff',
-                        flexShrink: 0
-                    }}>
-                        {avatarLetter}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</span>
-                        <span style={{ fontSize: '10px', color: '#64748b', wordBreak: 'break-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userEmail}</span>
-                    </div>
                 </div>
 
                 {/* NAVEGACIÓN SECTION */}
@@ -501,6 +465,47 @@ export default function Sidebar({
                     >
                         <X size={18} />
                     </button>
+                )}
+            </div>
+
+            {/* Perfil de la Empresa (Escritorio) */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: isExpanded ? 'flex-start' : 'center',
+                gap: '12px',
+                background: isExpanded ? 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' : 'transparent',
+                borderRadius: '12px',
+                padding: isExpanded ? '10px' : '4px 0',
+                border: isExpanded ? '1px solid #e2e8f0' : 'none',
+                margin: '10px 12px 14px 12px',
+                width: isExpanded ? 'calc(100% - 24px)' : 'auto',
+                boxSizing: 'border-box',
+                transition: 'all 0.3s ease',
+                minHeight: '44px'
+            }} title={isExpanded ? "" : `${userName} - ${userEmail}`}>
+                <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontWeight: 900,
+                    fontSize: '14px',
+                    boxShadow: '0 4px 8px rgba(59, 130, 246, 0.15)',
+                    border: '2px solid #fff',
+                    flexShrink: 0
+                }}>
+                    {avatarLetter}
+                </div>
+                {isExpanded && (
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</span>
+                        <span style={{ fontSize: '9px', color: '#64748b', wordBreak: 'break-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userEmail}</span>
+                    </div>
                 )}
             </div>
 
