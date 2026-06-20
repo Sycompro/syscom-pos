@@ -110,8 +110,8 @@ body {
   height: 40px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  background: transparent;
+  box-shadow: none;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
@@ -119,13 +119,13 @@ body {
 
 .modern-burger-container:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: transparent;
+  box-shadow: none;
 }
 
 .modern-burger-container:active {
-  transform: scale(0.95);
-  background: #f1f5f9;
+  transform: scale(0.92);
+  background: transparent;
 }
 
 .modern-burger-icon {
@@ -138,7 +138,7 @@ body {
 
 .modern-burger-line {
   height: 2px;
-  background-color: #0f172a;
+  background-color: #0d1b3e;
   border-radius: 4px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }

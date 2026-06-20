@@ -949,9 +949,9 @@ export default function POSPage() {
                         flexShrink: 0
                     }}>
                         {activeTab === 'pos' ? (
-                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '19px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '23px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                                 <span style={{ color: '#4f7df9' }}>Syscom</span>
-                                <span style={{ color: '#0f172a' }}>.click</span>
+                                <span style={{ color: '#0d1b3e' }}>.click</span>
                             </span>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
