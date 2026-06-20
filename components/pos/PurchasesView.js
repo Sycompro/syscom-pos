@@ -54,6 +54,10 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   // Estados específicos de OCM (Creación)
   const [fechaOCMEmision, setFechaOCMEmision] = useState('');
   const [fechaOCMVencimiento, setFechaOCMVencimiento] = useState('');
+  const [ocmCond, setOcmCond] = useState('CONTADO');
+  const [ocmCodcoc, setOcmCodcoc] = useState('01');
+  const [conditionsList, setConditionsList] = useState([]);
+  const [classificationsList, setClassificationsList] = useState([]);
 
   // Estados específicos de GIM (Creación)
   const [gimImportMode, setGimImportMode] = useState('direct'); // 'direct' o 'import'
@@ -85,7 +89,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
 
   const isMobile = windowWidth < 768;
 
-  // Inicializar fechas hoy
+  // Inicializar fechas hoy y metadata de OCM
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     setFechaOCMEmision(today);
@@ -93,6 +97,36 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     setFechaGIMEmision(today);
     setFechaCCPEmision(today);
     setFechaCCPVencimiento(today);
+
+    const fetchMetadata = async () => {
+      try {
+        const res = await fetch('/api/purchases/ocm/metadata');
+        const data = await res.json();
+        if (data.success) {
+          setConditionsList(data.conditions || []);
+          setClassificationsList(data.classifications || []);
+          if (data.conditions && data.conditions.length > 0) {
+            const defaultCond = data.conditions.find(c => c.nomcdv.trim() === 'EFECTIVO' || c.nomcdv.trim() === 'CONTADO');
+            if (defaultCond) {
+              setOcmCond(defaultCond.nomcdv.trim());
+            } else {
+              setOcmCond(data.conditions[0].nomcdv.trim());
+            }
+          }
+          if (data.classifications && data.classifications.length > 0) {
+            const defaultCoc = data.classifications.find(c => c.codcoc.trim() === '01');
+            if (defaultCoc) {
+              setOcmCodcoc(defaultCoc.codcoc);
+            } else {
+              setOcmCodcoc(data.classifications[0].codcoc);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching OCM metadata:', err);
+      }
+    };
+    fetchMetadata();
   }, []);
 
   // Cargar historial en base a pestaña activa
@@ -383,6 +417,8 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         supplier: getSupplierData(),
         fechaEmision: fechaOCMEmision,
         fechaVencimiento: fechaOCMVencimiento,
+        cond: ocmCond,
+        codcoc: ocmCodcoc,
         items: cartItems.map(item => ({
           id: item.id,
           quantity: item.quantity,
@@ -993,6 +1029,37 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                             style={dateStyle}
                           />
                         </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={fieldLabelStyle}>Condición de Pago</span>
+                        <select 
+                          value={ocmCond}
+                          onChange={e => setOcmCond(e.target.value)}
+                          style={selectStyle}
+                        >
+                          {conditionsList.map((condObj, idx) => (
+                            <option key={idx} value={condObj.nomcdv}>
+                              {condObj.nomcdv}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={fieldLabelStyle}>Clasificación</span>
+                        <select 
+                          value={ocmCodcoc}
+                          onChange={e => setOcmCodcoc(e.target.value)}
+                          style={selectStyle}
+                        >
+                          {classificationsList.map((cocObj, idx) => (
+                            <option key={idx} value={cocObj.codcoc}>
+                              {cocObj.nomcoc}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </>

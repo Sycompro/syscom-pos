@@ -428,7 +428,9 @@ class NavaPurchaseService {
         supplier, // { codpro, nompro, rucpro }
         fechaEmision,
         fechaVencimiento,
-        items // Array de { id, quantity, cost } (cost = unit cost with IGV)
+        items, // Array de { id, quantity, cost } (cost = unit cost with IGV)
+        cond,
+        codcoc
       } = data;
 
       if (!idApeCaj) throw new Error("ID de apertura de caja requerido");
@@ -558,6 +560,8 @@ class NavaPurchaseService {
       const finalCodpro = supplier.codpro.substring(0, 6);
       const finalNompro = supplier.nompro.trim().toUpperCase().substring(0, 60);
       const finalRucpro = supplier.rucpro ? supplier.rucpro.trim().substring(0, 11) : '';
+      const finalCond = cond ? cond.trim().toUpperCase() : 'CONTADO';
+      const finalCodcoc = codcoc ? codcoc.trim() : '01';
 
       // 7. Insertar en mst01ocm
       const reqMstOcm = new sql.Request(transaction);
@@ -575,6 +579,8 @@ class NavaPurchaseService {
         .input('fven', sql.Date, fechaVencStr)
         .input('codalm', sql.Char(2), resolvedWarehouse)
         .input('codusu', sql.Char(3), erpUsu.substring(0, 3))
+        .input('cond', sql.VarChar(80), finalCond.padEnd(80, ' '))
+        .input('codcoc', sql.Char(2), finalCodcoc)
         .query(`
           INSERT INTO mst01ocm (
             fecha, cdocu, ndocu, codpro, nompro, rucpro, atte, refe, mone, tcam,
@@ -590,9 +596,9 @@ class NavaPurchaseService {
           ) VALUES (
             @fecha, '28', @ndocu, @codpro, @nompro, @rucpro, '                              ', '            ', 'S', @tcam,
             @totb, 0, @tota, @toti, @totn, @fven, '1', 'ABASTECEDOR                                                 ',
-            '                                                                                ', 'CONTADO                                                                         ',
+            '                                                                                ', @cond,
             '            ', @codalm, '', '                                        ', 0, 0, 0, ' ', 0,
-            '     ', '               ', '                    ', 0, '01', 1, '          ', '            ',
+            '     ', '               ', '                    ', 0, @codcoc, 1, '          ', '            ',
             '', '', '', '', '', '', '', '               ',
             NULL, 0, NULL, ' ', '            ', '            ', '', '0',
             '                    ', '0 ', '  ', '            ', '', '', 'V0000', GETDATE(),
