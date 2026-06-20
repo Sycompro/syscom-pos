@@ -938,7 +938,7 @@ export default function POSPage() {
     };
 
     return (
-        <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#f1f5f9', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', height: '100vh', width: '100vw', background: isMobileDevice ? '#18181b' : '#f1f5f9', overflow: 'hidden' }}>
             {/* Sidebar para PC / Tablet */}
             {!isMobileDevice && (
                 <Sidebar
@@ -959,9 +959,9 @@ export default function POSPage() {
                 {/* Cabecera Global Móvil para celulares */}
                 {isMobileDevice && (
                     <div style={{ 
-                        background: '#fff', 
+                        background: '#18181b', 
                         height: '56px', 
-                        borderBottom: 'none', 
+                        borderBottom: '1px solid #27272a', 
                         display: 'flex', 
                         alignItems: 'center', 
                         padding: '0 16px',
@@ -970,12 +970,12 @@ export default function POSPage() {
                     }}>
                         {activeTab === 'pos' ? (
                             <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '23px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
-                                <span style={{ color: '#4f7df9' }}>Syscom</span>
-                                <span style={{ color: '#0d1b3e' }}>.click</span>
+                                <span style={{ color: '#fb7185' }}>Syscom</span>
+                                <span style={{ color: '#fafafa' }}>.click</span>
                             </span>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <span style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 900, color: '#fafafa', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                     {activeTab === 'dashboard' ? 'Dashboard' : 
                                      activeTab === 'memberships' ? 'Membresías' : 
                                      activeTab === 'promotions' ? 'Promociones' : 
@@ -994,7 +994,7 @@ export default function POSPage() {
                                      activeTab === 'classifications' ? 'Clasificaciones' :
                                      activeTab === 'brands' ? 'Marcas ERP' : 'POS'}
                                 </span>
-                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase' }}>
+                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#fb7185', textTransform: 'uppercase' }}>
                                     {companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
                                 </span>
                             </div>
@@ -1005,7 +1005,7 @@ export default function POSPage() {
                                 style={{
                                     border: 'none',
                                     background: 'transparent',
-                                    color: '#0d1b3e', // azul noche
+                                    color: '#fafafa',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -1024,7 +1024,7 @@ export default function POSPage() {
                                 style={{
                                     border: 'none',
                                     background: 'transparent',
-                                    color: '#0d1b3e', // azul noche
+                                    color: '#fafafa',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -1044,9 +1044,9 @@ export default function POSPage() {
                                 aria-label="Abrir menú"
                             >
                                 <div className="modern-burger-icon">
-                                    <span className="modern-burger-line modern-burger-line-1"></span>
-                                    <span className="modern-burger-line modern-burger-line-2"></span>
-                                    <span className="modern-burger-line modern-burger-line-3"></span>
+                                    <span className="modern-burger-line modern-burger-line-1" style={{ background: '#fafafa' }}></span>
+                                    <span className="modern-burger-line modern-burger-line-2" style={{ background: '#fafafa' }}></span>
+                                    <span className="modern-burger-line modern-burger-line-3" style={{ background: '#fafafa' }}></span>
                                 </div>
                             </button>
                         </div>
@@ -1061,7 +1061,7 @@ export default function POSPage() {
                             style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
                         >
                             {/* AREA DE VENTAS */}
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden' }}>
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: isMobileDevice ? '#18181b' : '#f8fafc', overflow: 'hidden' }}>
 
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
                                 {!isMobileDevice && (
@@ -1159,23 +1159,22 @@ export default function POSPage() {
                                 )}
 
                                 {/* LÍNEA 2: BARRA CLIENTE POS (PROFESIONAL) */}
-                                <div style={{ background: '#fff', padding: isMobileDevice ? '8px 8px' : '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: isMobileDevice ? '6px' : '12px' }}>
+                                <div style={{ background: isMobileDevice ? '#18181b' : '#fff', padding: isMobileDevice ? '10px 12px' : '8px 16px', borderBottom: isMobileDevice ? '1px solid #27272a' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: isMobileDevice ? '8px' : '12px' }}>
 
                                     {/* Selector de Tipo DNI/RUC/CE */}
                                     <div style={{ 
                                         display: 'flex', 
                                         background: isMobileDevice ? 'transparent' : '#f1f5f9', 
-                                        borderRadius: isMobileDevice ? '12px' : '8px', 
+                                        borderRadius: isMobileDevice ? '20px' : '8px', 
                                         padding: isMobileDevice ? '0' : '2px', 
                                         gap: isMobileDevice ? '6px' : '2px', 
                                         border: isMobileDevice ? 'none' : '1px solid #e2e8f0' 
                                     }}>
                                         {['DNI', 'RUC', 'CE'].map(type => {
                                             const isSelected = searchType === type;
-                                            // Diseño de color sobrio y unificado para DNI/RUC/CE (Azul suave)
-                                            let activeBg = '#eff6ff';
-                                            let activeColor = '#3b82f6';
-                                            let activeBorder = '1px solid #bfdbfe';
+                                            let activeBg = isMobileDevice ? '#fb7185' : '#eff6ff';
+                                            let activeColor = isMobileDevice ? '#18181b' : '#3b82f6';
+                                            let activeBorder = isMobileDevice ? 'none' : '1px solid #bfdbfe';
 
                                             return (
                                                 <button
@@ -1188,15 +1187,15 @@ export default function POSPage() {
                                                         setShowCEKeyboard(false);
                                                     }}
                                                     style={{
-                                                        padding: isMobileDevice ? '8px 10px' : '4px 8px',
-                                                        borderRadius: isMobileDevice ? '10px' : '6px',
-                                                        border: isSelected ? (isMobileDevice ? activeBorder : 'none') : '1px solid #e2e8f0',
+                                                        padding: isMobileDevice ? '7px 12px' : '4px 8px',
+                                                        borderRadius: isMobileDevice ? '20px' : '6px',
+                                                        border: isSelected ? activeBorder : (isMobileDevice ? '1px solid #3f3f46' : '1px solid #e2e8f0'),
                                                         cursor: 'pointer',
                                                         fontSize: isMobileDevice ? '12px' : '10px',
                                                         fontWeight: isMobileDevice ? 900 : 800,
-                                                        background: isSelected ? (isMobileDevice ? activeBg : '#fff') : (isMobileDevice ? '#ffffff' : 'transparent'),
-                                                        color: isSelected ? (isMobileDevice ? activeColor : '#3b82f6') : '#64748b',
-                                                        boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(15, 23, 42, 0.05)' : '0 2px 4px rgba(0,0,0,0.05)') : (isMobileDevice ? '0 2px 4px rgba(0,0,0,0.02)' : 'none'),
+                                                        background: isSelected ? activeBg : (isMobileDevice ? '#27272a' : '#fff'),
+                                                        color: isSelected ? activeColor : (isMobileDevice ? '#a1a1aa' : '#64748b'),
+                                                        boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(251, 113, 133, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)') : 'none',
                                                         transition: 'all 0.25s ease'
                                                     }}
                                                 >
@@ -1231,15 +1230,16 @@ export default function POSPage() {
                                             maxLength={searchType === 'DNI' ? 8 : 11}
                                             style={{ 
                                                 width: '100%', 
-                                                paddingLeft: isMobileDevice ? '10px' : '30px', 
+                                                paddingLeft: isMobileDevice ? '14px' : '30px', 
                                                 paddingRight: isMobileDevice ? (customerSearch ? '32px' : '10px') : '10px', 
-                                                paddingTop: isMobileDevice ? '9px' : '8px', 
-                                                paddingBottom: isMobileDevice ? '9px' : '8px', 
-                                                background: '#ffffff', 
-                                                border: '1px solid #e2e8f0', 
-                                                borderRadius: isMobileDevice ? '10px' : '10px', 
+                                                paddingTop: isMobileDevice ? '10px' : '8px', 
+                                                paddingBottom: isMobileDevice ? '10px' : '8px', 
+                                                background: isMobileDevice ? '#27272a' : '#ffffff', 
+                                                border: isMobileDevice ? '1px solid #3f3f46' : '1px solid #e2e8f0', 
+                                                borderRadius: isMobileDevice ? '24px' : '10px', 
                                                 fontSize: isMobileDevice ? '13px' : '12px', 
                                                 fontWeight: 700, 
+                                                color: isMobileDevice ? '#fafafa' : '#1e293b',
                                                 outline: 'none' 
                                             }}
                                         />
@@ -1376,110 +1376,113 @@ export default function POSPage() {
                                 )}
 
                                 {/* BARRA SUPERIOR POS (AHORA SEGUNDO) */}
-                                <div style={{ 
-                                     background: '#fff', 
-                                     padding: '8px 16px', 
-                                     borderBottom: isMobileDevice ? 'none' : '1px solid #e2e8f0', 
-                                     display: 'flex', 
-                                     flexDirection: isMobileDevice ? 'column' : 'row',
-                                     alignItems: isMobileDevice ? 'stretch' : 'center', 
-                                     gap: isMobileDevice ? '8px' : '12px' 
-                                 }}>
-                                     {/* En móviles, la fila de botones (Vendedor + Comprobantes) va primero */}
-                                     {isMobileDevice && (
-                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                                             {/* Selector de Vendedor */}
-                                             <div style={{ 
-                                                 position: 'relative', width: '36px', height: '36px', borderRadius: '10px', 
-                                                 border: '1px solid #e2e8f0', background: selectedSalesperson ? '#eff6ff' : '#fff', 
-                                                 borderColor: selectedSalesperson ? '#bfdbfe' : '#e2e8f0',
-                                                 color: selectedSalesperson ? '#3b82f6' : '#64748b', 
-                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                 flexShrink: 0
-                                             }} title="Seleccionar Vendedor">
-                                                 <User size={18} />
-                                                 <select
-                                                     value={selectedSalesperson}
-                                                     onChange={(e) => setSelectedSalesperson(e.target.value)}
-                                                     style={{
-                                                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                                                         opacity: 0, cursor: 'pointer', zIndex: 10
-                                                     }}
-                                                 >
-                                                     {salespeople.map(v => (
-                                                         <option key={v.id} value={v.id}>
-                                                             {v.name.trim()}
-                                                         </option>
-                                                     ))}
-                                                 </select>
-                                             </div>
-
-                                             {/* Selector de Boleta/Factura/Nota */}
-                                             <div style={{ display: 'flex', gap: '6px', flex: 1, justifyContent: 'flex-end' }}>
-                                                 {['03', '01', '65'].map(t => {
-                                                     const isSelected = docType === t;
-                                                     let activeBg = '#eff6ff'; // Boleta: Azul
-                                                     let activeColor = '#3b82f6';
-                                                     let activeBorder = '1px solid #bfdbfe';
-                                                     
-                                                     if (t === '01') { // Factura: Verde/Esmeralda
-                                                         activeBg = '#ecfdf5';
-                                                         activeColor = '#10b981';
-                                                         activeBorder = '1px solid #a7f3d0';
-                                                     } else if (t === '65') { // Nota: Naranja corporativo
-                                                         activeBg = '#fff7ed';
-                                                         activeColor = '#f97316';
-                                                         activeBorder = '1px solid #ffedd5';
-                                                     }
-
-                                                     return (
-                                                         <button
-                                                             key={t}
-                                                             onClick={() => setDocType(t)}
-                                                             style={{
-                                                                 flex: 1,
-                                                                 height: '36px',
-                                                                 borderRadius: '10px',
-                                                                 border: isSelected ? activeBorder : '1px solid #e2e8f0',
-                                                                 cursor: 'pointer',
-                                                                 fontSize: '11px',
-                                                                 fontWeight: 900,
-                                                                 background: isSelected ? activeBg : '#ffffff',
-                                                                 color: isSelected ? activeColor : '#64748b',
-                                                                 boxShadow: isSelected ? '0 4px 10px rgba(15, 23, 42, 0.05)' : '0 2px 4px rgba(0,0,0,0.02)',
-                                                                 transition: 'all 0.25s ease'
-                                                             }}
-                                                         >
-                                                    {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
-                                                         </button>
-                                                     );
-                                                 })}
-                                             </div>
-                                         </div>
-                                     )}
-
-                                     {/* El Buscador de Productos */}
-                                     <div style={{ flex: 1, position: 'relative' }}>
-                                         <Search size={isMobileDevice ? 18 : 18} style={{ position: 'absolute', left: isMobileDevice ? '14px' : '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                         <input 
-                                             type="text" 
-                                             inputMode="none"
-                                             placeholder="Busca productos..." 
-                                             value={searchTerm} 
-                                             onChange={e => setSearchTerm(e.target.value)} 
-                                             onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
-                                             style={{ 
-                                                 width: '100%', 
-                                                 padding: isMobileDevice ? '12px 44px 12px 40px' : '9px 40px 9px 36px', 
-                                                 borderRadius: isMobileDevice ? '28px' : '24px', 
-                                                 border: '1px solid #e2e8f0', 
-                                                 outline: 'none', 
-                                                 fontSize: isMobileDevice ? '15px' : '13px',
-                                                 fontWeight: isMobileDevice ? 700 : 500,
-                                                 background: '#ffffff',
-                                                 boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)'
-                                             }} 
-                                         />
+                                <div style={{
+                                      background: isMobileDevice ? '#18181b' : '#fff', 
+                                      padding: isMobileDevice ? '10px 12px' : '8px 16px', 
+                                      borderBottom: isMobileDevice ? '1px solid #27272a' : '1px solid #e2e8f0', 
+                                      display: 'flex', 
+                                      flexDirection: isMobileDevice ? 'column' : 'row',
+                                      alignItems: isMobileDevice ? 'stretch' : 'center', 
+                                      gap: isMobileDevice ? '8px' : '12px' 
+                                  }}>
+                                      {/* En móviles, la fila de botones (Vendedor + Comprobantes) va primero */}
+                                      {isMobileDevice && (
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                              {/* Selector de Vendedor */}
+                                              <div style={{ 
+                                                  position: 'relative', width: '36px', height: '36px', borderRadius: isMobileDevice ? '50%' : '10px', 
+                                                  border: isMobileDevice ? '1px solid #3f3f46' : '1px solid #e2e8f0', 
+                                                  background: selectedSalesperson ? (isMobileDevice ? '#fb7185' : '#eff6ff') : (isMobileDevice ? '#27272a' : '#fff'), 
+                                                  borderColor: selectedSalesperson ? (isMobileDevice ? '#fb7185' : '#bfdbfe') : (isMobileDevice ? '#3f3f46' : '#e2e8f0'),
+                                                  color: selectedSalesperson ? (isMobileDevice ? '#18181b' : '#3b82f6') : (isMobileDevice ? '#a1a1aa' : '#64748b'), 
+                                                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                                  boxShadow: selectedSalesperson ? (isMobileDevice ? '0 2px 6px rgba(251, 113, 133, 0.15)' : '0 2px 6px rgba(79, 70, 229, 0.1)') : 'none',
+                                                  flexShrink: 0
+                                              }} title="Seleccionar Vendedor">
+                                                  <User size={18} />
+                                                  <select
+                                                      value={selectedSalesperson}
+                                                      onChange={(e) => setSelectedSalesperson(e.target.value)}
+                                                      style={{
+                                                          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                                          opacity: 0, cursor: 'pointer', zIndex: 10
+                                                      }}
+                                                  >
+                                                      {salespeople.map(v => (
+                                                          <option key={v.id} value={v.id}>
+                                                              {v.name.trim()}
+                                                          </option>
+                                                      ))}
+                                                  </select>
+                                              </div>
+ 
+                                              {/* Selector de Boleta/Factura/Nota */}
+                                              <div style={{ display: 'flex', gap: '6px', flex: 1, justifyContent: 'flex-end' }}>
+                                                  {['03', '01', '65'].map(t => {
+                                                      const isSelected = docType === t;
+                                                      let activeBg = isMobileDevice ? '#bae6fd' : '#eff6ff'; // Boleta: Celeste pastel en móvil
+                                                      let activeColor = isMobileDevice ? '#0f172a' : '#3b82f6';
+                                                      let activeBorder = isMobileDevice ? 'none' : '1px solid #bfdbfe';
+                                                      
+                                                      if (t === '01') { // Factura: Verde menta pastel en móvil
+                                                          activeBg = isMobileDevice ? '#bbf7d0' : '#ecfdf5';
+                                                          activeColor = isMobileDevice ? '#0f172a' : '#10b981';
+                                                          activeBorder = isMobileDevice ? 'none' : '1px solid #a7f3d0';
+                                                      } else if (t === '65') { // Nota: Naranja melón pastel en móvil
+                                                          activeBg = isMobileDevice ? '#fed7aa' : '#fff7ed';
+                                                          activeColor = isMobileDevice ? '#0f172a' : '#f97316';
+                                                          activeBorder = isMobileDevice ? 'none' : '1px solid #ffedd5';
+                                                      }
+ 
+                                                      return (
+                                                          <button
+                                                              key={t}
+                                                              onClick={() => setDocType(t)}
+                                                              style={{
+                                                                  flex: 1,
+                                                                  height: isMobileDevice ? '38px' : '36px',
+                                                                  borderRadius: isMobileDevice ? '20px' : '10px',
+                                                                  border: isSelected ? activeBorder : (isMobileDevice ? '1px solid #3f3f46' : '1px solid #e2e8f0'),
+                                                                  cursor: 'pointer',
+                                                                  fontSize: '11px',
+                                                                  fontWeight: 900,
+                                                                  background: isSelected ? activeBg : (isMobileDevice ? '#27272a' : '#ffffff'),
+                                                                  color: isSelected ? activeColor : (isMobileDevice ? '#a1a1aa' : '#64748b'),
+                                                                  boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(0,0,0,0.1)' : '0 4px 10px rgba(15, 23, 42, 0.05)') : 'none',
+                                                                  transition: 'all 0.25s ease'
+                                                              }}
+                                                          >
+                                                              {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
+                                                          </button>
+                                                      );
+                                                  })}
+                                              </div>
+                                          </div>
+                                      )}
+ 
+                                      {/* El Buscador de Productos */}
+                                      <div style={{ flex: 1, position: 'relative' }}>
+                                          <Search size={isMobileDevice ? 18 : 18} style={{ position: 'absolute', left: isMobileDevice ? '14px' : '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                          <input 
+                                              type="text" 
+                                              inputMode="none"
+                                              placeholder="Busca productos..." 
+                                              value={searchTerm} 
+                                              onChange={e => setSearchTerm(e.target.value)} 
+                                              onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
+                                              style={{ 
+                                                  width: '100%', 
+                                                  padding: isMobileDevice ? '12px 44px 12px 40px' : '9px 40px 9px 36px', 
+                                                  borderRadius: isMobileDevice ? '28px' : '24px', 
+                                                  border: isMobileDevice ? '1px solid #3f3f46' : '1px solid #e2e8f0', 
+                                                  outline: 'none', 
+                                                  fontSize: isMobileDevice ? '15px' : '13px',
+                                                  fontWeight: isMobileDevice ? 700 : 500,
+                                                  background: isMobileDevice ? '#27272a' : '#ffffff',
+                                                  color: isMobileDevice ? '#fafafa' : '#1e293b',
+                                                  boxShadow: isMobileDevice ? 'none' : '0 2px 6px rgba(15, 23, 42, 0.03)'
+                                              }} 
+                                          />
                                          <button
                                              onClick={() => setShowScannerModal(true)}
                                              style={{
@@ -1493,14 +1496,14 @@ export default function POSPage() {
                                                  display: 'flex',
                                                  alignItems: 'center',
                                                  justifyContent: 'center',
-                                                 color: '#3b82f6',
+                                                 color: isMobileDevice ? '#fb7185' : '#3b82f6',
                                                  padding: '4px',
                                                  borderRadius: '50%',
                                                  transition: 'all 0.2s'
                                              }}
                                              title="Escanear Código de Barras / QR"
-                                             onMouseEnter={e => e.currentTarget.style.color = '#1d4ed8'}
-                                             onMouseLeave={e => e.currentTarget.style.color = '#3b82f6'}
+                                             onMouseEnter={e => e.currentTarget.style.color = isMobileDevice ? '#f43f5e' : '#1d4ed8'}
+                                             onMouseLeave={e => e.currentTarget.style.color = isMobileDevice ? '#fb7185' : '#3b82f6'}
                                          >
                                              <ScanBarcode size={isMobileDevice ? 22 : 18} />
                                          </button>
@@ -1569,16 +1572,22 @@ export default function POSPage() {
                                 </div>
 
                                 {/* BARRA DE CATEGORÍAS RESTAURADA (AHORA TERCERO) */}
-                                <div style={{ flexShrink: 0, background: '#f8fafc', padding: '6px 16px', borderBottom: isMobileDevice ? 'none' : '1px solid #e2e8f0', display: 'flex', gap: '6px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
+                                <div style={{ flexShrink: 0, background: isMobileDevice ? '#18181b' : '#f8fafc', padding: isMobileDevice ? '6px 12px' : '6px 16px', borderBottom: isMobileDevice ? '1px solid #27272a' : '1px solid #e2e8f0', display: 'flex', gap: '6px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
                                     {categories.map(cat => (
                                         <button
                                             key={cat.id}
                                             onClick={() => setSelectedCategory(cat.id)}
                                             style={{
-                                                padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, border: 'none', cursor: 'pointer',
-                                                background: selectedCategory === cat.id ? '#3b82f6' : '#fff',
-                                                color: selectedCategory === cat.id ? '#fff' : '#64748b',
-                                                boxShadow: '0 2px 4px rgba(0,0,0,0.04)', transition: 'all 0.2s'
+                                                padding: isMobileDevice ? '6px 14px' : '6px 12px', 
+                                                borderRadius: isMobileDevice ? '20px' : '8px', 
+                                                fontSize: '11px', 
+                                                fontWeight: 800, 
+                                                border: isMobileDevice ? (selectedCategory === cat.id ? 'none' : '1px solid #3f3f46') : 'none', 
+                                                cursor: 'pointer',
+                                                background: selectedCategory === cat.id ? (isMobileDevice ? '#fb7185' : '#3b82f6') : (isMobileDevice ? '#27272a' : '#fff'),
+                                                color: selectedCategory === cat.id ? (isMobileDevice ? '#18181b' : '#fff') : (isMobileDevice ? '#a1a1aa' : '#64748b'),
+                                                boxShadow: selectedCategory === cat.id ? (isMobileDevice ? '0 4px 10px rgba(251, 113, 133, 0.2)' : '0 2px 4px rgba(0,0,0,0.04)') : 'none', 
+                                                transition: 'all 0.2s'
                                             }}
                                         >
                                             {cat.name}
@@ -1588,7 +1597,7 @@ export default function POSPage() {
 
                                 {/* GRID PRODUCTOS */}
                                 <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px' }}>
-                                    {loading ? <p style={{ fontSize: '12px', padding: '10px' }}>Cargando...</p> : (products || []).map(p => <ProductCard key={p.id} product={p} onAdd={() => addToCart(p)} />)}
+                                     {loading ? <p style={{ fontSize: '12px', padding: '10px', color: isMobileDevice ? '#a1a1aa' : '#64748b' }}>Cargando...</p> : (products || []).map(p => <ProductCard key={p.id} product={p} onAdd={() => addToCart(p)} isMobileDevice={isMobileDevice} />)}
                                 </div>
                             </div>
 
@@ -1613,12 +1622,12 @@ export default function POSPage() {
                                                 position: 'fixed',
                                                 bottom: '24px',
                                                 right: '24px',
-                                                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                                background: 'linear-gradient(135deg, #fb7185 0%, #f43f5e 100%)',
                                                 color: '#fff',
                                                 border: 'none',
                                                 borderRadius: '50px',
                                                 padding: '12px 20px',
-                                                boxShadow: '0 10px 25px rgba(29, 78, 216, 0.4), 0 4px 10px rgba(0,0,0,0.1)',
+                                                boxShadow: '0 10px 25px rgba(244, 63, 94, 0.3), 0 4px 10px rgba(0,0,0,0.15)',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
