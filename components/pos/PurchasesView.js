@@ -78,6 +78,18 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
 
   const supplierRef = useRef(null);
   const productRef = useRef(null);
+  const ocmRef = useRef(null);
+  const gimRef = useRef(null);
+
+  // Búsqueda interactiva de OCM y GIM
+  const [ocmSearchQuery, setOcmSearchQuery] = useState('');
+  const [showOcmDropdown, setShowOcmDropdown] = useState(false);
+  const [gimSearchQuery, setGimSearchQuery] = useState('');
+  const [showGimDropdown, setShowGimDropdown] = useState(false);
+
+  // Consulta de RUC rápido desde el buscador
+  const [quickLookupResult, setQuickLookupResult] = useState(null);
+  const [searchingQuickLookup, setSearchingQuickLookup] = useState(false);
   const [windowWidth, setWindowWidth] = useState(1200);
 
   useEffect(() => {
@@ -290,19 +302,22 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
       if (productRef.current && !productRef.current.contains(event.target)) {
         setShowProductDropdown(false);
       }
+      if (ocmRef.current && !ocmRef.current.contains(event.target)) {
+        setShowOcmDropdown(false);
+      }
+      if (gimRef.current && !gimRef.current.contains(event.target)) {
+        setShowGimDropdown(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Búsqueda de Proveedores
+  // Búsqueda de Proveedores (Carga inicial y filtrado con debounce)
   useEffect(() => {
     if (isGenericSupplier) return;
-    if (supplierSearchQuery.length < 2) {
-      setSupplierResults([]);
-      return;
-    }
-    const delayDebounceFn = setTimeout(async () => {
+    
+    const fetchSuppliers = async () => {
       setSearchingSupplier(true);
       try {
         const res = await fetch(`/api/suppliers/search?q=${encodeURIComponent(supplierSearchQuery)}`);
@@ -313,10 +328,84 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
       } finally {
         setSearchingSupplier(false);
       }
-    }, 400);
+    };
 
+    if (supplierSearchQuery.length === 0) {
+      fetchSuppliers();
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(fetchSuppliers, 300);
     return () => clearTimeout(delayDebounceFn);
   }, [supplierSearchQuery, isGenericSupplier]);
+
+  // Consulta rápida de RUC/DNI en SUNAT/RENIEC
+  const handleQuickLookup = async (query) => {
+    setSearchingQuickLookup(true);
+    setQuickLookupResult(null);
+    setErrorMsg(null);
+    try {
+      const docType = query.length === 11 ? '06' : '01';
+      const res = await fetch(`/api/suppliers/lookup?q=${encodeURIComponent(query)}&docType=${docType}`);
+      const data = await res.json();
+      if (data.success) {
+        if (data.exists) {
+          handleSelectSupplier(data.supplier);
+        } else if (data.data) {
+          setQuickLookupResult({
+            nompro: data.data.nompro,
+            rucpro: query,
+            dirpro: data.data.dirpro || ''
+          });
+        } else {
+          setErrorMsg('No se encontraron datos en la consulta pública.');
+        }
+      } else {
+        setErrorMsg(data.error || 'Error al consultar documento.');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Error al conectar con el servicio de consulta.');
+    } finally {
+      setSearchingQuickLookup(false);
+    }
+  };
+
+  // Registrar proveedor rápido y seleccionarlo automáticamente
+  const handleRegisterQuickSupplier = async () => {
+    if (!quickLookupResult) return;
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const docType = quickLookupResult.rucpro.length === 11 ? '06' : '01';
+      const res = await fetch('/api/suppliers/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nompro: quickLookupResult.nompro,
+          rucpro: quickLookupResult.rucpro,
+          dirpro: quickLookupResult.dirpro,
+          docType: docType
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        handleSelectSupplier({
+          codpro: data.codpro,
+          nompro: quickLookupResult.nompro,
+          rucpro: quickLookupResult.rucpro
+        });
+        setQuickLookupResult(null);
+      } else {
+        throw new Error(data.error || 'Error al registrar proveedor');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Búsqueda de Productos
   useEffect(() => {
@@ -813,23 +902,99 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     </div>
 
                     {gimImportMode === 'import' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div ref={ocmRef} style={{ display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
                         <span style={fieldLabelStyle}>Seleccionar OCM Pendiente</span>
-                        <select 
-                          value={selectedOcmNumber}
-                          onChange={(e) => {
-                            setSelectedOcmNumber(e.target.value);
-                            handleImportOcm(e.target.value);
-                          }}
-                          style={selectStyle}
-                        >
-                          <option value="">-- Seleccionar Orden --</option>
-                          {pendingOcms.map((ocm, i) => (
-                            <option key={i} value={ocm.ndocu}>
-                              {ocm.ndocu} | {ocm.nompro} ({formatCurrency(ocm.totn)})
-                            </option>
-                          ))}
-                        </select>
+                        
+                        {!selectedOcmNumber ? (
+                          <>
+                            <div style={inputWrapperStyle}>
+                              <Search size={16} color="#94a3b8" />
+                              <input 
+                                type="text" 
+                                placeholder="Buscar OCM por número o proveedor..."
+                                value={ocmSearchQuery}
+                                onChange={(e) => {
+                                  setOcmSearchQuery(e.target.value);
+                                  setShowOcmDropdown(true);
+                                }}
+                                onFocus={() => setShowOcmDropdown(true)}
+                                style={inputStyle}
+                              />
+                            </div>
+
+                            {showOcmDropdown && (
+                              <div style={dropdownListStyle}>
+                                {pendingOcms
+                                  .filter(ocm => 
+                                    ocm.ndocu.toLowerCase().includes(ocmSearchQuery.toLowerCase()) ||
+                                    ocm.nompro.toLowerCase().includes(ocmSearchQuery.toLowerCase())
+                                  )
+                                  .map((ocm, idx) => (
+                                    <div 
+                                      key={idx} 
+                                      onClick={() => {
+                                        setSelectedOcmNumber(ocm.ndocu);
+                                        handleImportOcm(ocm.ndocu);
+                                        setShowOcmDropdown(false);
+                                        setOcmSearchQuery('');
+                                      }}
+                                      style={dropdownItemStyle}
+                                    >
+                                      <div style={{ fontWeight: 800, color: '#334155' }}>{ocm.ndocu}</div>
+                                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                                        {ocm.nompro} | {formatCurrency(ocm.totn)}
+                                      </div>
+                                    </div>
+                                  ))
+                                }
+                                {pendingOcms.filter(ocm => 
+                                  ocm.ndocu.toLowerCase().includes(ocmSearchQuery.toLowerCase()) ||
+                                  ocm.nompro.toLowerCase().includes(ocmSearchQuery.toLowerCase())
+                                ).length === 0 && (
+                                  <div style={{ ...dropdownItemStyle, textAlign: 'center', color: '#64748b', cursor: 'default' }}>
+                                    No se encontraron órdenes pendientes.
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div style={{
+                            ...selectedSupplierBadgeStyle,
+                            display: 'flex',
+                            justifyContent: 'between',
+                            alignItems: 'center',
+                            width: '100%',
+                            marginTop: '4px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <Check size={14} color="#10b981" style={{ marginRight: '6px' }} />
+                              <div style={{ fontSize: '12px' }}>
+                                <strong>Importado OCM:</strong> {selectedOcmNumber} {selectedSupplier ? ` - ${selectedSupplier.nompro}` : ''}
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setSelectedOcmNumber('');
+                                setCartItems([]);
+                                setSelectedSupplier(null);
+                                setSupplierSearchQuery('');
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#ef4444',
+                                fontSize: '11px',
+                                fontWeight: 850,
+                                cursor: 'pointer',
+                                padding: '2px 6px',
+                                marginLeft: 'auto'
+                              }}
+                            >
+                              Limpiar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -864,23 +1029,99 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     </div>
 
                     {ccpImportMode === 'import' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div ref={gimRef} style={{ display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
                         <span style={fieldLabelStyle}>Seleccionar GIM Pendiente</span>
-                        <select 
-                          value={selectedGimNumber}
-                          onChange={(e) => {
-                            setSelectedGimNumber(e.target.value);
-                            handleImportGim(e.target.value);
-                          }}
-                          style={selectStyle}
-                        >
-                          <option value="">-- Seleccionar Nota Ingreso --</option>
-                          {pendingGims.map((gim, i) => (
-                            <option key={i} value={gim.ndocu}>
-                              {gim.ndocu} | {gim.nompro} ({formatCurrency(gim.totn)})
-                            </option>
-                          ))}
-                        </select>
+                        
+                        {!selectedGimNumber ? (
+                          <>
+                            <div style={inputWrapperStyle}>
+                              <Search size={16} color="#94a3b8" />
+                              <input 
+                                type="text" 
+                                placeholder="Buscar GIM por número o proveedor..."
+                                value={gimSearchQuery}
+                                onChange={(e) => {
+                                  setGimSearchQuery(e.target.value);
+                                  setShowGimDropdown(true);
+                                }}
+                                onFocus={() => setShowGimDropdown(true)}
+                                style={inputStyle}
+                              />
+                            </div>
+
+                            {showGimDropdown && (
+                              <div style={dropdownListStyle}>
+                                {pendingGims
+                                  .filter(gim => 
+                                    gim.ndocu.toLowerCase().includes(gimSearchQuery.toLowerCase()) ||
+                                    gim.nompro.toLowerCase().includes(gimSearchQuery.toLowerCase())
+                                  )
+                                  .map((gim, idx) => (
+                                    <div 
+                                      key={idx} 
+                                      onClick={() => {
+                                        setSelectedGimNumber(gim.ndocu);
+                                        handleImportGim(gim.ndocu);
+                                        setShowGimDropdown(false);
+                                        setGimSearchQuery('');
+                                      }}
+                                      style={dropdownItemStyle}
+                                    >
+                                      <div style={{ fontWeight: 800, color: '#334155' }}>{gim.ndocu}</div>
+                                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                                        {gim.nompro} | {formatCurrency(gim.totn)}
+                                      </div>
+                                    </div>
+                                  ))
+                                }
+                                {pendingGims.filter(gim => 
+                                  gim.ndocu.toLowerCase().includes(gimSearchQuery.toLowerCase()) ||
+                                  gim.nompro.toLowerCase().includes(gimSearchQuery.toLowerCase())
+                                ).length === 0 && (
+                                  <div style={{ ...dropdownItemStyle, textAlign: 'center', color: '#64748b', cursor: 'default' }}>
+                                    No se encontraron notas de ingreso pendientes.
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div style={{
+                            ...selectedSupplierBadgeStyle,
+                            display: 'flex',
+                            justifyContent: 'between',
+                            alignItems: 'center',
+                            width: '100%',
+                            marginTop: '4px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <Check size={14} color="#10b981" style={{ marginRight: '6px' }} />
+                              <div style={{ fontSize: '12px' }}>
+                                <strong>Importado GIM:</strong> {selectedGimNumber} {selectedSupplier ? ` - ${selectedSupplier.nompro}` : ''}
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setSelectedGimNumber('');
+                                setCartItems([]);
+                                setSelectedSupplier(null);
+                                setSupplierSearchQuery('');
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#ef4444',
+                                fontSize: '11px',
+                                fontWeight: 850,
+                                cursor: 'pointer',
+                                padding: '2px 6px',
+                                marginLeft: 'auto'
+                              }}
+                            >
+                              Limpiar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -932,6 +1173,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                           setSupplierSearchQuery(e.target.value);
                           setSelectedSupplier(null);
                           setShowSupplierDropdown(true);
+                          setQuickLookupResult(null);
                         }}
                         onFocus={() => setShowSupplierDropdown(true)}
                         style={inputStyle}
@@ -939,7 +1181,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                       {searchingSupplier && <Loader2 className="animate-spin" size={14} color="#3b82f6" />}
                     </div>
 
-                    {showSupplierDropdown && supplierResults.length > 0 && (
+                    {showSupplierDropdown && (supplierResults.length > 0 || (/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11))) && (
                       <div style={dropdownListStyle}>
                         {supplierResults.map((s, idx) => (
                           <div 
@@ -953,6 +1195,35 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                             </div>
                           </div>
                         ))}
+
+                        {/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11) && (
+                          <div 
+                            onClick={() => {
+                              handleQuickLookup(supplierSearchQuery);
+                              setShowSupplierDropdown(false);
+                            }}
+                            style={{
+                              ...dropdownItemStyle,
+                              background: '#f0fdfa',
+                              borderTop: '1px solid #ccfbf1',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              color: '#0f766e',
+                              fontWeight: 700
+                            }}
+                          >
+                            <Search size={14} color="#0f766e" />
+                            <span>Consultar {supplierSearchQuery.length === 11 ? 'RUC' : 'DNI'} "{supplierSearchQuery}" en SUNAT/RENIEC...</span>
+                            {searchingQuickLookup && <Loader2 className="animate-spin" size={12} style={{ marginLeft: 'auto' }} />}
+                          </div>
+                        )}
+
+                        {supplierResults.length === 0 && (!/^[0-9]+$/.test(supplierSearchQuery) || (supplierSearchQuery.length !== 8 && supplierSearchQuery.length !== 11)) && (
+                          <div style={{ ...dropdownItemStyle, textAlign: 'center', color: '#64748b', cursor: 'default' }}>
+                            No se encontraron proveedores.
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -962,6 +1233,29 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                         <div style={{ fontSize: '12px' }}>
                           <strong>Seleccionado:</strong> {selectedSupplier.nompro} ({selectedSupplier.rucpro})
                         </div>
+                      </div>
+                    )}
+
+                    {quickLookupResult && (
+                      <div style={quickLookupCardStyle}>
+                        <div style={{ fontWeight: 800, color: '#0f766e', fontSize: '12px' }}>
+                          Proveedor encontrado en SUNAT:
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#334155', marginTop: '4px' }}>
+                          <strong>Razón Social:</strong> {quickLookupResult.nompro}
+                        </div>
+                        {quickLookupResult.dirpro && (
+                          <div style={{ fontSize: '11px', color: '#334155' }}>
+                            <strong>Dirección:</strong> {quickLookupResult.dirpro}
+                          </div>
+                        )}
+                        <button 
+                          onClick={handleRegisterQuickSupplier}
+                          style={quickLookupRegisterBtnStyle}
+                          disabled={loading}
+                        >
+                          {loading ? <Loader2 className="animate-spin" size={12} /> : 'Registrar y Seleccionar'}
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1693,6 +1987,34 @@ const selectedSupplierBadgeStyle = {
   borderRadius: '8px',
   padding: '8px 12px',
   marginTop: '10px'
+};
+
+const quickLookupCardStyle = {
+  background: '#f0fdfa',
+  border: '1px solid #ccfbf1',
+  borderRadius: '10px',
+  padding: '12px',
+  marginTop: '10px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6px'
+};
+
+const quickLookupRegisterBtnStyle = {
+  background: '#0d9488',
+  color: '#ffffff',
+  border: 'none',
+  borderRadius: '8px',
+  padding: '8px 12px',
+  fontSize: '12px',
+  fontWeight: 800,
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '6px',
+  marginTop: '4px',
+  transition: 'background-color 0.15s'
 };
 
 const activeTabBtnStyle = {
