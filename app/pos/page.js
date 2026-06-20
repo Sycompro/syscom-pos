@@ -1120,7 +1120,7 @@ export default function POSPage() {
                                 )}
 
                                 {/* LÍNEA 2: BARRA CLIENTE POS (PROFESIONAL) */}
-                                <div style={{ background: '#fff', padding: '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ background: '#fff', padding: isMobileDevice ? '8px 8px' : '8px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: isMobileDevice ? '6px' : '12px' }}>
 
                                     {/* Selector de Tipo DNI/RUC/CE */}
                                     <div style={{ 
@@ -1158,7 +1158,7 @@ export default function POSPage() {
                                                         setShowCEKeyboard(false);
                                                     }}
                                                     style={{
-                                                        padding: isMobileDevice ? '8px 14px' : '4px 8px',
+                                                        padding: isMobileDevice ? '6px 10px' : '4px 8px',
                                                         borderRadius: isMobileDevice ? '12px' : '6px',
                                                         border: isSelected ? (isMobileDevice ? activeBorder : 'none') : '1px solid #e2e8f0',
                                                         cursor: 'pointer',
@@ -1177,7 +1177,7 @@ export default function POSPage() {
                                     </div>
 
                                     <div style={{ flex: isMobileDevice ? 1 : 'none', width: isMobileDevice ? 'auto' : '160px', position: 'relative' }}>
-                                        <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={16} />
+                                        {!isMobileDevice && <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={16} />}
                                         <input
                                             type="text"
                                             inputMode="none" // Evita el teclado nativo en tablets
@@ -1199,10 +1199,49 @@ export default function POSPage() {
                                                 }
                                             }}
                                             maxLength={searchType === 'DNI' ? 8 : 11}
-                                            style={{ width: '100%', padding: '8px 10px 8px 30px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '12px', fontWeight: 700, outline: 'none' }}
+                                            style={{ 
+                                                width: '100%', 
+                                                paddingLeft: isMobileDevice ? '10px' : '30px', 
+                                                paddingRight: isMobileDevice ? (customerSearch ? '32px' : '10px') : '10px', 
+                                                paddingTop: '8px', 
+                                                paddingBottom: '8px', 
+                                                background: '#f8fafc', 
+                                                border: '1px solid #e2e8f0', 
+                                                borderRadius: '10px', 
+                                                fontSize: '12px', 
+                                                fontWeight: 700, 
+                                                outline: 'none' 
+                                            }}
                                         />
                                         {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '8px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={16} />}
                                         
+                                        {isMobileDevice && customerSearch && (
+                                            <button
+                                                onClick={() => {
+                                                    setCustomerSearch('');
+                                                    setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
+                                                }}
+                                                style={{
+                                                    position: 'absolute',
+                                                    right: isSearchingCustomer ? '30px' : '10px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    color: '#ef4444',
+                                                    cursor: 'pointer',
+                                                    padding: '4px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    zIndex: 10
+                                                }}
+                                                title="Limpiar Cliente"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        )}
+
                                         {searchType === 'CE' ? (
                                             <AlphanumericKeyboard 
                                                 isOpen={showCEKeyboard}
@@ -1231,16 +1270,18 @@ export default function POSPage() {
                                             />
                                         )}
                                     </div>
-                                    <button
-                                        onClick={() => {
-                                            setCustomerSearch('');
-                                            setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
-                                        }}
-                                        style={{ background: '#fff1f2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                        title="Limpiar Cliente"
-                                    >
-                                        <X size={18} />
-                                    </button>
+                                    {!isMobileDevice && (
+                                        <button
+                                            onClick={() => {
+                                                setCustomerSearch('');
+                                                setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
+                                            }}
+                                            style={{ background: '#fff1f2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            title="Limpiar Cliente"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => setShowHistoryModal(true)}
                                         style={{ 
