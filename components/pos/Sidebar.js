@@ -203,7 +203,7 @@ export default function Sidebar({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '12px 0',
+        padding: '0 0 12px 0',
         gap: '4px',
         flexShrink: 0,
         zIndex: 100,
@@ -582,7 +582,7 @@ export default function Sidebar({
 
             {/* Cabecera del Sidebar con Marca y Botón de Toggle */}
             <div style={{ 
-                padding: isExpanded ? (isTablet ? '6px 8px 6px 16px' : '8px 12px 8px 20px') : '8px 0 8px 0', 
+                padding: isExpanded ? (isTablet ? '5px 8px 6px 16px' : '6px 12px 8px 20px') : '6px 0 8px 0', 
                 width: '100%', 
                 boxSizing: 'border-box', 
                 display: 'flex', 
