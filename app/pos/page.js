@@ -1419,8 +1419,7 @@ export default function POSPage() {
                                                          display: 'flex',
                                                          alignItems: 'center',
                                                          justifyContent: 'center',
-                                                         boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
-                                                         border: '2px solid #fff'
+                                                         boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
                                                      }}>
                                                          {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length}
                                                      </span>
