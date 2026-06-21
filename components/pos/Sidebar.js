@@ -1160,15 +1160,6 @@ export default function Sidebar({
                     </button>
                 )}
 
-                <button 
-                    onClick={onOpenCloseCash} 
-                    style={getNavBtnStyle(false)}
-                    title={isExpanded ? "" : "Cerrar Caja"}
-                >
-                    <Lock size={iconSize} style={{ flexShrink: 0 }} />
-                    {isExpanded && <span style={labelTextStyle}>Cerrar Caja</span>}
-                </button>
-
                 {/* Botón de Cerrar Sesión Estilo Cápsula */}
                 <div style={{ marginTop: '10px', marginBottom: '2px', padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
                     <button 
