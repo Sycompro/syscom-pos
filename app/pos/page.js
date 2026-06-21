@@ -749,7 +749,8 @@ export default function POSPage() {
                             onChange={e => setSelectedSalesperson(e.target.value)}
                             options={salespeople.map(v => ({ value: v.id, label: v.name.trim() }))}
                             placeholder="Seleccione un vendedor..."
-                            icon={<User size={14} color="#64748b" />}
+                            icon={<User size={18} color="#64748b" />}
+                            large={true}
                             style={{
                                 border: '2px solid #f1f5f9',
                                 borderRadius: '16px',

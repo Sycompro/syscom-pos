@@ -14,7 +14,8 @@ export default function CustomSelect({
   searchable = false,
   onAdd,
   addLabel = '+ Crear nuevo',
-  openUp = false
+  openUp = false,
+  large = false
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,11 +73,11 @@ export default function CustomSelect({
     borderRadius: '10px',
     border: '1px solid #e2e8f0',
     background: '#ffffff',
-    fontSize: '11px',
+    fontSize: large ? '14px' : '11px',
     fontWeight: 700,
     color: disabled ? '#94a3b8' : '#1e293b',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    height: '33px',
+    height: large ? '54px' : '33px',
     boxSizing: 'border-box',
     userSelect: 'none',
     transition: 'border-color 0.2s, box-shadow 0.2s',
@@ -130,8 +131,8 @@ export default function CustomSelect({
   };
 
   const optionItemStyle = (isSelected) => ({
-    padding: '8px 12px',
-    fontSize: '11px',
+    padding: large ? '12px 16px' : '8px 12px',
+    fontSize: large ? '14px' : '11px',
     fontWeight: 700,
     borderRadius: '8px',
     cursor: 'pointer',
@@ -179,7 +180,7 @@ export default function CustomSelect({
           </span>
         </div>
         <ChevronDown 
-          size={14} 
+          size={large ? 18 : 14} 
           style={{ 
             color: '#94a3b8', 
             transition: 'transform 0.2s', 
