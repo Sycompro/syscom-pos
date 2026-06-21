@@ -27,6 +27,9 @@ export async function GET(request) {
     const startDateParam = searchParams.get('startDate') || todayStr;
     const endDateParam = searchParams.get('endDate') || todayStr;
     const sedeIdParam = searchParams.get('sedeId') || 'all'; // 'all' o codpto específico (ej: '09')
+    const sellerIdParam = searchParams.get('sellerId') || 'all'; // 'all' o codven específico
+    const docTypeParam = searchParams.get('docType') || 'all'; // 'all', '01', '03', '65'
+    const paymentMethodParam = searchParams.get('paymentMethod') || 'all'; // 'all', 'EF', o código de tarjeta (ej: '04')
 
     const pool = await getConnection(company);
 
@@ -34,17 +37,38 @@ export async function GET(request) {
     const start = new Date(startDateParam + 'T00:00:00');
     const end = new Date(endDateParam + 'T23:59:59');
 
-    // Construcción de condiciones WHERE basadas en el filtro de sede
-    let sedeCondition = "";
+    // Construcción de condiciones WHERE dinámicas basadas en los filtros seleccionados
+    let filtersCondition = "";
     if (sedeIdParam !== 'all') {
-      sedeCondition = "AND LTRIM(RTRIM(f.Codpto)) = @sedeId";
+      filtersCondition += " AND LTRIM(RTRIM(f.Codpto)) = @sedeId";
     }
+    if (sellerIdParam !== 'all') {
+      filtersCondition += " AND LTRIM(RTRIM(f.codven)) = @sellerId";
+    }
+    if (docTypeParam !== 'all') {
+      filtersCondition += " AND LTRIM(RTRIM(f.cdocu)) = @docType";
+    }
+    if (paymentMethodParam !== 'all') {
+      if (paymentMethodParam === 'EF') {
+        filtersCondition += " AND (f.selpago = 1 OR EXISTS (SELECT 1 FROM dtl_restpos_cobmixta m WITH(nolock) WHERE m.cdocu = f.cdocu AND m.ndocu = f.ndocu AND LTRIM(RTRIM(m.codtar)) = 'NS'))";
+      } else {
+        filtersCondition += " AND (LTRIM(RTRIM(f.codtar)) = @paymentMethod OR EXISTS (SELECT 1 FROM dtl_restpos_cobmixta m WITH(nolock) WHERE m.cdocu = f.cdocu AND m.ndocu = f.ndocu AND LTRIM(RTRIM(m.codtar)) = @paymentMethod))";
+      }
+    }
+
+    // Helper para asociar los inputs a la petición SQL
+    const appendFilterInputs = (req) => {
+      req.input('start', sql.DateTime, start);
+      req.input('end', sql.DateTime, end);
+      if (sedeIdParam !== 'all') req.input('sedeId', sql.VarChar(10), sedeIdParam.trim());
+      if (sellerIdParam !== 'all') req.input('sellerId', sql.VarChar(10), sellerIdParam.trim());
+      if (docTypeParam !== 'all') req.input('docType', sql.VarChar(10), docTypeParam.trim());
+      if (paymentMethodParam !== 'all') req.input('paymentMethod', sql.VarChar(10), paymentMethodParam.trim());
+    };
 
     // --- CONSULTA 1: KPIs PRINCIPALES ---
     const kpiRequest = pool.request();
-    kpiRequest.input('start', sql.DateTime, start);
-    kpiRequest.input('end', sql.DateTime, end);
-    if (sedeIdParam !== 'all') kpiRequest.input('sedeId', sql.VarChar(10), sedeIdParam.trim());
+    appendFilterInputs(kpiRequest);
 
     const kpiRes = await kpiRequest.query(`
       SELECT 
@@ -57,7 +81,7 @@ export async function GET(request) {
         COUNT(CASE WHEN f.flag = '*' THEN 1 END) as totalCanceledTransactions
       FROM mst01fac f WITH(nolock)
       WHERE f.fecha >= @start AND f.fecha <= @end
-        ${sedeCondition}
+        ${filtersCondition}
     `);
 
     const kpis = kpiRes.recordset[0];
@@ -67,9 +91,7 @@ export async function GET(request) {
 
     // --- CONSULTA 2: VENTAS POR TIPO DE COMPROBANTE ---
     const docRequest = pool.request();
-    docRequest.input('start', sql.DateTime, start);
-    docRequest.input('end', sql.DateTime, end);
-    if (sedeIdParam !== 'all') docRequest.input('sedeId', sql.VarChar(10), sedeIdParam.trim());
+    appendFilterInputs(docRequest);
 
     const docRes = await docRequest.query(`
       SELECT 
@@ -79,7 +101,7 @@ export async function GET(request) {
       FROM mst01fac f WITH(nolock)
       WHERE f.fecha >= @start AND f.fecha <= @end
         AND f.flag = '0'
-        ${sedeCondition}
+        ${filtersCondition}
       GROUP BY f.cdocu
     `);
 
@@ -99,9 +121,7 @@ export async function GET(request) {
 
     // --- CONSULTA 3: RANKING DE VENDEDORES (Top 5) ---
     const sellerRequest = pool.request();
-    sellerRequest.input('start', sql.DateTime, start);
-    sellerRequest.input('end', sql.DateTime, end);
-    if (sedeIdParam !== 'all') sellerRequest.input('sedeId', sql.VarChar(10), sedeIdParam.trim());
+    appendFilterInputs(sellerRequest);
 
     const sellerRes = await sellerRequest.query(`
       SELECT TOP 5
@@ -113,7 +133,7 @@ export async function GET(request) {
       LEFT JOIN tbl01ven v WITH(nolock) ON LTRIM(RTRIM(v.codven)) = LTRIM(RTRIM(f.codven))
       WHERE f.fecha >= @start AND f.fecha <= @end
         AND f.flag = '0'
-        ${sedeCondition}
+        ${filtersCondition}
       GROUP BY f.codven, v.nomven
       ORDER BY totalAmount DESC
     `);
@@ -127,9 +147,7 @@ export async function GET(request) {
 
     // --- CONSULTA 4: EVOLUCIÓN TEMPORAL ---
     const timeRequest = pool.request();
-    timeRequest.input('start', sql.DateTime, start);
-    timeRequest.input('end', sql.DateTime, end);
-    if (sedeIdParam !== 'all') timeRequest.input('sedeId', sql.VarChar(10), sedeIdParam.trim());
+    appendFilterInputs(timeRequest);
 
     const isSingleDay = startDateParam === endDateParam;
     const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24));
@@ -144,7 +162,7 @@ export async function GET(request) {
         FROM mst01fac f WITH(nolock)
         WHERE f.fecha >= @start AND f.fecha <= @end
           AND f.flag = '0'
-          ${sedeCondition}
+          ${filtersCondition}
         GROUP BY DATEPART(HOUR, f.FecReg)
         ORDER BY hourLabel ASC
       `;
@@ -157,7 +175,7 @@ export async function GET(request) {
         FROM mst01fac f WITH(nolock)
         WHERE f.fecha >= @start AND f.fecha <= @end
           AND f.flag = '0'
-          ${sedeCondition}
+          ${filtersCondition}
         GROUP BY YEAR(f.fecha), MONTH(f.fecha)
         ORDER BY monthLabel ASC
       `;
@@ -170,7 +188,7 @@ export async function GET(request) {
         FROM mst01fac f WITH(nolock)
         WHERE f.fecha >= @start AND f.fecha <= @end
           AND f.flag = '0'
-          ${sedeCondition}
+          ${filtersCondition}
         GROUP BY CAST(f.fecha as DATE)
         ORDER BY dateLabel ASC
       `;
@@ -198,8 +216,7 @@ export async function GET(request) {
     let salesBySede = [];
     if (sedeIdParam === 'all') {
       const sedeRequest = pool.request();
-      sedeRequest.input('start', sql.DateTime, start);
-      sedeRequest.input('end', sql.DateTime, end);
+      appendFilterInputs(sedeRequest);
       
       const sedeRes = await sedeRequest.query(`
         SELECT 
@@ -211,6 +228,7 @@ export async function GET(request) {
         LEFT JOIN tbl01pto p WITH(nolock) ON LTRIM(RTRIM(p.codpto)) = LTRIM(RTRIM(f.Codpto))
         WHERE f.fecha >= @start AND f.fecha <= @end
           AND f.flag = '0'
+          ${filtersCondition}
         GROUP BY f.Codpto, p.nompto
         ORDER BY totalAmount DESC
       `);
@@ -227,7 +245,6 @@ export async function GET(request) {
     const activeSedesRes = await pool.request().query(`
       SELECT LTRIM(RTRIM(codpto)) as codpto, LTRIM(RTRIM(nompto)) as nompto 
       FROM tbl01pto WITH(nolock)
-      WHERE estado = 1
     `);
     const activeSedes = activeSedesRes.recordset.map(r => ({
       id: r.codpto,
@@ -239,7 +256,10 @@ export async function GET(request) {
       filters: {
         startDate: startDateParam,
         endDate: endDateParam,
-        sedeId: sedeIdParam
+        sedeId: sedeIdParam,
+        sellerId: sellerIdParam,
+        docType: docTypeParam,
+        paymentMethod: paymentMethodParam
       },
       kpis: {
         totalRevenue,

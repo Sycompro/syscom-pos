@@ -2,12 +2,15 @@
 import { useState, useEffect } from 'react';
 import { 
   Calendar, TrendingUp, Loader2, AlertCircle, Building2, 
-  Users, DollarSign, Receipt, Percent, Award, Clock, ArrowUpRight 
+  Users, DollarSign, Receipt, Percent, Award, Clock, ArrowUpRight,
+  CreditCard, FileText, User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 import CustomSelect from './CustomSelect';
 
 export default function DashboardView() {
+  const { data: session } = useSession();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,7 +26,14 @@ export default function DashboardView() {
 
   // Estados de Filtros
   const [selectedSede, setSelectedSede] = useState('all');
+  const [selectedSeller, setSelectedSeller] = useState('all');
+  const [selectedDocType, setSelectedDocType] = useState('all');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('all');
   const [datePreset, setDatePreset] = useState('month'); // 'day', 'month', 'year', 'custom'
+
+  // Listas de datos para los filtros
+  const [sellers, setSellers] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
 
   // Estados para selectores detallados
   const [filterYear, setFilterYear] = useState(() => new Date().getFullYear());
@@ -47,6 +57,30 @@ export default function DashboardView() {
   }, []);
 
   const isMobileView = windowWidth < 768;
+
+  // Pre-poblar la sede del usuario logueado
+  useEffect(() => {
+    if (session?.user?.sedeId && selectedSede === 'all') {
+      setSelectedSede(session.user.sedeId);
+    }
+  }, [session]);
+
+  // Cargar vendedores y métodos de pago al montar
+  useEffect(() => {
+    fetch('/api/salespeople')
+      .then(res => res.json())
+      .then(d => {
+        if (Array.isArray(d)) setSellers(d);
+      })
+      .catch(err => console.error('Error fetching salespeople:', err));
+
+    fetch('/api/payment-methods')
+      .then(res => res.json())
+      .then(d => {
+        if (Array.isArray(d)) setPaymentMethods(d);
+      })
+      .catch(err => console.error('Error fetching payment methods:', err));
+  }, []);
 
   // Lógica de presets de fecha y actualizaciones de inputs específicos
   useEffect(() => {
@@ -73,7 +107,15 @@ export default function DashboardView() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/sales/dashboard?startDate=${startDate}&endDate=${endDate}&sedeId=${selectedSede}`);
+      const queryParams = new URLSearchParams({
+        startDate,
+        endDate,
+        sedeId: selectedSede,
+        sellerId: selectedSeller,
+        docType: selectedDocType,
+        paymentMethod: selectedPaymentMethod
+      });
+      const res = await fetch(`/api/sales/dashboard?${queryParams.toString()}`);
       if (!res.ok) throw new Error('Fallo al obtener métricas de ventas');
       const json = await res.json();
       if (json.success) {
@@ -91,7 +133,7 @@ export default function DashboardView() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [startDate, endDate, selectedSede]);
+  }, [startDate, endDate, selectedSede, selectedSeller, selectedDocType, selectedPaymentMethod]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(amount || 0);
@@ -225,6 +267,8 @@ export default function DashboardView() {
             onChange={e => setSelectedSede(e.target.value)}
             options={[
               { value: 'all', label: 'Consolidado (Todas las Sedes)' },
+              // Inyectar la sede de la sesión si no está en la base de datos por estado
+              ...(session?.user?.sedeId && !data?.sedes?.some(s => s.id === session.user.sedeId) ? [{ value: session.user.sedeId, label: session.user.sedeName || `Sede ${session.user.sedeId}` }] : []),
               ...(data?.sedes?.map(s => ({ value: s.id, label: s.name })) || [])
             ]}
             icon={<Building2 size={14} color="#64748b" />}
@@ -239,6 +283,78 @@ export default function DashboardView() {
               color: '#334155',
               fontWeight: 800,
               minWidth: '220px'
+            }}
+          />
+
+          {/* Selector de Vendedor */}
+          <CustomSelect
+            value={selectedSeller}
+            onChange={e => setSelectedSeller(e.target.value)}
+            options={[
+              { value: 'all', label: 'Todos los Vendedores' },
+              ...sellers.map(v => ({ value: v.id, label: v.name }))
+            ]}
+            icon={<User size={14} color="#64748b" />}
+            placeholder="Vendedor..."
+            style={{
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              background: '#fff',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+              height: '35px',
+              fontSize: '12px',
+              color: '#334155',
+              fontWeight: 800,
+              minWidth: '180px'
+            }}
+          />
+
+          {/* Selector de Tipo de Documento */}
+          <CustomSelect
+            value={selectedDocType}
+            onChange={e => setSelectedDocType(e.target.value)}
+            options={[
+              { value: 'all', label: 'Todos los Documentos' },
+              { value: '03', label: 'Boletas de Venta' },
+              { value: '01', label: 'Facturas' },
+              { value: '65', label: 'Notas de Venta' }
+            ]}
+            icon={<FileText size={14} color="#64748b" />}
+            placeholder="Documento..."
+            style={{
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              background: '#fff',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+              height: '35px',
+              fontSize: '12px',
+              color: '#334155',
+              fontWeight: 800,
+              minWidth: '180px'
+            }}
+          />
+
+          {/* Selector de Forma de Pago */}
+          <CustomSelect
+            value={selectedPaymentMethod}
+            onChange={e => setSelectedPaymentMethod(e.target.value)}
+            options={[
+              { value: 'all', label: 'Todas las Formas de Pago' },
+              { value: 'EF', label: 'Efectivo' },
+              ...paymentMethods.map(m => ({ value: m.id, label: m.name }))
+            ]}
+            icon={<CreditCard size={14} color="#64748b" />}
+            placeholder="Forma de pago..."
+            style={{
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              background: '#fff',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+              height: '35px',
+              fontSize: '12px',
+              color: '#334155',
+              fontWeight: 800,
+              minWidth: '200px'
             }}
           />
 
@@ -674,7 +790,9 @@ const containerStyle = {
 const headerStyle = {
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'center'
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '16px'
 };
 
 const headerMobileStyle = {
@@ -702,7 +820,8 @@ const subtitleStyle = {
 const filtersStyle = {
   display: 'flex',
   gap: '12px',
-  alignItems: 'center'
+  alignItems: 'center',
+  flexWrap: 'wrap'
 };
 
 const filtersMobileStyle = {
