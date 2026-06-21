@@ -30,8 +30,6 @@ export default function Sidebar({
 
     const isExpanded = isMobileMode ? true : isExpandedInternal;
 
-    const userName = session?.user?.name || "Syscom";
-    const avatarLetter = userName.charAt(0).toUpperCase();
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -586,46 +584,7 @@ export default function Sidebar({
                 )}
             </div>
 
-            {/* Perfil de la Empresa (Escritorio) */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: isExpanded ? 'flex-start' : 'center',
-                gap: '12px',
-                background: isExpanded ? 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' : 'transparent',
-                borderRadius: '12px',
-                padding: isExpanded ? '10px' : '4px 0',
-                border: 'none',
-                boxShadow: isExpanded ? '0 2px 8px rgba(15, 23, 42, 0.02)' : 'none',
-                margin: isMobileMode ? '0px 12px 14px 12px' : '2px 12px 14px 12px',
-                width: isExpanded ? 'calc(100% - 24px)' : 'auto',
-                boxSizing: 'border-box',
-                transition: 'all 0.3s ease',
-                minHeight: '44px'
-            }} title={isExpanded ? "" : userName}>
-                <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontWeight: 900,
-                    fontSize: '14px',
-                    boxShadow: '0 4px 8px rgba(59, 130, 246, 0.15)',
-                    border: '2px solid #fff',
-                    flexShrink: 0
-                }}>
-                    {avatarLetter}
-                </div>
-                {isExpanded && (
-                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, justifyContent: 'center' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</span>
-                    </div>
-                )}
-            </div>
+
 
             {/* Acciones principales - Menu Limpio */}
             <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
