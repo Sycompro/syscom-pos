@@ -176,12 +176,17 @@ export default function Sidebar({
 
     const asideStyle = {
         position: !isMobileMode ? 'absolute' : 'relative',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        width: isExpanded ? '220px' : '56px',
+        top: !isMobileMode ? '12px' : '0',
+        left: !isMobileMode ? '12px' : '0',
+        bottom: !isMobileMode ? '12px' : '0',
+        height: !isMobileMode ? 'calc(100% - 24px)' : '100%',
+        width: isExpanded ? '220px' : (isMobileMode ? '100%' : '52px'),
         background: '#ffffff',
-        borderRight: '1px solid #e2e8f0',
+        border: !isMobileMode ? '1px solid #e2e8f0' : 'none',
+        borderRadius: !isMobileMode ? '20px' : '0px',
+        boxShadow: !isMobileMode 
+            ? (isExpanded ? '0 20px 40px -10px rgba(15, 23, 42, 0.12)' : '0 4px 12px rgba(15, 23, 42, 0.03)') 
+            : 'none',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -189,11 +194,9 @@ export default function Sidebar({
         gap: '4px',
         flexShrink: 0,
         zIndex: 100,
-        transition: isMobileMode ? 'none' : 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: !isMobileMode ? (isExpanded ? '10px 0 30px rgba(15, 23, 42, 0.12)' : 'none') : 'none',
+        transition: isMobileMode ? 'none' : 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
         overflowX: 'hidden',
         overflowY: 'auto',
-        height: '100%',
         boxSizing: 'border-box'
     };
 

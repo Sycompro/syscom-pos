@@ -998,7 +998,7 @@ export default function POSPage() {
         <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#f1f5f9', overflow: 'hidden' }}>
             {/* Sidebar para PC / Tablet */}
             {!isMobileDevice && (
-                <div style={{ width: '56px', height: '100%', flexShrink: 0, position: 'relative', zIndex: 9000 }}>
+                <div style={{ width: '76px', height: '100%', flexShrink: 0, position: 'relative', zIndex: 9000 }}>
                     <Sidebar
                         onSignOut={() => signOut()}
                         onOpenCloseCash={() => setShowCloseModal(true)}
