@@ -3,18 +3,18 @@ import { useState, useEffect } from 'react';
 import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp, ShoppingBag, Truck, ChevronDown, ChevronUp, Menu } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
-const Isotipo = () => (
+const Isotipo = ({ isTablet = false }) => (
     <div style={{
-        width: '32px',
-        height: '32px',
-        borderRadius: '8px',
+        width: isTablet ? '28px' : '32px',
+        height: isTablet ? '28px' : '32px',
+        borderRadius: isTablet ? '6px' : '8px',
         background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         color: '#ffffff',
         fontWeight: 900,
-        fontSize: '16px',
+        fontSize: isTablet ? '14px' : '16px',
         fontFamily: "'Outfit', sans-serif",
         boxShadow: '0 3px 8px rgba(59, 130, 246, 0.2)',
         flexShrink: 0,
@@ -30,6 +30,7 @@ export default function Sidebar({
     isMobileMode = false, onCloseMobileMenu 
 }) {
     const { data: session } = useSession();
+    const [windowWidth, setWindowWidth] = useState(1280);
     const [isExpandedInternal, setIsExpandedInternal] = useState(false);
     const [isCustomersExpanded, setIsCustomersExpanded] = useState(
         activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits'
@@ -47,6 +48,18 @@ export default function Sidebar({
         activeTab === 'settings' || activeTab === 'whatsapp'
     );
     const [supportsFullscreen, setSupportsFullscreen] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setWindowWidth(window.innerWidth);
+            const handleResize = () => setWindowWidth(window.innerWidth);
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+        }
+    }, []);
+
+    const isTablet = !isMobileMode && windowWidth < 1280;
+    const iconSize = isTablet ? 18 : 22;
     const [hasHoverSupport, setHasHoverSupport] = useState(true);
 
     const isExpanded = isMobileMode ? true : isExpandedInternal;
@@ -180,7 +193,7 @@ export default function Sidebar({
         left: !isMobileMode ? '12px' : '0',
         bottom: !isMobileMode ? '12px' : '0',
         height: !isMobileMode ? 'calc(100% - 24px)' : '100%',
-        width: isExpanded ? '220px' : (isMobileMode ? '100%' : '52px'),
+        width: isExpanded ? (isTablet ? '180px' : '220px') : (isMobileMode ? '100%' : '52px'),
         background: '#ffffff',
         border: !isMobileMode ? '1px solid #e2e8f0' : 'none',
         borderRadius: !isMobileMode ? '20px' : '0px',
@@ -212,7 +225,7 @@ export default function Sidebar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: isExpanded ? 'flex-start' : 'center',
-            padding: isExpanded ? '0 12px' : '0',
+            padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0',
             color: isActive ? '#3b82f6' : '#475569',
             border: 'none',
             cursor: 'pointer',
@@ -240,12 +253,12 @@ export default function Sidebar({
     };
 
     const labelTextStyle = {
-        fontSize: '11px',
+        fontSize: isTablet ? '10px' : '11px',
         fontWeight: 800,
         opacity: isExpanded ? 1 : 0,
         transition: 'opacity 0.2s ease-in-out',
         whiteSpace: 'nowrap',
-        marginLeft: isExpanded ? '10px' : '0px',
+        marginLeft: isExpanded ? (isTablet ? '8px' : '10px') : '0px',
     };    if (isMobileMode) {
         return (
             <aside style={{
@@ -569,7 +582,7 @@ export default function Sidebar({
 
             {/* Cabecera del Sidebar con Marca y Botón de Toggle */}
             <div style={{ 
-                padding: isExpanded ? '16px 12px 8px 20px' : '16px 0 8px 0', 
+                padding: isExpanded ? (isTablet ? '12px 8px 6px 12px' : '16px 12px 8px 20px') : '16px 0 8px 0', 
                 width: '100%', 
                 boxSizing: 'border-box', 
                 display: 'flex', 
@@ -581,11 +594,11 @@ export default function Sidebar({
                     <div style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
-                        gap: '10px',
+                        gap: isTablet ? '6px' : '10px',
                         width: '100%'
                     }}>
-                        <Isotipo />
-                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                        <Isotipo isTablet={isTablet} />
+                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: isTablet ? '15px' : '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                             <span style={{ color: '#3b82f6' }}>Syscom</span>
                             <span style={{ color: '#0f172a' }}>.click</span>
                         </span>
@@ -610,7 +623,7 @@ export default function Sidebar({
                             e.currentTarget.style.transform = 'scale(1)';
                         }}
                     >
-                        <Isotipo />
+                        <Isotipo isTablet={isTablet} />
                     </div>
                 )}
             </div>
@@ -621,7 +634,7 @@ export default function Sidebar({
             <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                 {/* NAVEGACIÓN SECTION */}
                 {isExpanded && (
-                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '8px 12px 6px 12px', textTransform: 'uppercase', width: 'calc(100% - 24px)', textAlign: 'left' }}>
+                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: isTablet ? '8px 8px 6px 8px' : '8px 12px 6px 12px', textTransform: 'uppercase', width: isTablet ? 'calc(100% - 16px)' : 'calc(100% - 24px)', textAlign: 'left' }}>
                         Navegación
                     </div>
                 )}
@@ -631,7 +644,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'pos')}
                     title={isExpanded ? "" : "Punto de Venta"}
                 >
-                    <LayoutGrid size={22} style={{ flexShrink: 0 }} />
+                    <LayoutGrid size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Punto de Venta</span>}
                 </div>
                 
@@ -640,7 +653,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'dashboard')}
                     title={isExpanded ? "" : "Dashboard"}
                 >
-                    <TrendingUp size={22} style={{ flexShrink: 0 }} />
+                    <TrendingUp size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Dashboard</span>}
                 </div>
                 
@@ -649,7 +662,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'sales')}
                     title={isExpanded ? "" : "Historial Ventas"}
                 >
-                    <History size={22} style={{ flexShrink: 0 }} />
+                    <History size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Historial Ventas</span>}
                 </div>
                 
@@ -659,7 +672,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'memberships')}
                     title={isExpanded ? "" : "Gestión de Membresías"}
                 >
-                    <Users size={22} style={{ flexShrink: 0 }} />
+                    <Users size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Membresías</span>}
                 </div>
 
@@ -668,7 +681,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'promotions')}
                     title={isExpanded ? "" : "Promociones"}
                 >
-                    <Tag size={22} style={{ flexShrink: 0 }} />
+                    <Tag size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Promociones</span>}
                 </div>
 
@@ -676,13 +689,13 @@ export default function Sidebar({
                     onClick={toggleProducts}
                     style={getNavBtnStyle(activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands')}
                 >
-                    <Package size={22} style={{ flexShrink: 0 }} />
+                    <Package size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Productos</span>}
-                    {isExpanded && (isProductsExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
+                    {isExpanded && (isProductsExpanded ? <ChevronUp size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
                 {isExpanded && isProductsExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: isTablet ? '12px' : '26px', paddingLeft: isTablet ? '4px' : '8px', paddingRight: isTablet ? '8px' : '16px', boxSizing: 'border-box' }}>
                         {/* Subapartado 1: Catálogo */}
                         <div 
                             onClick={() => handleTabSelect('products')}
@@ -694,7 +707,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'products' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -703,7 +716,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'products' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -722,7 +735,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'classifications' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -731,7 +744,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'classifications' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -750,7 +763,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'brands' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -759,7 +772,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'brands' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -773,14 +786,14 @@ export default function Sidebar({
                     onClick={toggleCustomers}
                     style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits')}
                 >
-                    <Contact size={22} style={{ flexShrink: 0 }} />
+                    <Contact size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Clientes</span>}
-                    {isExpanded && (isCustomersExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
+                    {isExpanded && (isCustomersExpanded ? <ChevronUp size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
                 
                 {/* Subapartados de Clientes (Desplegables dinámicos y sin iconos) */}
                 {isExpanded && isCustomersExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: isTablet ? '12px' : '26px', paddingLeft: isTablet ? '4px' : '8px', paddingRight: isTablet ? '8px' : '16px', boxSizing: 'border-box' }}>
                         {/* Subapartado 1: Clientes */}
                         <div 
                             onClick={() => handleTabSelect('customers')}
@@ -792,7 +805,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'customers' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -801,7 +814,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'customers' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -820,7 +833,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'birthdays' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -829,7 +842,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'birthdays' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -848,7 +861,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'credits' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -857,7 +870,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'credits' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -871,13 +884,13 @@ export default function Sidebar({
                     onClick={togglePurchases}
                     style={getNavBtnStyle(activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp')}
                 >
-                    <ShoppingBag size={22} style={{ flexShrink: 0 }} />
+                    <ShoppingBag size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Compras</span>}
-                    {isExpanded && (isPurchasesExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
+                    {isExpanded && (isPurchasesExpanded ? <ChevronUp size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
                 {isExpanded && isPurchasesExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: isTablet ? '12px' : '26px', paddingLeft: isTablet ? '4px' : '8px', paddingRight: isTablet ? '8px' : '16px', boxSizing: 'border-box' }}>
                         {/* Subapartado 1: Orden de Compra */}
                         <div 
                             onClick={() => handleTabSelect('purchases-ocm')}
@@ -889,7 +902,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'purchases-ocm' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -898,7 +911,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'purchases-ocm' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -917,7 +930,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'purchases-gim' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -926,7 +939,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'purchases-gim' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -945,7 +958,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'purchases-ccp' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -954,7 +967,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'purchases-ccp' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -969,7 +982,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'suppliers')}
                     title={isExpanded ? "" : "Proveedores"}
                 >
-                    <Truck size={22} style={{ flexShrink: 0 }} />
+                    <Truck size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Proveedores</span>}
                 </div>
 
@@ -977,14 +990,14 @@ export default function Sidebar({
                     onClick={toggleFinance}
                     style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash')}
                 >
-                    <Banknote size={22} style={{ flexShrink: 0 }} />
+                    <Banknote size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Finanzas</span>}
-                    {isExpanded && (isFinanceExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
+                    {isExpanded && (isFinanceExpanded ? <ChevronUp size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
                 {/* Subapartados de Finanzas (Desplegables dinámicos y sin iconos) */}
                 {isExpanded && isFinanceExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: isTablet ? '12px' : '26px', paddingLeft: isTablet ? '4px' : '8px', paddingRight: isTablet ? '8px' : '16px', boxSizing: 'border-box' }}>
                         {/* Subapartado 1: Egresos */}
                         <div 
                             onClick={() => handleTabSelect('expenses')}
@@ -996,7 +1009,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'expenses' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -1005,7 +1018,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'expenses' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -1024,7 +1037,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'general-cash' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -1033,7 +1046,7 @@ export default function Sidebar({
                             }}
                         >
                             <span style={{ 
-                                fontSize: '11px', 
+                                fontSize: isTablet ? '10px' : '11px', 
                                 fontWeight: activeTab === 'general-cash' ? 900 : 700, 
                                 whiteSpace: 'nowrap' 
                             }}>
@@ -1045,7 +1058,7 @@ export default function Sidebar({
 
                 {/* CONFIGURACIÓN / MI CUENTA SECTION */}
                 {isExpanded && (
-                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '20px 12px 6px 12px', textTransform: 'uppercase', width: 'calc(100% - 24px)', textAlign: 'left' }}>
+                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: isTablet ? '20px 8px 6px 8px' : '20px 12px 6px 12px', textTransform: 'uppercase', width: isTablet ? 'calc(100% - 16px)' : 'calc(100% - 24px)', textAlign: 'left' }}>
                         Mi Cuenta
                     </div>
                 )}
@@ -1056,13 +1069,13 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'settings' || activeTab === 'whatsapp')}
                     title={isExpanded ? "" : "Configuración"}
                 >
-                    <Settings size={22} style={{ flexShrink: 0 }} />
+                    <Settings size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Configuración</span>}
-                    {isExpanded && (isSettingsExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
+                    {isExpanded && (isSettingsExpanded ? <ChevronUp size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
                 {isExpanded && isSettingsExpanded && (
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: isTablet ? '12px' : '26px', paddingLeft: isTablet ? '4px' : '8px', paddingRight: isTablet ? '8px' : '16px', boxSizing: 'border-box' }}>
                         <div 
                             onClick={() => handleTabSelect('settings')}
                             style={{
@@ -1073,7 +1086,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'settings' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -1081,7 +1094,7 @@ export default function Sidebar({
                                 marginBottom: '2px'
                             }}
                         >
-                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'settings' ? 900 : 700, whiteSpace: 'nowrap' }}>Ajustes POS</span>
+                            <span style={{ fontSize: isTablet ? '10px' : '11px', fontWeight: activeTab === 'settings' ? 900 : 700, whiteSpace: 'nowrap' }}>Ajustes POS</span>
                         </div>
                         <div 
                             onClick={() => handleTabSelect('whatsapp')}
@@ -1093,7 +1106,7 @@ export default function Sidebar({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingLeft: '12px',
+                                paddingLeft: isTablet ? '8px' : '12px',
                                 color: activeTab === 'whatsapp' ? '#3b82f6' : '#64748b',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease-in-out',
@@ -1101,7 +1114,7 @@ export default function Sidebar({
                                 marginBottom: '2px'
                             }}
                         >
-                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'whatsapp' ? 900 : 700, whiteSpace: 'nowrap' }}>Config WhatsApp</span>
+                            <span style={{ fontSize: isTablet ? '10px' : '11px', fontWeight: activeTab === 'whatsapp' ? 900 : 700, whiteSpace: 'nowrap' }}>Config WhatsApp</span>
                         </div>
                     </div>
                 )}
@@ -1112,7 +1125,7 @@ export default function Sidebar({
                         style={getNavBtnStyle(activeTab === 'fullscreen')}
                         title={isExpanded ? "" : (isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa")}
                     >
-                        {isFullscreen ? <Minimize size={22} style={{ flexShrink: 0 }} /> : <Maximize size={22} style={{ flexShrink: 0 }} />}
+                        {isFullscreen ? <Minimize size={iconSize} style={{ flexShrink: 0 }} /> : <Maximize size={iconSize} style={{ flexShrink: 0 }} />}
                         {isExpanded && <span style={labelTextStyle}>{isFullscreen ? "Salir Completa" : "Pantalla Completa"}</span>}
                     </button>
                 )}
@@ -1122,12 +1135,12 @@ export default function Sidebar({
                     style={getNavBtnStyle(false)}
                     title={isExpanded ? "" : "Cerrar Caja"}
                 >
-                    <Lock size={22} style={{ flexShrink: 0 }} />
+                    <Lock size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Cerrar Caja</span>}
                 </button>
 
                 {/* Botón de Cerrar Sesión Estilo Cápsula */}
-                <div style={{ marginTop: '20px', marginBottom: '16px', padding: isExpanded ? '0 12px' : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
+                <div style={{ marginTop: '20px', marginBottom: '16px', padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
                     <button 
                         onClick={onSignOut} 
                         title={isExpanded ? "" : "Cerrar Sesión"}
@@ -1143,7 +1156,7 @@ export default function Sidebar({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: isExpanded ? '8px' : '0',
+                            gap: isExpanded ? (isTablet ? '6px' : '8px') : '0',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
                             boxShadow: '0 2px 6px rgba(239, 68, 68, 0.05)'
@@ -1155,7 +1168,7 @@ export default function Sidebar({
                             e.currentTarget.style.background = '#fee2e2';
                         }}
                     >
-                        <LogOut size={18} style={{ flexShrink: 0 }} />
+                        <LogOut size={isTablet ? 16 : 18} style={{ flexShrink: 0 }} />
                         {isExpanded && <span>Cerrar Sesión</span>}
                     </button>
                 </div>
