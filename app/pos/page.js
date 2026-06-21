@@ -1451,22 +1451,60 @@ export default function POSPage() {
                                     )}
 
                                     {!isMobileDevice && (
-                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', borderLeft: 'none', paddingLeft: '16px' }}>
-                                            <div style={{ flex: 1, minWidth: '150px' }}>
-                                                <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <p style={{ fontSize: '11px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
-                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                        {customer.expirationDate && (
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, color: customer.daysRemaining > 0 ? '#10b981' : '#ef4444' }}>
-                                                                <Clock size={12} />
-                                                                Vence: {new Date(customer.expirationDate).toLocaleDateString()} ({customer.daysRemaining}d)
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '1px solid #e2e8f0', paddingLeft: '16px', justifyContent: 'space-between' }}>
+                                             <div style={{ minWidth: '150px' }}>
+                                                 <p style={{ fontSize: '8px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
+                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                     <p style={{ fontSize: '11px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
+                                                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                         {customer.expirationDate && (
+                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, color: customer.daysRemaining > 0 ? '#10b981' : '#ef4444' }}>
+                                                                 <Clock size={12} />
+                                                                 Vence: {new Date(customer.expirationDate).toLocaleDateString()} ({customer.daysRemaining}d)
+                                                             </div>
+                                                         )}
+                                                     </div>
+                                                 </div>
+                                             </div>
+
+                                             {/* Selector de Boleta/Factura/Nota de Venta */}
+                                             <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', gap: '3px', border: 'none' }}>
+                                                 {['03', '01', '65'].map(t => {
+                                                     const isSelected = docType === t;
+                                                     let activeBg = '#dbeafe'; 
+                                                     let activeColor = '#1e40af';
+                                                     
+                                                     if (t === '01') { 
+                                                         activeBg = '#d1fae5';
+                                                         activeColor = '#065f46';
+                                                     } else if (t === '65') { 
+                                                         activeBg = '#ffedd5';
+                                                         activeColor = '#9a3412';
+                                                     }
+
+                                                     return (
+                                                         <button
+                                                             key={t}
+                                                             onClick={() => setDocType(t)}
+                                                             style={{
+                                                                 padding: '6px 12px',
+                                                                 borderRadius: '6px',
+                                                                 border: 'none',
+                                                                 cursor: 'pointer',
+                                                                 fontSize: '11px',
+                                                                 fontWeight: 800,
+                                                                 background: isSelected ? activeBg : '#fff',
+                                                                 color: isSelected ? activeColor : '#64748b',
+                                                                 boxShadow: isSelected ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                                                                 transition: 'all 0.2s ease'
+                                                             }}
+                                                         >
+                                                             {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
+                                                         </button>
+                                                     );
+                                                 })}
+                                             </div>
+                                         </div>
                                     )}
                                 </div>
 
@@ -1615,54 +1653,16 @@ export default function POSPage() {
                                          />
                                      </div>
 
-                                     {/* En escritorio, el vendedor y comprobantes van en la misma fila */}
+                                     {/* En escritorio, el vendedor va al final */}
                                      {!isMobileDevice && (
-                                         <>
-                                             <div style={{ minWidth: '180px' }}>
-                                                 <CustomSelect
-                                                     value={selectedSalesperson}
-                                                     onChange={e => setSelectedSalesperson(e.target.value)}
-                                                     options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
-                                                     placeholder="Seleccionar Vendedor"
-                                                 />
-                                             </div>
-
-                                             <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '6px', padding: '2px', gap: '2px', border: 'none' }}>
-                                                 {['03', '01', '65'].map(t => {
-                                                     const isSelected = docType === t;
-                                                     let activeBg = '#dbeafe'; 
-                                                     let activeColor = '#1e40af';
-                                                     
-                                                     if (t === '01') { 
-                                                         activeBg = '#d1fae5';
-                                                         activeColor = '#065f46';
-                                                     } else if (t === '65') { 
-                                                         activeBg = '#ffedd5';
-                                                         activeColor = '#9a3412';
-                                                     }
-
-                                                     return (
-                                                         <button
-                                                             key={t}
-                                                             onClick={() => setDocType(t)}
-                                                             style={{
-                                                                 padding: '4px 8px',
-                                                                 borderRadius: '4px',
-                                                                 border: 'none',
-                                                                 cursor: 'pointer',
-                                                                 fontSize: '10px',
-                                                                 fontWeight: 700,
-                                                                 background: isSelected ? activeBg : '#fff',
-                                                                 color: isSelected ? activeColor : '#64748b',
-                                                                 transition: 'all 0.25s ease'
-                                                             }}
-                                                         >
-                                                             {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
-                                                         </button>
-                                                     );
-                                                 })}
-                                             </div>
-                                         </>
+                                         <div style={{ minWidth: '180px' }}>
+                                             <CustomSelect
+                                                 value={selectedSalesperson}
+                                                 onChange={e => setSelectedSalesperson(e.target.value)}
+                                                 options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
+                                                 placeholder="Seleccionar Vendedor"
+                                             />
+                                         </div>
                                      )}
                                 </div>
 
