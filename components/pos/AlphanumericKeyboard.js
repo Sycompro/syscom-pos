@@ -69,9 +69,9 @@ export default function AlphanumericKeyboard({ isOpen, onClose, onKeyPress, onDe
                     style={{
                         position: 'fixed',
                         top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(15, 23, 42, 0.05)',
-                        backdropFilter: 'blur(2px)',
-                        WebkitBackdropFilter: 'blur(2px)',
+                        background: 'rgba(15, 23, 42, 0.6)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
                         pointerEvents: 'auto',
                         zIndex: -1
                     }}
