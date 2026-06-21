@@ -687,7 +687,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands')}
                 >
                     <Package size={22} style={{ flexShrink: 0 }} />
-                    <span style={labelTextStyle}>Productos</span>
+                    {isExpanded && <span style={labelTextStyle}>Productos</span>}
                     {isExpanded && (isProductsExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
@@ -784,7 +784,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits')}
                 >
                     <Contact size={22} style={{ flexShrink: 0 }} />
-                    <span style={labelTextStyle}>Clientes</span>
+                    {isExpanded && <span style={labelTextStyle}>Clientes</span>}
                     {isExpanded && (isCustomersExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
                 
@@ -882,7 +882,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp')}
                 >
                     <ShoppingBag size={22} style={{ flexShrink: 0 }} />
-                    <span style={labelTextStyle}>Compras</span>
+                    {isExpanded && <span style={labelTextStyle}>Compras</span>}
                     {isExpanded && (isPurchasesExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
@@ -988,7 +988,7 @@ export default function Sidebar({
                     style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash')}
                 >
                     <Banknote size={22} style={{ flexShrink: 0 }} />
-                    <span style={labelTextStyle}>Finanzas</span>
+                    {isExpanded && <span style={labelTextStyle}>Finanzas</span>}
                     {isExpanded && (isFinanceExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
