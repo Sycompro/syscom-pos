@@ -296,7 +296,8 @@ export default function POSPage() {
             }
             if (Array.isArray(salesData)) {
                 setSalespeople(salesData);
-                const savedSalesperson = localStorage.getItem('selectedSalesperson');
+                const storageKey = session?.user?.id ? `selectedSalesperson_${session.user.company || ''}_${session.user.id}` : 'selectedSalesperson';
+                const savedSalesperson = localStorage.getItem(storageKey);
                 if (savedSalesperson && salesData.some(v => v.id === savedSalesperson)) {
                     setSelectedSalesperson(savedSalesperson);
                 } else if (salesData.length > 0) {
@@ -317,10 +318,11 @@ export default function POSPage() {
     }, [session]);
 
     useEffect(() => {
-        if (selectedSalesperson) {
-            localStorage.setItem('selectedSalesperson', selectedSalesperson);
+        if (selectedSalesperson && session?.user?.id) {
+            const storageKey = `selectedSalesperson_${session.user.company || ''}_${session.user.id}`;
+            localStorage.setItem(storageKey, selectedSalesperson);
         }
-    }, [selectedSalesperson]);
+    }, [selectedSalesperson, session]);
 
     useEffect(() => {
         if (activeTab === 'pos') {
