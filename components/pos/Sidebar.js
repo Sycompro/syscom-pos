@@ -916,10 +916,6 @@ export default function Sidebar({
                         {isExpanded && <span style={labelTextStyle}>{isFullscreen ? "Salir Completa" : "Pantalla Completa"}</span>}
                     </button>
                 )}
-                <button onClick={onOpenHistory} title={isExpanded ? "" : "Historial de Ventas"} style={getBottomBtnStyle()}>
-                    <History size={18} style={{ flexShrink: 0 }} />
-                    {isExpanded && <span style={labelTextStyle}>Historial</span>}
-                </button>
                 <button onClick={onOpenCloseCash} title={isExpanded ? "" : "Cerrar Caja"} style={getBottomBtnStyle()}>
                     <Lock size={18} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Cerrar Caja</span>}
