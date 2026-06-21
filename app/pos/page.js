@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import { useSession, signOut } from 'next-auth/react';
 import {
     Search, ShoppingCart, User, Plus, Minus, X, Check,
-    ChevronRight, Loader2, UserPlus, ShieldCheck, Trash2,
+    ChevronRight, ChevronDown, Loader2, UserPlus, ShieldCheck, Trash2,
     LayoutGrid, Clock, Settings, LogOut, ShoppingBag, Zap, Sparkles, Package,
     Lock, Phone, Users, ArrowRight, Receipt, Percent, Calculator, 
     BellRing, Smartphone, RefreshCw, AlertCircle, Calendar, Menu
@@ -738,6 +738,43 @@ export default function POSPage() {
                     <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '32px', fontWeight: 500 }}>
                         Ingrese el monto inicial para comenzar la jornada
                     </p>
+
+                    {/* Selector de Vendedor Predeterminado */}
+                    <div style={{ textTransform: 'uppercase', textAlign: 'left', marginBottom: '20px' }}>
+                        <label style={{ fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '0.05em', display: 'block', marginBottom: '8px', paddingLeft: '4px' }}>
+                            Vendedor de Turno
+                        </label>
+                        <div style={{ position: 'relative' }}>
+                            <select
+                                value={selectedSalesperson}
+                                onChange={e => setSelectedSalesperson(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '16px 20px',
+                                    borderRadius: '16px',
+                                    border: '2px solid #f1f5f9',
+                                    fontSize: '14px',
+                                    fontWeight: 700,
+                                    color: '#0f172a',
+                                    outline: 'none',
+                                    transition: 'all 0.2s',
+                                    background: '#f8fafc',
+                                    appearance: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <option value="" disabled>Seleccione un vendedor...</option>
+                                {salespeople.map(v => (
+                                    <option key={v.id} value={v.id}>
+                                        {v.name.trim()}
+                                    </option>
+                                ))}
+                            </select>
+                            <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }}>
+                                <ChevronDown size={18} />
+                            </div>
+                        </div>
+                    </div>
 
                     <div style={{ position: 'relative', marginBottom: '24px' }}>
                         <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontWeight: 800, fontSize: '18px' }}>
