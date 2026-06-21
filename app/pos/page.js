@@ -44,6 +44,27 @@ import CustomSelect from '@/components/pos/CustomSelect';
 import AlphanumericKeyboard from '@/components/pos/AlphanumericKeyboard';
 import BarcodeScannerModal from '@/components/pos/BarcodeScannerModal';
 
+const Isotipo = () => (
+    <div style={{
+        width: '32px',
+        height: '32px',
+        borderRadius: '8px',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff',
+        fontWeight: 900,
+        fontSize: '16px',
+        fontFamily: "'Outfit', sans-serif",
+        boxShadow: '0 3px 8px rgba(59, 130, 246, 0.2)',
+        flexShrink: 0,
+        userSelect: 'none'
+    }}>
+        S
+    </div>
+);
+
 export default function POSPage() {
     const { data: session } = useSession();
     const [searchTerm, setSearchTerm] = useState('');
@@ -1078,14 +1099,23 @@ export default function POSPage() {
                             </button>
                             <button 
                                 onClick={() => setShowMobileMenu(true)} 
-                                className="modern-burger-container"
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '6px',
+                                    borderRadius: '50%',
+                                    transition: 'transform 0.2s ease-in-out',
+                                    outline: 'none'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                                 aria-label="Abrir menú"
                             >
-                                <div className="modern-burger-icon">
-                                    <span className="modern-burger-line modern-burger-line-1" style={{ background: '#f1f5f9' }}></span>
-                                    <span className="modern-burger-line modern-burger-line-2" style={{ background: '#f1f5f9' }}></span>
-                                    <span className="modern-burger-line modern-burger-line-3" style={{ background: '#f1f5f9' }}></span>
-                                </div>
+                                <Isotipo />
                             </button>
                         </div>
                     </div>
