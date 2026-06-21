@@ -582,7 +582,7 @@ export default function Sidebar({
 
             {/* Cabecera del Sidebar con Marca y Botón de Toggle */}
             <div style={{ 
-                padding: isExpanded ? (isTablet ? '12px 8px 6px 12px' : '16px 12px 8px 20px') : '16px 0 8px 0', 
+                padding: isExpanded ? (isTablet ? '12px 8px 6px 16px' : '16px 12px 8px 20px') : '16px 0 8px 0', 
                 width: '100%', 
                 boxSizing: 'border-box', 
                 display: 'flex', 
@@ -594,10 +594,8 @@ export default function Sidebar({
                     <div style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
-                        gap: isTablet ? '6px' : '10px',
                         width: '100%'
                     }}>
-                        <Isotipo isTablet={isTablet} />
                         <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: isTablet ? '15px' : '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                             <span style={{ color: '#3b82f6' }}>Syscom</span>
                             <span style={{ color: '#0f172a' }}>.click</span>
