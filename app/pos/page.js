@@ -1143,28 +1143,12 @@ export default function POSPage() {
                                         justifyContent: 'space-between',
                                         boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                                     }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                            {/* Icono de Sede Estilizado */}
-                                            <div style={{ 
-                                                width: '42px', 
-                                                height: '42px', 
-                                                borderRadius: '12px', 
-                                                background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
-                                                justifyContent: 'center', 
-                                                color: '#2563eb',
-                                                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.08)',
-                                                flexShrink: 0
-                                            }}>
-                                                <Building2 size={20} />
-                                            </div>
-                                            
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                                                     {/* Nombre de la Sede */}
                                                     <h1 style={{ 
-                                                        fontSize: '15px', 
+                                                        fontSize: isMobileDevice ? '11px' : '13px', 
                                                         fontWeight: 800, 
                                                         color: '#0f172a', 
                                                         margin: 0,
@@ -1217,7 +1201,7 @@ export default function POSPage() {
                                                 {/* Dirección */}
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
                                                     <MapPin size={12} style={{ color: '#94a3b8' }} />
-                                                    <span style={{ fontSize: '11px', fontWeight: 550 }}>
+                                                    <span style={{ fontSize: isMobileDevice ? '9px' : '11px', fontWeight: 550 }}>
                                                         {companySettings?.company?.address || 'Dirección no configurada'}
                                                     </span>
                                                 </div>
