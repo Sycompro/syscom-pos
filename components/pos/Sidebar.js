@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp, ShoppingBag, Truck, ChevronDown, ChevronUp } from 'lucide-react';
+import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp, ShoppingBag, Truck, ChevronDown, ChevronUp, Menu } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 export default function Sidebar({ 
@@ -26,6 +26,7 @@ export default function Sidebar({
         activeTab === 'settings' || activeTab === 'whatsapp'
     );
     const [supportsFullscreen, setSupportsFullscreen] = useState(false);
+    const [hasHoverSupport, setHasHoverSupport] = useState(true);
 
     const isExpanded = isMobileMode ? true : isExpandedInternal;
 
@@ -41,6 +42,10 @@ export default function Sidebar({
                 document.documentElement.msRequestFullscreen
             );
             setSupportsFullscreen(supported);
+
+            // Detectar soporte de hover físico real (mouse)
+            const hoverSupport = window.matchMedia('(hover: hover)').matches;
+            setHasHoverSupport(hoverSupport);
         }
     }, []);
 
@@ -472,8 +477,16 @@ export default function Sidebar({
 
     return (
         <aside 
-            onMouseEnter={() => setIsExpandedInternal(true)}
-            onMouseLeave={() => setIsExpandedInternal(false)}
+            onMouseEnter={() => {
+                if (hasHoverSupport) {
+                    setIsExpandedInternal(true);
+                }
+            }}
+            onMouseLeave={() => {
+                if (hasHoverSupport) {
+                    setIsExpandedInternal(false);
+                }
+            }}
             style={{
                 ...asideStyle,
                 overflowY: 'auto'
@@ -492,17 +505,80 @@ export default function Sidebar({
                 </div>
             )}
 
-            {/* Marca Syscom.click en el Menú */}
-            {isExpanded ? (
-                <div style={{ padding: '16px 16px 8px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
-                        <span style={{ color: '#3b82f6' }}>Syscom</span>
-                        <span style={{ color: '#0f172a' }}>.click</span>
-                    </span>
-                </div>
-            ) : (
-                <div style={{ height: '20px' }}></div>
-            )}
+            {/* Cabecera del Sidebar con Marca y Botón de Toggle */}
+            <div style={{ 
+                padding: isExpanded ? '16px 12px 8px 20px' : '16px 0 8px 0', 
+                width: '100%', 
+                boxSizing: 'border-box', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: isExpanded ? 'space-between' : 'center',
+                minHeight: '56px'
+            }}>
+                {isExpanded ? (
+                    <>
+                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                            <span style={{ color: '#3b82f6' }}>Syscom</span>
+                            <span style={{ color: '#0f172a' }}>.click</span>
+                        </span>
+                        <button 
+                            onClick={() => setIsExpandedInternal(false)}
+                            style={{
+                                border: 'none',
+                                background: '#f1f5f9',
+                                color: '#64748b',
+                                cursor: 'pointer',
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s',
+                                outline: 'none'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = '#e2e8f0';
+                                e.currentTarget.style.color = '#0f172a';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = '#f1f5f9';
+                                e.currentTarget.style.color = '#64748b';
+                            }}
+                        >
+                            <Menu size={16} />
+                        </button>
+                    </>
+                ) : (
+                    <button 
+                        onClick={() => setIsExpandedInternal(true)}
+                        style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#475569',
+                            cursor: 'pointer',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s',
+                            outline: 'none'
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = '#f1f5f9';
+                            e.currentTarget.style.color = '#3b82f6';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#475569';
+                        }}
+                    >
+                        <Menu size={22} />
+                    </button>
+                )}
+            </div>
 
             {/* Perfil de la Empresa (Escritorio) */}
             <div style={{

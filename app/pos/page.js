@@ -274,7 +274,7 @@ export default function POSPage() {
             const mobile = window.innerWidth < 1280;
             setIsMobile(mobile);
             if (!mobile) setCartVisible(true);
-            setIsMobileDevice(window.innerWidth < 768);
+            setIsMobileDevice(window.innerWidth < 1024);
         };
         checkSize();
         window.addEventListener('resize', checkSize);
