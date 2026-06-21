@@ -12,8 +12,18 @@ export async function GET(request) {
     const company = session.user.company;
     const { searchParams } = new URL(request.url);
     
-    // Obtener parámetros de filtros con valores por defecto
-    const todayStr = new Date().toISOString().split('T')[0];
+    // Obtener fecha actual en hora de Perú (UTC-5)
+    const getPeruDateStr = () => {
+      const d = new Date();
+      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+      const peruTime = new Date(utc + (3600000 * -5));
+      const year = peruTime.getFullYear();
+      const month = String(peruTime.getMonth() + 1).padStart(2, '0');
+      const day = String(peruTime.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const todayStr = getPeruDateStr();
     const startDateParam = searchParams.get('startDate') || todayStr;
     const endDateParam = searchParams.get('endDate') || todayStr;
     const sedeIdParam = searchParams.get('sedeId') || 'all'; // 'all' o codpto específico (ej: '09')
@@ -121,10 +131,10 @@ export async function GET(request) {
     timeRequest.input('end', sql.DateTime, end);
     if (sedeIdParam !== 'all') timeRequest.input('sedeId', sql.VarChar(10), sedeIdParam.trim());
 
-    let timeQuery = "";
-    // Identificar la escala de tiempo (si es el mismo día, agrupar por hora; de lo contrario por fecha)
     const isSingleDay = startDateParam === endDateParam;
-
+    const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24));
+    
+    let timeQuery = "";
     if (isSingleDay) {
       timeQuery = `
         SELECT 
@@ -137,6 +147,19 @@ export async function GET(request) {
           ${sedeCondition}
         GROUP BY DATEPART(HOUR, f.FecReg)
         ORDER BY hourLabel ASC
+      `;
+    } else if (diffDays > 31) {
+      timeQuery = `
+        SELECT 
+          CONCAT(CAST(YEAR(f.fecha) AS VARCHAR), '-', RIGHT('0' + CAST(MONTH(f.fecha) AS VARCHAR), 2)) as monthLabel,
+          COUNT(*) as quantity,
+          ISNULL(SUM(f.totn), 0) as totalAmount
+        FROM mst01fac f WITH(nolock)
+        WHERE f.fecha >= @start AND f.fecha <= @end
+          AND f.flag = '0'
+          ${sedeCondition}
+        GROUP BY YEAR(f.fecha), MONTH(f.fecha)
+        ORDER BY monthLabel ASC
       `;
     } else {
       timeQuery = `
@@ -154,11 +177,22 @@ export async function GET(request) {
     }
 
     const timeRes = await timeRequest.query(timeQuery);
-    const timeEvolution = timeRes.recordset.map(r => ({
-      label: isSingleDay ? `${r.hourLabel.toString().padStart(2, '0')}:00` : new Date(r.dateLabel).toISOString().split('T')[0],
-      quantity: r.quantity,
-      amount: r.totalAmount
-    }));
+    const timeEvolution = timeRes.recordset.map(r => {
+      let label = "";
+      if (isSingleDay) {
+        label = `${r.hourLabel.toString().padStart(2, '0')}:00`;
+      } else if (diffDays > 31) {
+        label = r.monthLabel;
+      } else {
+        const d = new Date(r.dateLabel);
+        label = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+      }
+      return {
+        label,
+        quantity: r.quantity,
+        amount: r.totalAmount
+      };
+    });
 
     // --- CONSULTA 5: DISTRIBUCIÓN POR SEDE (Si es consolidado) ---
     let salesBySede = [];

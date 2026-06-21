@@ -12,15 +12,28 @@ export default function DashboardView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const formatLocalDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayStr = formatLocalDate(new Date());
+
   // Estados de Filtros
   const [selectedSede, setSelectedSede] = useState('all');
-  const [datePreset, setDatePreset] = useState('month'); // 'today', 'month', 'year', 'custom'
+  const [datePreset, setDatePreset] = useState('month'); // 'day', 'month', 'year', 'custom'
+
+  // Estados para selectores detallados
+  const [filterYear, setFilterYear] = useState(() => new Date().getFullYear());
+  const [filterMonth, setFilterMonth] = useState(() => new Date().getMonth() + 1);
+  const [filterDay, setFilterDay] = useState(todayStr);
   
-  const todayStr = new Date().toISOString().split('T')[0];
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
-    // Iniciar el mes actual por defecto
-    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+    const startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+    return formatLocalDate(startOfMonth);
   });
   const [endDate, setEndDate] = useState(todayStr);
 
@@ -35,24 +48,26 @@ export default function DashboardView() {
 
   const isMobileView = windowWidth < 768;
 
-  // Lógica de presets de fecha
-  const handlePresetChange = (preset) => {
-    setDatePreset(preset);
-    const today = new Date();
-    
-    if (preset === 'today') {
-      setStartDate(todayStr);
-      setEndDate(todayStr);
-    } else if (preset === 'month') {
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      setStartDate(startOfMonth.toISOString().split('T')[0]);
-      setEndDate(todayStr);
-    } else if (preset === 'year') {
-      const startOfYear = new Date(today.getFullYear(), 0, 1);
-      setStartDate(startOfYear.toISOString().split('T')[0]);
-      setEndDate(todayStr);
+  // Lógica de presets de fecha y actualizaciones de inputs específicos
+  useEffect(() => {
+    if (datePreset === 'day') {
+      setStartDate(filterDay);
+      setEndDate(filterDay);
+    } else if (datePreset === 'month') {
+      const year = parseInt(filterYear);
+      const month = parseInt(filterMonth);
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      setStartDate(formatLocalDate(startOfMonth));
+      setEndDate(formatLocalDate(endOfMonth));
+    } else if (datePreset === 'year') {
+      const year = parseInt(filterYear);
+      const startOfYear = new Date(year, 0, 1);
+      const endOfYear = new Date(year, 11, 31);
+      setStartDate(formatLocalDate(startOfYear));
+      setEndDate(formatLocalDate(endOfYear));
     }
-  };
+  }, [datePreset, filterYear, filterMonth, filterDay]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -230,35 +245,133 @@ export default function DashboardView() {
           {/* Presets de Fecha */}
           <div style={presetsWrapperStyle}>
             <button 
-              onClick={() => handlePresetChange('today')}
-              style={datePreset === 'today' ? activePresetBtnStyle : presetBtnStyle}
+              onClick={() => setDatePreset('day')}
+              style={datePreset === 'day' ? activePresetBtnStyle : presetBtnStyle}
             >
-              Hoy
+              Por Día
             </button>
             <button 
-              onClick={() => handlePresetChange('month')}
+              onClick={() => setDatePreset('month')}
               style={datePreset === 'month' ? activePresetBtnStyle : presetBtnStyle}
             >
-              Mes
+              Por Mes
             </button>
             <button 
-              onClick={() => handlePresetChange('year')}
+              onClick={() => setDatePreset('year')}
               style={datePreset === 'year' ? activePresetBtnStyle : presetBtnStyle}
             >
-              Año
+              Por Año
             </button>
             <button 
               onClick={() => setDatePreset('custom')}
               style={datePreset === 'custom' ? activePresetBtnStyle : presetBtnStyle}
             >
-              Filtro
+              Rango Libre
             </button>
           </div>
         </div>
       </div>
 
-      {/* Rango de Fecha Personalizado (Solo visible si es 'custom') */}
+      {/* Selectores dinámicos según el tipo de período */}
       <AnimatePresence>
+        {datePreset !== 'custom' && (
+          <motion.div 
+            key="preset-selectors"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            style={{ ...customRangeStyle, marginBottom: '8px' }}
+          >
+            <div style={{
+              display: 'flex',
+              flexDirection: isMobileView ? 'column' : 'row',
+              alignItems: isMobileView ? 'stretch' : 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              boxSizing: 'border-box'
+            }}>
+              {datePreset === 'day' && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Calendar size={14} color="#3b82f6" />
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Día Específico:</span>
+                  </div>
+                  <input 
+                    type="date" 
+                    value={filterDay} 
+                    onChange={e => setFilterDay(e.target.value)} 
+                    style={dateInputStyle} 
+                  />
+                </>
+              )}
+
+              {datePreset === 'month' && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Calendar size={14} color="#3b82f6" />
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Mes y Año:</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <select 
+                      value={filterMonth} 
+                      onChange={e => setFilterMonth(parseInt(e.target.value))} 
+                      style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
+                    >
+                      {[
+                        { value: 1, label: 'Enero' },
+                        { value: 2, label: 'Febrero' },
+                        { value: 3, label: 'Marzo' },
+                        { value: 4, label: 'Abril' },
+                        { value: 5, label: 'Mayo' },
+                        { value: 6, label: 'Junio' },
+                        { value: 7, label: 'Julio' },
+                        { value: 8, label: 'Agosto' },
+                        { value: 9, label: 'Septiembre' },
+                        { value: 10, label: 'Octubre' },
+                        { value: 11, label: 'Noviembre' },
+                        { value: 12, label: 'Diciembre' }
+                      ].map(m => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
+                      ))}
+                    </select>
+
+                    <select 
+                      value={filterYear} 
+                      onChange={e => setFilterYear(parseInt(e.target.value))} 
+                      style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
+                    >
+                      {Array.from({ length: 5 }).map((_, i) => {
+                        const yr = new Date().getFullYear() - 3 + i;
+                        return <option key={yr} value={yr}>{yr}</option>;
+                      })}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {datePreset === 'year' && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Calendar size={14} color="#3b82f6" />
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Año:</span>
+                  </div>
+                  <select 
+                    value={filterYear} 
+                    onChange={e => setFilterYear(parseInt(e.target.value))} 
+                    style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
+                  >
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const yr = new Date().getFullYear() - 3 + i;
+                      return <option key={yr} value={yr}>{yr}</option>;
+                    })}
+                  </select>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         {datePreset === 'custom' && (
           <motion.div 
             key="custom-date-range"
@@ -266,7 +379,7 @@ export default function DashboardView() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            style={customRangeStyle}
+            style={{ ...customRangeStyle, marginBottom: '8px' }}
           >
             <div style={{ 
               display: 'flex', 
