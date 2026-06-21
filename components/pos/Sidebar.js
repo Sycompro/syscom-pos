@@ -1149,39 +1149,40 @@ export default function Sidebar({
                     </div>
                 )}
 
-                {/* Botón de Cerrar Sesión Estilo Cápsula */}
-                <div style={{ marginTop: '10px', marginBottom: '2px', padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
-                    <button 
-                        onClick={onSignOut} 
-                        title={isExpanded ? "" : "Cerrar Sesión"}
-                        style={{
-                            width: isExpanded ? '100%' : '40px',
-                            height: isExpanded ? '44px' : '40px',
-                            borderRadius: isExpanded ? '24px' : '50%',
-                            border: 'none',
-                            background: '#fee2e2',
-                            color: '#ef4444',
-                            fontWeight: 900,
-                            fontSize: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: isExpanded ? (isTablet ? '6px' : '8px') : '0',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 2px 6px rgba(239, 68, 68, 0.05)'
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.background = '#fef2f2';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.background = '#fee2e2';
-                        }}
-                    >
-                        <LogOut size={isTablet ? 16 : 18} style={{ flexShrink: 0 }} />
-                        {isExpanded && <span>Cerrar Sesión</span>}
-                    </button>
-                </div>
+            </div>
+
+            {/* Botón de Cerrar Sesión Estilo Cápsula (Fijado al borde inferior del aside) */}
+            <div style={{ marginTop: '8px', marginBottom: !isMobileMode ? '10px' : '6px', padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
+                <button 
+                    onClick={onSignOut} 
+                    title={isExpanded ? "" : "Cerrar Sesión"}
+                    style={{
+                        width: isExpanded ? '100%' : '40px',
+                        height: isExpanded ? '44px' : '40px',
+                        borderRadius: isExpanded ? '24px' : '50%',
+                        border: 'none',
+                        background: '#fee2e2',
+                        color: '#ef4444',
+                        fontWeight: 900,
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: isExpanded ? (isTablet ? '6px' : '8px') : '0',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 2px 6px rgba(239, 68, 68, 0.05)'
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.background = '#fef2f2';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = '#fee2e2';
+                    }}
+                >
+                    <LogOut size={isTablet ? 16 : 18} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span>Cerrar Sesión</span>}
+                </button>
             </div>
         </aside>
     </>
