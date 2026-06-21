@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-reac
 import CustomSelect from './CustomSelect';
 
 
-export default function CustomDatePicker({ value, onChange, label, inline = false }) {
+export default function CustomDatePicker({ value, onChange, label, inline = false, style = {} }) {
     const [show, setShow] = useState(inline);
     const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
     
@@ -109,7 +109,7 @@ export default function CustomDatePicker({ value, onChange, label, inline = fals
                                     style={{
                                         ...dayItemStyle,
                                         cursor: d ? 'pointer' : 'default',
-                                        background: isSelected ? '#3b82f6' : 'transparent',
+                                        background: isSelected ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : 'transparent',
                                         color: isSelected ? '#fff' : (d ? '#1e293b' : 'transparent'),
                                         fontWeight: isSelected ? '800' : '600',
                                         fontSize: '11px'
@@ -128,7 +128,7 @@ export default function CustomDatePicker({ value, onChange, label, inline = fals
     return (
         <div style={{ position: 'relative', width: '100%' }}>
             {label && <label style={labelStyle}>{label}</label>}
-            <div onClick={() => setShow(!show)} style={inputStyle}>
+            <div onClick={() => setShow(!show)} style={{ ...inputStyle, ...style }}>
                 <CalendarIcon size={14} style={{ color: '#94a3b8' }} />
                 <span style={{ color: value ? '#0f172a' : '#cbd5e1', fontWeight: 600 }}>
                     {value || 'fecha'}
@@ -175,7 +175,7 @@ export default function CustomDatePicker({ value, onChange, label, inline = fals
                                     style={{
                                         ...dayItemStyle,
                                         cursor: d ? 'pointer' : 'default',
-                                        background: isSelected ? '#3b82f6' : 'transparent',
+                                        background: isSelected ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : 'transparent',
                                         color: isSelected ? '#fff' : (d ? '#1e293b' : 'transparent'),
                                         fontWeight: isSelected ? '800' : '600',
                                         fontSize: '11px'
@@ -198,7 +198,19 @@ const inputStyle = {
     borderRadius: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', 
     gap: '10px', cursor: 'pointer', height: '42px', boxSizing: 'border-box' 
 };
-const calendarPopupStyle = { position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 500, background: '#fff', borderRadius: '16px', padding: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', border: '1px solid #f1f5f9', width: '240px' };
+const calendarPopupStyle = { 
+    position: 'absolute', 
+    top: 'calc(100% + 8px)', 
+    left: 0, 
+    zIndex: 500, 
+    background: 'rgba(255, 255, 255, 0.96)', 
+    backdropFilter: 'blur(16px)',
+    borderRadius: '16px', 
+    padding: '12px', 
+    boxShadow: '0 12px 30px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03)', 
+    border: '1px solid rgba(226, 232, 240, 0.8)', 
+    width: '240px' 
+};
 const calendarHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' };
 const selectHeaderStyle = { border: 'none', background: '#f1f5f9', borderRadius: '6px', padding: '0 4px 0 8px', fontSize: '11px', fontWeight: 800, color: '#0f172a', outline: 'none', cursor: 'pointer', height: '24px' };
 const navBtnStyle = { background: '#f8fafc', border: 'none', width: '24px', height: '24px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' };

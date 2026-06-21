@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import CustomSelect from './CustomSelect';
+import CustomDatePicker from './CustomDatePicker';
 
 export default function DashboardView() {
   const { data: session } = useSession();
@@ -471,12 +472,19 @@ export default function DashboardView() {
                   <Calendar size={14} color="#3b82f6" />
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Día Específico:</span>
                 </div>
-                <input 
-                  type="date" 
-                  value={filterDay} 
-                  onChange={e => setFilterDay(e.target.value)} 
-                  style={{ ...dateInputStyle, flex: '1 1 150px' }} 
-                />
+                <div style={{ flex: '1 1 150px' }}>
+                  <CustomDatePicker
+                    value={filterDay}
+                    onChange={val => setFilterDay(val)}
+                    style={{
+                      height: '35px',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      fontSize: '12px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
+                    }}
+                  />
+                </div>
               </>
             )}
 
@@ -586,19 +594,33 @@ export default function DashboardView() {
           }}>
             <Calendar size={14} color="#64748b" style={{ flexShrink: 0 }} />
             <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Rango:</span>
-            <input 
-              type="date" 
-              value={startDate} 
-              onChange={e => setStartDate(e.target.value)} 
-              style={{ ...dateInputStyle, flex: '1 1 130px', minWidth: '120px' }} 
-            />
+            <div style={{ flex: '1 1 130px', minWidth: '120px' }}>
+              <CustomDatePicker
+                value={startDate}
+                onChange={val => setStartDate(val)}
+                style={{
+                  height: '35px',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '12px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
+                }}
+              />
+            </div>
             <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
-            <input 
-              type="date" 
-              value={endDate} 
-              onChange={e => setEndDate(e.target.value)} 
-              style={{ ...dateInputStyle, flex: '1 1 130px', minWidth: '120px' }} 
-            />
+            <div style={{ flex: '1 1 130px', minWidth: '120px' }}>
+              <CustomDatePicker
+                value={endDate}
+                onChange={val => setEndDate(val)}
+                style={{
+                  height: '35px',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '12px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
+                }}
+              />
+            </div>
             <button 
               onClick={fetchDashboardData} 
               style={{ ...queryBtnStyle, flex: '1 1 auto', minWidth: '100px', padding: '6px 16px' }}
