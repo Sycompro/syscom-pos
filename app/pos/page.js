@@ -1297,7 +1297,7 @@ export default function POSPage() {
                                          borderRadius: isMobileDevice ? '20px' : '10px', 
                                          padding: '3px', 
                                          gap: '3px', 
-                                         border: isMobileDevice ? 'none' : '1px solid #e2e8f0',
+                                         border: 'none',
                                          boxShadow: isMobileDevice ? 'none' : 'inset 0 1px 2px rgba(0,0,0,0.02)',
                                          height: isMobileDevice ? 'auto' : '36px',
                                          alignItems: 'center'
@@ -1484,7 +1484,7 @@ export default function POSPage() {
                                                  borderRadius: '10px', 
                                                  padding: '3px', 
                                                  gap: '3px', 
-                                                 border: '1px solid #e2e8f0',
+                                                 border: 'none',
                                                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
                                                  height: '36px',
                                                  alignItems: 'center'
