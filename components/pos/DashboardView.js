@@ -389,89 +389,61 @@ export default function DashboardView() {
       </div>
 
       {/* Selectores dinámicos según el tipo de período */}
-      <AnimatePresence>
-        {datePreset !== 'custom' && (
-          <motion.div 
-            key="preset-selectors"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            style={{ ...customRangeStyle, marginBottom: '8px' }}
-          >
-            <div style={{
-              display: 'flex',
-              flexDirection: isMobileView ? 'column' : 'row',
-              alignItems: isMobileView ? 'stretch' : 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              boxSizing: 'border-box'
-            }}>
-              {datePreset === 'day' && (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={14} color="#3b82f6" />
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Día Específico:</span>
-                  </div>
-                  <input 
-                    type="date" 
-                    value={filterDay} 
-                    onChange={e => setFilterDay(e.target.value)} 
-                    style={dateInputStyle} 
-                  />
-                </>
-              )}
+      {datePreset !== 'custom' && (
+        <div style={{ ...customRangeStyle, marginBottom: '8px' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: isMobileView ? 'column' : 'row',
+            alignItems: isMobileView ? 'stretch' : 'center',
+            gap: '12px',
+            padding: '12px 16px',
+            boxSizing: 'border-box'
+          }}>
+            {datePreset === 'day' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Calendar size={14} color="#3b82f6" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Día Específico:</span>
+                </div>
+                <input 
+                  type="date" 
+                  value={filterDay} 
+                  onChange={e => setFilterDay(e.target.value)} 
+                  style={dateInputStyle} 
+                />
+              </>
+            )}
 
-              {datePreset === 'month' && (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={14} color="#3b82f6" />
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Mes y Año:</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <select 
-                      value={filterMonth} 
-                      onChange={e => setFilterMonth(parseInt(e.target.value))} 
-                      style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
-                    >
-                      {[
-                        { value: 1, label: 'Enero' },
-                        { value: 2, label: 'Febrero' },
-                        { value: 3, label: 'Marzo' },
-                        { value: 4, label: 'Abril' },
-                        { value: 5, label: 'Mayo' },
-                        { value: 6, label: 'Junio' },
-                        { value: 7, label: 'Julio' },
-                        { value: 8, label: 'Agosto' },
-                        { value: 9, label: 'Septiembre' },
-                        { value: 10, label: 'Octubre' },
-                        { value: 11, label: 'Noviembre' },
-                        { value: 12, label: 'Diciembre' }
-                      ].map(m => (
-                        <option key={m.value} value={m.value}>{m.label}</option>
-                      ))}
-                    </select>
+            {datePreset === 'month' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Calendar size={14} color="#3b82f6" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Mes y Año:</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <select 
+                    value={filterMonth} 
+                    onChange={e => setFilterMonth(parseInt(e.target.value))} 
+                    style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
+                  >
+                    {[
+                      { value: 1, label: 'Enero' },
+                      { value: 2, label: 'Febrero' },
+                      { value: 3, label: 'Marzo' },
+                      { value: 4, label: 'Abril' },
+                      { value: 5, label: 'Mayo' },
+                      { value: 6, label: 'Junio' },
+                      { value: 7, label: 'Julio' },
+                      { value: 8, label: 'Agosto' },
+                      { value: 9, label: 'Septiembre' },
+                      { value: 10, label: 'Octubre' },
+                      { value: 11, label: 'Noviembre' },
+                      { value: 12, label: 'Diciembre' }
+                    ].map(m => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
 
-                    <select 
-                      value={filterYear} 
-                      onChange={e => setFilterYear(parseInt(e.target.value))} 
-                      style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
-                    >
-                      {Array.from({ length: 5 }).map((_, i) => {
-                        const yr = new Date().getFullYear() - 3 + i;
-                        return <option key={yr} value={yr}>{yr}</option>;
-                      })}
-                    </select>
-                  </div>
-                </>
-              )}
-
-              {datePreset === 'year' && (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={14} color="#3b82f6" />
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Año:</span>
-                  </div>
                   <select 
                     value={filterYear} 
                     onChange={e => setFilterYear(parseInt(e.target.value))} 
@@ -482,87 +454,99 @@ export default function DashboardView() {
                       return <option key={yr} value={yr}>{yr}</option>;
                     })}
                   </select>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
+                </div>
+              </>
+            )}
 
-        {datePreset === 'custom' && (
-          <motion.div 
-            key="custom-date-range"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            style={{ ...customRangeStyle, marginBottom: '8px' }}
-          >
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: isMobileView ? 'column' : 'row', 
-              alignItems: isMobileView ? 'stretch' : 'center', 
-              gap: isMobileView ? '10px' : '8px', 
-              padding: isMobileView ? '16px' : '12px 16px',
-              boxSizing: 'border-box'
-            }}>
-              {isMobileView ? (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <Calendar size={16} color="#3b82f6" />
-                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b' }}>Seleccionar Rango</span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Desde</span>
-                    <input 
-                      type="date" 
-                      value={startDate} 
-                      onChange={e => setStartDate(e.target.value)} 
-                      style={{ ...dateInputStyle, width: '100%', height: '38px', fontSize: '12px', boxSizing: 'border-box' }} 
-                    />
-                  </div>
+            {datePreset === 'year' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Calendar size={14} color="#3b82f6" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Año:</span>
+                </div>
+                <select 
+                  value={filterYear} 
+                  onChange={e => setFilterYear(parseInt(e.target.value))} 
+                  style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
+                >
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const yr = new Date().getFullYear() - 3 + i;
+                    return <option key={yr} value={yr}>{yr}</option>;
+                  })}
+                </select>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Hasta</span>
-                    <input 
-                      type="date" 
-                      value={endDate} 
-                      onChange={e => setEndDate(e.target.value)} 
-                      style={{ ...dateInputStyle, width: '100%', height: '38px', fontSize: '12px', boxSizing: 'border-box' }} 
-                    />
-                  </div>
-
-                  <button 
-                    onClick={fetchDashboardData} 
-                    style={{ ...queryBtnStyle, width: '100%', height: '38px', fontSize: '12px', fontWeight: 900, marginTop: '6px' }}
-                  >
-                    Consultar Rango
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Calendar size={14} color="#64748b" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Rango:</span>
+      {datePreset === 'custom' && (
+        <div style={{ ...customRangeStyle, marginBottom: '8px' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: isMobileView ? 'column' : 'row', 
+            alignItems: isMobileView ? 'stretch' : 'center', 
+            gap: isMobileView ? '10px' : '8px', 
+            padding: isMobileView ? '16px' : '12px 16px',
+            boxSizing: 'border-box'
+          }}>
+            {isMobileView ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <Calendar size={16} color="#3b82f6" />
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b' }}>Seleccionar Rango</span>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Desde</span>
                   <input 
                     type="date" 
                     value={startDate} 
                     onChange={e => setStartDate(e.target.value)} 
-                    style={dateInputStyle} 
+                    style={{ ...dateInputStyle, width: '100%', height: '38px', fontSize: '12px', boxSizing: 'border-box' }} 
                   />
-                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Hasta</span>
                   <input 
                     type="date" 
                     value={endDate} 
                     onChange={e => setEndDate(e.target.value)} 
-                    style={dateInputStyle} 
+                    style={{ ...dateInputStyle, width: '100%', height: '38px', fontSize: '12px', boxSizing: 'border-box' }} 
                   />
-                  <button onClick={fetchDashboardData} style={queryBtnStyle}>Consultar</button>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                </div>
+
+                <button 
+                  onClick={fetchDashboardData} 
+                  style={{ ...queryBtnStyle, width: '100%', height: '38px', fontSize: '12px', fontWeight: 900, marginTop: '6px' }}
+                >
+                  Consultar Rango
+                </button>
+              </>
+            ) : (
+              <>
+                <Calendar size={14} color="#64748b" />
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Rango:</span>
+                <input 
+                  type="date" 
+                  value={startDate} 
+                  onChange={e => setStartDate(e.target.value)} 
+                  style={dateInputStyle} 
+                />
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
+                <input 
+                  type="date" 
+                  value={endDate} 
+                  onChange={e => setEndDate(e.target.value)} 
+                  style={dateInputStyle} 
+                />
+                <button onClick={fetchDashboardData} style={queryBtnStyle}>Consultar</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {loading && !data ? (
         <div style={loadingContainerStyle}>
