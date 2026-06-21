@@ -37,7 +37,7 @@ import ProductsView from '@/components/pos/ProductsView';
 import SuppliersView from '@/components/pos/SuppliersView';
 import DashboardView from '@/components/pos/DashboardView';
 import SalesView from '@/components/pos/SalesView';
-import SettingsModal from '@/components/pos/SettingsModal';
+import SettingsView from '@/components/pos/SettingsView';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
 import CustomSelect from '@/components/pos/CustomSelect';
@@ -239,7 +239,6 @@ export default function POSPage() {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [showScannerModal, setShowScannerModal] = useState(false);
     const [showCloseModal, setShowCloseModal] = useState(false);
-    const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [showErpModal, setShowErpModal] = useState(false);
     const [erpModalData, setErpModalData] = useState(null);
     const [searchType, setSearchType] = useState('DNI'); // 'DNI', 'RUC' o 'CE'
@@ -982,7 +981,6 @@ export default function POSPage() {
                     onSignOut={() => signOut()}
                     onOpenCloseCash={() => setShowCloseModal(true)}
                     onOpenHistory={() => setShowHistoryModal(true)}
-                    onOpenSettings={() => setShowSettingsModal(true)} 
                     onToggleFullscreen={toggleFullscreen}
                     isFullscreen={isFullscreen}
                     activeTab={activeTab} 
@@ -1025,6 +1023,7 @@ export default function POSPage() {
                                      activeTab === 'purchases-ccp' ? 'Facturas / Boletas' :
                                      activeTab === 'suppliers' ? 'Proveedores' :
                                      activeTab === 'general-cash' ? 'Caja General' :
+                                     activeTab === 'settings' ? 'Ajustes POS' :
                                      activeTab === 'whatsapp' ? 'Config WhatsApp' : 
                                      activeTab === 'sales' ? 'Historial Ventas' : 
                                      activeTab === 'products' ? 'Catálogo Artículos' :
@@ -1803,6 +1802,18 @@ export default function POSPage() {
                         </motion.div>
                     )}
 
+                    {activeTab === 'settings' && (
+                        <motion.div
+                            key="settings" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            style={{ flex: 1, display: 'flex', overflow: isMobileDevice ? 'auto' : 'hidden' }}
+                        >
+                            <SettingsView 
+                                db={session?.user?.company} 
+                                onSaved={loadKeyboardPreference} 
+                            />
+                        </motion.div>
+                    )}
+
                     {activeTab === 'general-cash' && (
                         <motion.div
                             key="general-cash" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
@@ -1964,12 +1975,7 @@ export default function POSPage() {
                     setInspectCashId(null);
                 }}
             />
-            <SettingsModal 
-                isOpen={showSettingsModal} 
-                onClose={() => setShowSettingsModal(false)} 
-                db={session?.user?.company} 
-                onSaved={loadKeyboardPreference}
-            />
+
             <CashExpenseModal
                 isOpen={showExpenseModal}
                 onClose={() => setShowExpenseModal(false)}
@@ -2335,7 +2341,6 @@ export default function POSPage() {
                                 onSignOut={() => signOut()}
                                 onOpenCloseCash={() => { setShowCloseModal(true); setShowMobileMenu(false); }}
                                 onOpenHistory={() => { setShowHistoryModal(true); setShowMobileMenu(false); }}
-                                onOpenSettings={() => { setShowSettingsModal(true); setShowMobileMenu(false); }}
                                 onToggleFullscreen={toggleFullscreen}
                                 isFullscreen={isFullscreen}
                                 activeTab={activeTab} 

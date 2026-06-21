@@ -22,6 +22,9 @@ export default function Sidebar({
     const [isPurchasesExpanded, setIsPurchasesExpanded] = useState(
         activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp'
     );
+    const [isSettingsExpanded, setIsSettingsExpanded] = useState(
+        activeTab === 'settings' || activeTab === 'whatsapp'
+    );
     const [supportsFullscreen, setSupportsFullscreen] = useState(false);
 
     const isExpanded = true;
@@ -48,6 +51,7 @@ export default function Sidebar({
                 setIsCustomersExpanded(false);
                 setIsPurchasesExpanded(false);
                 setIsFinanceExpanded(false);
+                setIsSettingsExpanded(false);
             }
             return next;
         });
@@ -60,6 +64,7 @@ export default function Sidebar({
                 setIsProductsExpanded(false);
                 setIsPurchasesExpanded(false);
                 setIsFinanceExpanded(false);
+                setIsSettingsExpanded(false);
             }
             return next;
         });
@@ -72,6 +77,7 @@ export default function Sidebar({
                 setIsProductsExpanded(false);
                 setIsCustomersExpanded(false);
                 setIsFinanceExpanded(false);
+                setIsSettingsExpanded(false);
             }
             return next;
         });
@@ -84,18 +90,36 @@ export default function Sidebar({
                 setIsProductsExpanded(false);
                 setIsCustomersExpanded(false);
                 setIsPurchasesExpanded(false);
+                setIsSettingsExpanded(false);
             }
             return next;
         });
     };
 
-    useEffect(() => {
-        // Al cambiar de pestaña (seleccionar una opción), se contraen todos los acordeones para dejar el menú limpio
+    const toggleSettings = () => {
+        setIsSettingsExpanded(prev => {
+            const next = !prev;
+            if (next) {
+                setIsProductsExpanded(false);
+                setIsCustomersExpanded(false);
+                setIsPurchasesExpanded(false);
+                setIsFinanceExpanded(false);
+            }
+            return next;
+        });
+    };
+
+    const handleTabSelect = (tab) => {
+        setActiveTab(tab);
         setIsCustomersExpanded(false);
         setIsFinanceExpanded(false);
         setIsProductsExpanded(false);
         setIsPurchasesExpanded(false);
-    }, [activeTab]);
+        setIsSettingsExpanded(false);
+        if (isMobileMode && onCloseMobileMenu) {
+            onCloseMobileMenu();
+        }
+    };
 
     const asideStyle = {
         width: isExpanded ? '220px' : '56px',
@@ -160,9 +184,7 @@ export default function Sidebar({
         transition: 'opacity 0.2s ease-in-out',
         whiteSpace: 'nowrap',
         marginLeft: isExpanded ? '10px' : '0px',
-    };
-
-    if (isMobileMode) {
+    };    if (isMobileMode) {
         return (
             <aside style={{
                 width: '100%',
@@ -220,7 +242,7 @@ export default function Sidebar({
 
                 {/* Punto de Venta */}
                 <div 
-                    onClick={() => setActiveTab('pos')}
+                    onClick={() => handleTabSelect('pos')}
                     style={getNavBtnStyle(activeTab === 'pos')}
                 >
                     <LayoutGrid size={22} style={{ flexShrink: 0 }} />
@@ -229,7 +251,7 @@ export default function Sidebar({
 
                 {/* Dashboard */}
                 <div 
-                    onClick={() => setActiveTab('dashboard')}
+                    onClick={() => handleTabSelect('dashboard')}
                     style={getNavBtnStyle(activeTab === 'dashboard')}
                 >
                     <TrendingUp size={22} style={{ flexShrink: 0 }} />
@@ -238,7 +260,7 @@ export default function Sidebar({
 
                 {/* Historial Ventas */}
                 <div 
-                    onClick={() => setActiveTab('sales')}
+                    onClick={() => handleTabSelect('sales')}
                     style={getNavBtnStyle(activeTab === 'sales')}
                 >
                     <History size={22} style={{ flexShrink: 0 }} />
@@ -247,7 +269,7 @@ export default function Sidebar({
 
                 {/* Membresías */}
                 <div 
-                    onClick={() => setActiveTab('memberships')}
+                    onClick={() => handleTabSelect('memberships')}
                     style={getNavBtnStyle(activeTab === 'memberships')}
                 >
                     <Users size={22} style={{ flexShrink: 0 }} />
@@ -256,7 +278,7 @@ export default function Sidebar({
 
                 {/* Promociones */}
                 <div 
-                    onClick={() => setActiveTab('promotions')}
+                    onClick={() => handleTabSelect('promotions')}
                     style={getNavBtnStyle(activeTab === 'promotions')}
                 >
                     <Tag size={22} style={{ flexShrink: 0 }} />
@@ -275,13 +297,13 @@ export default function Sidebar({
 
                 {isProductsExpanded && (
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
-                        <div onClick={() => setActiveTab('products')} style={{ width: '100%', height: '34px', background: activeTab === 'products' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('products')} style={{ width: '100%', height: '34px', background: activeTab === 'products' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'products' ? 800 : 600, color: activeTab === 'products' ? '#3b82f6' : '#64748b' }}>Catálogo</span>
                         </div>
-                        <div onClick={() => setActiveTab('classifications')} style={{ width: '100%', height: '34px', background: activeTab === 'classifications' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('classifications')} style={{ width: '100%', height: '34px', background: activeTab === 'classifications' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'classifications' ? 800 : 600, color: activeTab === 'classifications' ? '#3b82f6' : '#64748b' }}>Clasificaciones</span>
                         </div>
-                        <div onClick={() => setActiveTab('brands')} style={{ width: '100%', height: '34px', background: activeTab === 'brands' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('brands')} style={{ width: '100%', height: '34px', background: activeTab === 'brands' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'brands' ? 800 : 600, color: activeTab === 'brands' ? '#3b82f6' : '#64748b' }}>Marcas</span>
                         </div>
                     </div>
@@ -299,13 +321,13 @@ export default function Sidebar({
 
                 {isCustomersExpanded && (
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
-                        <div onClick={() => setActiveTab('customers')} style={{ width: '100%', height: '34px', background: activeTab === 'customers' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('customers')} style={{ width: '100%', height: '34px', background: activeTab === 'customers' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'customers' ? 800 : 600, color: activeTab === 'customers' ? '#3b82f6' : '#64748b' }}>Gestión Clientes</span>
                         </div>
-                        <div onClick={() => setActiveTab('birthdays')} style={{ width: '100%', height: '34px', background: activeTab === 'birthdays' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('birthdays')} style={{ width: '100%', height: '34px', background: activeTab === 'birthdays' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'birthdays' ? 800 : 600, color: activeTab === 'birthdays' ? '#3b82f6' : '#64748b' }}>Cumpleaños</span>
                         </div>
-                        <div onClick={() => setActiveTab('credits')} style={{ width: '100%', height: '34px', background: activeTab === 'credits' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('credits')} style={{ width: '100%', height: '34px', background: activeTab === 'credits' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'credits' ? 800 : 600, color: activeTab === 'credits' ? '#3b82f6' : '#64748b' }}>Créditos</span>
                         </div>
                     </div>
@@ -323,13 +345,13 @@ export default function Sidebar({
 
                 {isPurchasesExpanded && (
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
-                        <div onClick={() => setActiveTab('purchases-ocm')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-ocm' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('purchases-ocm')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-ocm' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'purchases-ocm' ? 800 : 600, color: activeTab === 'purchases-ocm' ? '#3b82f6' : '#64748b' }}>Orden de Compra</span>
                         </div>
-                        <div onClick={() => setActiveTab('purchases-gim')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-gim' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('purchases-gim')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-gim' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'purchases-gim' ? 800 : 600, color: activeTab === 'purchases-gim' ? '#3b82f6' : '#64748b' }}>Ingreso Almacén (GIM)</span>
                         </div>
-                        <div onClick={() => setActiveTab('purchases-ccp')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-ccp' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('purchases-ccp')} style={{ width: '100%', height: '34px', background: activeTab === 'purchases-ccp' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'purchases-ccp' ? 800 : 600, color: activeTab === 'purchases-ccp' ? '#3b82f6' : '#64748b' }}>Factura/Boletas</span>
                         </div>
                     </div>
@@ -337,7 +359,7 @@ export default function Sidebar({
 
                 {/* Proveedores */}
                 <div 
-                    onClick={() => setActiveTab('suppliers')}
+                    onClick={() => handleTabSelect('suppliers')}
                     style={getNavBtnStyle(activeTab === 'suppliers')}
                 >
                     <Truck size={22} style={{ flexShrink: 0 }} />
@@ -356,29 +378,40 @@ export default function Sidebar({
 
                 {isFinanceExpanded && (
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
-                        <div onClick={() => setActiveTab('expenses')} style={{ width: '100%', height: '34px', background: activeTab === 'expenses' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('expenses')} style={{ width: '100%', height: '34px', background: activeTab === 'expenses' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'expenses' ? 800 : 600, color: activeTab === 'expenses' ? '#3b82f6' : '#64748b' }}>Egresos / Gastos</span>
                         </div>
-                        <div onClick={() => setActiveTab('general-cash')} style={{ width: '100%', height: '34px', background: activeTab === 'general-cash' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div onClick={() => handleTabSelect('general-cash')} style={{ width: '100%', height: '34px', background: activeTab === 'general-cash' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                             <span style={{ fontSize: '11px', fontWeight: activeTab === 'general-cash' ? 800 : 600, color: activeTab === 'general-cash' ? '#3b82f6' : '#64748b' }}>Caja General</span>
                         </div>
                     </div>
                 )}
 
-                {/* CONFIGURACIÓN / MI CUENTA SECTION */}
+                {/* MI CUENTA / CONFIGURACIÓN SECTION */}
                 <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '20px 4px 6px 4px', textTransform: 'uppercase' }}>
                     Mi Cuenta
                 </div>
 
-                {/* Config WhatsApp */}
+                {/* Configuración (Expandible) */}
                 <div 
-                    onClick={() => setActiveTab('whatsapp')}
-                    style={getNavBtnStyle(activeTab === 'whatsapp')}
+                    onClick={toggleSettings}
+                    style={getNavBtnStyle(activeTab === 'settings' || activeTab === 'whatsapp')}
                 >
-                    <MessageCircle size={22} style={{ flexShrink: 0 }} />
-                    <span style={labelTextStyle}>Config WhatsApp</span>
+                    <Settings size={22} style={{ flexShrink: 0 }} />
+                    <span style={labelTextStyle}>Configuración</span>
+                    {isSettingsExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
                 </div>
 
+                {isSettingsExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                        <div onClick={() => handleTabSelect('settings')} style={{ width: '100%', height: '34px', background: activeTab === 'settings' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'settings' ? 800 : 600, color: activeTab === 'settings' ? '#3b82f6' : '#64748b' }}>Ajustes POS</span>
+                        </div>
+                        <div onClick={() => handleTabSelect('whatsapp')} style={{ width: '100%', height: '34px', background: activeTab === 'whatsapp' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'whatsapp' ? 800 : 600, color: activeTab === 'whatsapp' ? '#3b82f6' : '#64748b' }}>Config WhatsApp</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Cerrar Caja */}
                 <button 
@@ -396,24 +429,6 @@ export default function Sidebar({
                 >
                     <Lock size={22} style={{ flexShrink: 0 }} />
                     <span>Cerrar Caja</span>
-                </button>
-
-                {/* Ajustes */}
-                <button 
-                    onClick={onOpenSettings} 
-                    style={{
-                        ...getBottomBtnStyle(),
-                        width: '100%',
-                        height: '40px',
-                        borderRadius: '10px',
-                        padding: '0 12px',
-                        gap: '12px',
-                        fontSize: '11px',
-                        fontWeight: 800
-                    }}
-                >
-                    <Settings size={22} style={{ flexShrink: 0 }} />
-                    <span>Ajustes POS</span>
                 </button>
 
                 {/* Botón de Cerrar Sesión Estilo Cápsula */}
@@ -529,7 +544,7 @@ export default function Sidebar({
                 </div>
 
                 <div 
-                    onClick={() => setActiveTab('pos')}
+                    onClick={() => handleTabSelect('pos')}
                     style={getNavBtnStyle(activeTab === 'pos')}
                     title={isExpanded ? "" : "Punto de Venta"}
                 >
@@ -538,7 +553,7 @@ export default function Sidebar({
                 </div>
                 
                 <div 
-                    onClick={() => setActiveTab('dashboard')}
+                    onClick={() => handleTabSelect('dashboard')}
                     style={getNavBtnStyle(activeTab === 'dashboard')}
                     title={isExpanded ? "" : "Dashboard"}
                 >
@@ -548,7 +563,7 @@ export default function Sidebar({
                 
 
                 <div 
-                    onClick={() => setActiveTab('memberships')}
+                    onClick={() => handleTabSelect('memberships')}
                     style={getNavBtnStyle(activeTab === 'memberships')}
                     title={isExpanded ? "" : "Gestión de Membresías"}
                 >
@@ -557,7 +572,7 @@ export default function Sidebar({
                 </div>
 
                 <div 
-                    onClick={() => setActiveTab('promotions')}
+                    onClick={() => handleTabSelect('promotions')}
                     style={getNavBtnStyle(activeTab === 'promotions')}
                     title={isExpanded ? "" : "Promociones"}
                 >
@@ -578,7 +593,7 @@ export default function Sidebar({
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
                         {/* Subapartado 1: Catálogo */}
                         <div 
-                            onClick={() => setActiveTab('products')}
+                            onClick={() => handleTabSelect('products')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -606,7 +621,7 @@ export default function Sidebar({
 
                         {/* Subapartado 2: Clasificaciones */}
                         <div 
-                            onClick={() => setActiveTab('classifications')}
+                            onClick={() => handleTabSelect('classifications')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -634,7 +649,7 @@ export default function Sidebar({
 
                         {/* Subapartado 3: Marcas */}
                         <div 
-                            onClick={() => setActiveTab('brands')}
+                            onClick={() => handleTabSelect('brands')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -676,7 +691,7 @@ export default function Sidebar({
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
                         {/* Subapartado 1: Clientes */}
                         <div 
-                            onClick={() => setActiveTab('customers')}
+                            onClick={() => handleTabSelect('customers')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -704,7 +719,7 @@ export default function Sidebar({
 
                         {/* Subapartado 2: Cumpleaños */}
                         <div 
-                            onClick={() => setActiveTab('birthdays')}
+                            onClick={() => handleTabSelect('birthdays')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -732,7 +747,7 @@ export default function Sidebar({
 
                         {/* Subapartado 3: Créditos */}
                         <div 
-                            onClick={() => setActiveTab('credits')}
+                            onClick={() => handleTabSelect('credits')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -773,7 +788,7 @@ export default function Sidebar({
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
                         {/* Subapartado 1: Orden de Compra */}
                         <div 
-                            onClick={() => setActiveTab('purchases-ocm')}
+                            onClick={() => handleTabSelect('purchases-ocm')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -801,7 +816,7 @@ export default function Sidebar({
 
                         {/* Subapartado 2: Nota de Ingreso */}
                         <div 
-                            onClick={() => setActiveTab('purchases-gim')}
+                            onClick={() => handleTabSelect('purchases-gim')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -829,7 +844,7 @@ export default function Sidebar({
 
                         {/* Subapartado 3: Facturas / Boletas */}
                         <div 
-                            onClick={() => setActiveTab('purchases-ccp')}
+                            onClick={() => handleTabSelect('purchases-ccp')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -858,7 +873,7 @@ export default function Sidebar({
                 )}
 
                 <div 
-                    onClick={() => setActiveTab('suppliers')}
+                    onClick={() => handleTabSelect('suppliers')}
                     style={getNavBtnStyle(activeTab === 'suppliers')}
                     title={isExpanded ? "" : "Proveedores"}
                 >
@@ -880,7 +895,7 @@ export default function Sidebar({
                     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
                         {/* Subapartado 1: Egresos */}
                         <div 
-                            onClick={() => setActiveTab('expenses')}
+                            onClick={() => handleTabSelect('expenses')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -908,7 +923,7 @@ export default function Sidebar({
 
                         {/* Subapartado 2: Caja General */}
                         <div 
-                            onClick={() => setActiveTab('general-cash')}
+                            onClick={() => handleTabSelect('general-cash')}
                             style={{
                                 width: '100%',
                                 height: '34px',
@@ -941,14 +956,61 @@ export default function Sidebar({
                     Mi Cuenta
                 </div>
 
+                {/* Configuración (Expandible) */}
                 <div 
-                    onClick={() => setActiveTab('whatsapp')}
-                    style={getNavBtnStyle(activeTab === 'whatsapp')}
-                    title={isExpanded ? "" : "Configuración de WhatsApp"}
+                    onClick={toggleSettings}
+                    style={getNavBtnStyle(activeTab === 'settings' || activeTab === 'whatsapp')}
+                    title={isExpanded ? "" : "Configuración"}
                 >
-                    <MessageCircle size={22} style={{ flexShrink: 0 }} />
-                    {isExpanded && <span style={labelTextStyle}>Config WhatsApp</span>}
+                    <Settings size={22} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Configuración</span>}
+                    {isExpanded && (isSettingsExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
+
+                {isExpanded && isSettingsExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', paddingRight: '16px', boxSizing: 'border-box' }}>
+                        <div 
+                            onClick={() => handleTabSelect('settings')}
+                            style={{
+                                width: '100%',
+                                height: '34px',
+                                background: activeTab === 'settings' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '12px',
+                                color: activeTab === 'settings' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'settings' ? 900 : 700, whiteSpace: 'nowrap' }}>Ajustes POS</span>
+                        </div>
+                        <div 
+                            onClick={() => handleTabSelect('whatsapp')}
+                            style={{
+                                width: '100%',
+                                height: '34px',
+                                background: activeTab === 'whatsapp' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: '12px',
+                                color: activeTab === 'whatsapp' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'whatsapp' ? 900 : 700, whiteSpace: 'nowrap' }}>Config WhatsApp</span>
+                        </div>
+                    </div>
+                )}
 
                 {supportsFullscreen && (
                     <button 
@@ -957,7 +1019,7 @@ export default function Sidebar({
                         title={isExpanded ? "" : (isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa")}
                     >
                         {isFullscreen ? <Minimize size={22} style={{ flexShrink: 0 }} /> : <Maximize size={22} style={{ flexShrink: 0 }} />}
-                        <span style={labelTextStyle}>{isFullscreen ? "Salir Completa" : "Pantalla Completa"}</span>
+                        {isExpanded && <span style={labelTextStyle}>{isFullscreen ? "Salir Completa" : "Pantalla Completa"}</span>}
                     </button>
                 )}
 
@@ -967,16 +1029,7 @@ export default function Sidebar({
                     title={isExpanded ? "" : "Cerrar Caja"}
                 >
                     <Lock size={22} style={{ flexShrink: 0 }} />
-                    <span style={labelTextStyle}>Cerrar Caja</span>
-                </button>
-
-                <button 
-                    onClick={onOpenSettings} 
-                    style={getNavBtnStyle(false)}
-                    title={isExpanded ? "" : "Ajustes"}
-                >
-                    <Settings size={22} style={{ flexShrink: 0 }} />
-                    <span style={labelTextStyle}>Ajustes</span>
+                    {isExpanded && <span style={labelTextStyle}>Cerrar Caja</span>}
                 </button>
 
                 {/* Botón de Cerrar Sesión Estilo Cápsula */}
