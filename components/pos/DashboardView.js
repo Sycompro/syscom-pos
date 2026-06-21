@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { 
   Calendar, TrendingUp, Loader2, AlertCircle, Building2, 
   Users, DollarSign, Receipt, Percent, Award, Clock, ArrowUpRight,
-  CreditCard, FileText, User
+  CreditCard, FileText, User, Scale, ShieldCheck, AlertTriangle, Info, BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
@@ -15,6 +15,7 @@ export default function DashboardView() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentTab, setCurrentTab] = useState('general'); // 'general' | 'stats'
 
   const formatLocalDate = (date) => {
     const year = date.getFullYear();
@@ -267,6 +268,129 @@ export default function DashboardView() {
               <text key={idx} x={pt.x} y={paddingTop + chartHeight + 18} textAnchor="middle" fontSize="9" fill="#94a3b8" fontWeight="700">
                 {pt.label.length > 5 ? pt.label.substring(5) : pt.label}
               </text>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  };
+
+  const renderWeekdayChart = (weekdayData) => {
+    if (!weekdayData) return null;
+
+    const daysMap = {
+      1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'
+    };
+    
+    const completeDays = Array.from({ length: 7 }).map((_, i) => {
+      const dayNum = i + 1;
+      const found = weekdayData.find(d => d.dayNum === dayNum);
+      return {
+        dayNum,
+        dayName: daysMap[dayNum],
+        amount: found ? found.amount : 0,
+        quantity: found ? found.quantity : 0
+      };
+    });
+
+    const width = 800;
+    const height = 240;
+    const paddingLeft = 60;
+    const paddingRight = 30;
+    const paddingTop = 25;
+    const paddingBottom = 40;
+
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+
+    const maxAmount = Math.max(...completeDays.map(d => d.amount), 500);
+
+    const yScaleValues = Array.from({ length: 4 }).map((_, i) => (maxAmount * (i / 3)));
+
+    const barWidth = 45;
+    const gap = (chartWidth - (barWidth * 7)) / 8;
+
+    return (
+      <div style={{ width: '100%', overflowX: 'auto' }}>
+        <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} style={{ minWidth: '600px' }}>
+          <defs>
+            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#8b5cf6" />
+            </linearGradient>
+            <linearGradient id="emptyGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f1f5f9" />
+              <stop offset="100%" stopColor="#e2e8f0" />
+            </linearGradient>
+          </defs>
+
+          {yScaleValues.map((val, idx) => {
+            const y = paddingTop + chartHeight - (val / maxAmount) * chartHeight;
+            return (
+              <g key={idx}>
+                <line x1={paddingLeft} y1={y} x2={width - paddingRight} y2={y} stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
+                <text x={paddingLeft - 8} y={y + 4} textAnchor="end" fontSize="10" fill="#94a3b8" fontWeight="600">
+                  S/ {Math.round(val)}
+                </text>
+              </g>
+            );
+          })}
+
+          {completeDays.map((d, index) => {
+            const barHeight = d.amount > 0 ? (d.amount / maxAmount) * chartHeight : 8;
+            const x = paddingLeft + gap + index * (barWidth + gap);
+            const y = paddingTop + chartHeight - barHeight;
+
+            return (
+              <g key={d.dayNum} className="group" style={{ cursor: 'pointer' }}>
+                <rect
+                  x={x}
+                  y={y}
+                  width={barWidth}
+                  height={barHeight}
+                  rx="6"
+                  ry="6"
+                  fill={d.amount > 0 ? "url(#barGradient)" : "url(#emptyGradient)"}
+                  style={{ transition: 'all 0.3s ease' }}
+                />
+
+                {d.amount > 0 && (
+                  <text
+                    x={x + barWidth / 2}
+                    y={y - 8}
+                    textAnchor="middle"
+                    fontSize="9"
+                    fill="#1e293b"
+                    fontWeight="850"
+                  >
+                    S/ {Math.round(d.amount)}
+                  </text>
+                )}
+
+                <text
+                  x={x + barWidth / 2}
+                  y={paddingTop + chartHeight + 20}
+                  textAnchor="middle"
+                  fontSize="10"
+                  fill="#64748b"
+                  fontWeight="750"
+                >
+                  {d.dayName}
+                </text>
+
+                <text
+                  x={x + barWidth / 2}
+                  y={paddingTop + chartHeight + 32}
+                  textAnchor="middle"
+                  fontSize="8"
+                  fill="#94a3b8"
+                  fontWeight="600"
+                >
+                  {d.quantity} vtas
+                </text>
+
+                <title>{`${d.dayName}: S/ ${d.amount.toFixed(2)} (${d.quantity} transacciones)`}</title>
+              </g>
             );
           })}
         </svg>
@@ -645,191 +769,510 @@ export default function DashboardView() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* 1. SECCIÓN KPIs */}
+          {/* TAB SELECTOR PORCELAIN */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: windowWidth < 1200 ? (windowWidth < 640 ? '1fr' : 'repeat(2, 1fr)') : 'repeat(4, 1fr)',
-            gap: windowWidth < 1024 ? '12px' : '16px'
+            display: 'flex',
+            background: '#fff',
+            padding: '4px',
+            borderRadius: '14px',
+            border: '1px solid #e2e8f0',
+            alignSelf: 'flex-start',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.015)',
+            marginBottom: '4px'
           }}>
-            {/* Card 1: Ingresos */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={kpiCardStyle}>
-              <div style={{ ...kpiIconWrapperStyle, background: '#eff6ff', color: '#3b82f6' }}>
-                <DollarSign size={20} />
-              </div>
-              <div>
-                <p style={kpiLabelStyle}>Ventas Netas Totales</p>
-                <h3 style={kpiValueStyle}>{formatCurrency(data?.kpis?.totalRevenue)}</h3>
-              </div>
-            </motion.div>
-
-            {/* Card 2: Transacciones */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={kpiCardStyle}>
-              <div style={{ ...kpiIconWrapperStyle, background: '#f0fdf4', color: '#16a34a' }}>
-                <Receipt size={20} />
-              </div>
-              <div>
-                <p style={kpiLabelStyle}>Transacciones Emitidas</p>
-                <h3 style={kpiValueStyle}>{data?.kpis?.totalTransactions || 0} unds</h3>
-              </div>
-            </motion.div>
-
-            {/* Card 3: Ticket Promedio */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={kpiCardStyle}>
-              <div style={{ ...kpiIconWrapperStyle, background: '#faf5ff', color: '#a855f7' }}>
-                <TrendingUp size={20} />
-              </div>
-              <div>
-                <p style={kpiLabelStyle}>Valor Ticket Promedio</p>
-                <h3 style={kpiValueStyle}>{formatCurrency(data?.kpis?.averageTicket)}</h3>
-              </div>
-            </motion.div>
-
-            {/* Card 4: Anulados */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} style={kpiCardStyle}>
-              <div style={{ ...kpiIconWrapperStyle, background: '#fef2f2', color: '#ef4444' }}>
-                <AlertCircle size={20} />
-              </div>
-              <div>
-                <p style={kpiLabelStyle}>Monto Total Anulado</p>
-                <h3 style={{ ...kpiValueStyle, color: '#ef4444' }}>{formatCurrency(data?.kpis?.canceledRevenue)}</h3>
-              </div>
-            </motion.div>
+            <button 
+              onClick={() => setCurrentTab('general')}
+              style={currentTab === 'general' ? {
+                padding: '8px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: 850,
+                cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(37, 99, 235, 0.15)',
+                transition: 'all 0.2s'
+              } : {
+                padding: '8px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'transparent',
+                fontSize: '12px',
+                fontWeight: 750,
+                color: '#64748b',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Métricas Generales
+            </button>
+            <button 
+              onClick={() => setCurrentTab('stats')}
+              style={currentTab === 'stats' ? {
+                padding: '8px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: 850,
+                cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(37, 99, 235, 0.15)',
+                transition: 'all 0.2s'
+              } : {
+                padding: '8px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'transparent',
+                fontSize: '12px',
+                fontWeight: 750,
+                color: '#64748b',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Rendimiento Estadístico
+            </button>
           </div>
 
-          {/* 2. SECCIÓN: GRÁFICO DE EVOLUCIÓN TEMPORAL */}
-          <div style={dashboardCardStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div>
-                <h3 style={cardTitleStyle}>Evolución Temporal de Ventas</h3>
-                <p style={cardSubtitleStyle}>Facturación en soles por período ({startDate === endDate ? 'Horas del día' : 'Fechas del rango'}).</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#2563eb', fontWeight: 800 }}>
-                <Clock size={12} />
-                <span>Tiempo Real</span>
-              </div>
-            </div>
-            {!(data?.timeEvolution) || data.timeEvolution.length === 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', color: '#94a3b8', fontSize: '12px' }}>
-                Sin ventas registradas en el período.
-              </div>
-            ) : (
-              renderSVGChart(data?.timeEvolution || [])
-            )}
-          </div>
-
-          {/* 3. SECCIÓN INFERIOR: VENDEDORES Y COMPROBANTES */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: windowWidth < 1024 ? '1fr' : '3fr 2fr',
-            gap: windowWidth < 1024 ? '16px' : '24px'
-          }}>
-            {/* Top Vendedores */}
-            <div style={dashboardCardStyle}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <Award size={18} color="#eab308" />
-                <h3 style={cardTitleStyle}>Ranking de Vendedores</h3>
-              </div>
-              {!(data?.sellersRanking) || data.sellersRanking.length === 0 ? (
-                <div style={{ padding: '30px 0', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
-                  Sin datos de ventas en este período.
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {(data?.sellersRanking || []).map((s, idx) => {
-                    const pct = (data?.kpis?.totalRevenue || 0) > 0 ? (s.amount / data.kpis.totalRevenue) * 100 : 0;
-                    return (
-                      <div key={s.code} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 950, color: '#64748b', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
-                              #{idx + 1}
-                            </span>
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>{s.name}</span>
-                          </div>
-                          <span style={{ fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(s.amount)}</span>
-                        </div>
-                        {/* Barra de progreso Porcelain */}
-                        <div style={{ width: '100%', height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${pct}%` }}
-                            transition={{ duration: 0.8 }}
-                            style={{ height: '100%', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', borderRadius: '4px' }}
-                          />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>
-                          <span>{s.quantity} transacciones</span>
-                          <span>{pct.toFixed(1)}% del total</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Tipos de Comprobantes */}
-            <div style={dashboardCardStyle}>
-              <h3 style={{ ...cardTitleStyle, marginBottom: '16px' }}>Tipos de Comprobantes</h3>
-              {!(data?.documentTypes) || data.documentTypes.length === 0 ? (
-                <div style={{ padding: '30px 0', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
-                  Sin datos disponibles.
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {(data?.documentTypes || []).map(d => {
-                    const pct = (data?.kpis?.totalRevenue || 0) > 0 ? (d.amount / data.kpis.totalRevenue) * 100 : 0;
-                    return (
-                      <div key={d.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 850, color: '#334155' }}>{d.name}</h4>
-                          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 650 }}>Cód: {d.code} • {d.quantity} emitidos</span>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(d.amount)}</div>
-                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#2563eb' }}>{pct.toFixed(1)}%</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 4. SECCIÓN ADICIONAL: COMPARATIVA DE SEDES (Solo si es consolidado) */}
-          {selectedSede === 'all' && (data?.salesBySede || []).length > 0 && (
-            <div style={dashboardCardStyle}>
-              <h3 style={{ ...cardTitleStyle, marginBottom: '16px' }}>Ventas Consolidadas por Sede</h3>
+          {currentTab === 'general' && (
+            <>
+              {/* 1. SECCIÓN KPIs */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: isMobileView ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
-                gap: '12px'
+                gridTemplateColumns: windowWidth < 1200 ? (windowWidth < 640 ? '1fr' : 'repeat(2, 1fr)') : 'repeat(4, 1fr)',
+                gap: windowWidth < 1024 ? '12px' : '16px'
               }}>
-                {(data?.salesBySede || []).map(sede => (
-                  <div 
-                    key={sede.sedeId} 
+                {/* Card 1: Ingresos */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={kpiCardStyle}>
+                  <div style={{ ...kpiIconWrapperStyle, background: '#eff6ff', color: '#3b82f6' }}>
+                    <DollarSign size={20} />
+                  </div>
+                  <div>
+                    <p style={kpiLabelStyle}>Ventas Netas Totales</p>
+                    <h3 style={kpiValueStyle}>{formatCurrency(data?.kpis?.totalRevenue)}</h3>
+                  </div>
+                </motion.div>
+
+                {/* Card 2: Transacciones */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={kpiCardStyle}>
+                  <div style={{ ...kpiIconWrapperStyle, background: '#f0fdf4', color: '#16a34a' }}>
+                    <Receipt size={20} />
+                  </div>
+                  <div>
+                    <p style={kpiLabelStyle}>Transacciones Emitidas</p>
+                    <h3 style={kpiValueStyle}>{data?.kpis?.totalTransactions || 0} unds</h3>
+                  </div>
+                </motion.div>
+
+                {/* Card 3: Ticket Promedio */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={kpiCardStyle}>
+                  <div style={{ ...kpiIconWrapperStyle, background: '#faf5ff', color: '#a855f7' }}>
+                    <TrendingUp size={20} />
+                  </div>
+                  <div>
+                    <p style={kpiLabelStyle}>Valor Ticket Promedio</p>
+                    <h3 style={kpiValueStyle}>{formatCurrency(data?.kpis?.averageTicket)}</h3>
+                  </div>
+                </motion.div>
+
+                {/* Card 4: Anulados */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} style={kpiCardStyle}>
+                  <div style={{ ...kpiIconWrapperStyle, background: '#fef2f2', color: '#ef4444' }}>
+                    <AlertCircle size={20} />
+                  </div>
+                  <div>
+                    <p style={kpiLabelStyle}>Monto Total Anulado</p>
+                    <h3 style={{ ...kpiValueStyle, color: '#ef4444' }}>{formatCurrency(data?.kpis?.canceledRevenue)}</h3>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* 2. SECCIÓN: GRÁFICO DE EVOLUCIÓN TEMPORAL */}
+              <div style={dashboardCardStyle}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div>
+                    <h3 style={cardTitleStyle}>Evolución Temporal de Ventas</h3>
+                    <p style={cardSubtitleStyle}>Facturación en soles por período ({startDate === endDate ? 'Horas del día' : 'Fechas del rango'}).</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#2563eb', fontWeight: 800 }}>
+                    <Clock size={12} />
+                    <span>Tiempo Real</span>
+                  </div>
+                </div>
+                {!(data?.timeEvolution) || data.timeEvolution.length === 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', color: '#94a3b8', fontSize: '12px' }}>
+                    Sin ventas registradas en el período.
+                  </div>
+                ) : (
+                  renderSVGChart(data?.timeEvolution || [])
+                )}
+              </div>
+
+              {/* 3. SECCIÓN INFERIOR: VENDEDORES Y COMPROBANTES */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: windowWidth < 1024 ? '1fr' : '3fr 2fr',
+                gap: windowWidth < 1024 ? '16px' : '24px'
+              }}>
+                {/* Top Vendedores */}
+                <div style={dashboardCardStyle}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <Award size={18} color="#eab308" />
+                    <h3 style={cardTitleStyle}>Ranking de Vendedores</h3>
+                  </div>
+                  {!(data?.sellersRanking) || data.sellersRanking.length === 0 ? (
+                    <div style={{ padding: '30px 0', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
+                      Sin datos de ventas en este período.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {(data?.sellersRanking || []).map((s, idx) => {
+                        const pct = (data?.kpis?.totalRevenue || 0) > 0 ? (s.amount / data.kpis.totalRevenue) * 100 : 0;
+                        return (
+                          <div key={s.code} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 950, color: '#64748b', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
+                                  #{idx + 1}
+                                </span>
+                                <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>{s.name}</span>
+                              </div>
+                              <span style={{ fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(s.amount)}</span>
+                            </div>
+                            {/* Barra de progreso Porcelain */}
+                            <div style={{ width: '100%', height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 0.8 }}
+                                style={{ height: '100%', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', borderRadius: '4px' }}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>
+                              <span>{s.quantity} transacciones</span>
+                              <span>{pct.toFixed(1)}% del total</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Tipos de Comprobantes */}
+                <div style={dashboardCardStyle}>
+                  <h3 style={{ ...cardTitleStyle, marginBottom: '16px' }}>Tipos de Comprobantes</h3>
+                  {!(data?.documentTypes) || data.documentTypes.length === 0 ? (
+                    <div style={{ padding: '30px 0', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
+                      Sin datos disponibles.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {(data?.documentTypes || []).map(d => {
+                        const pct = (data?.kpis?.totalRevenue || 0) > 0 ? (d.amount / data.kpis.totalRevenue) * 100 : 0;
+                        return (
+                          <div key={d.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 850, color: '#334155' }}>{d.name}</h4>
+                              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 650 }}>Cód: {d.code} • {d.quantity} emitidos</span>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(d.amount)}</div>
+                              <span style={{ fontSize: '10px', fontWeight: 800, color: '#2563eb' }}>{pct.toFixed(1)}%</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 4. SECCIÓN ADICIONAL: COMPARATIVA DE SEDES (Solo si es consolidado) */}
+              {selectedSede === 'all' && (data?.salesBySede || []).length > 0 && (
+                <div style={dashboardCardStyle}>
+                  <h3 style={{ ...cardTitleStyle, marginBottom: '16px' }}>Ventas Consolidadas por Sede</h3>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobileView ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
+                    gap: '12px'
+                  }}>
+                    {(data?.salesBySede || []).map(sede => (
+                      <div 
+                        key={sede.sedeId} 
+                        style={{
+                          padding: '14px',
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Sede {sede.sedeId}</span>
+                          <ArrowUpRight size={14} color="#3b82f6" />
+                        </div>
+                        <h4 style={{ margin: '2px 0 0', fontSize: '13px', fontWeight: 850, color: '#1e293b' }}>{sede.name}</h4>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '6px' }}>
+                          <span style={{ fontSize: '15px', fontWeight: 950, color: '#0f172a' }}>{formatCurrency(sede.amount)}</span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>{sede.quantity} vtas</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {currentTab === 'stats' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* KPIs de Dispersión */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: windowWidth < 1200 ? (windowWidth < 640 ? '1fr' : 'repeat(2, 1fr)') : 'repeat(4, 1fr)',
+                gap: windowWidth < 1024 ? '12px' : '16px'
+              }}>
+                {/* Card 1: Coeficiente de Variación */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={kpiCardStyle}>
+                  <div style={{ ...kpiIconWrapperStyle, background: '#f5f3ff', color: '#8b5cf6' }}>
+                    <Percent size={20} />
+                  </div>
+                  <div>
+                    <p style={kpiLabelStyle}>Coeficiente de Variación</p>
+                    <h3 style={kpiValueStyle}>
+                      {(() => {
+                        const avgTicket = data?.kpis?.averageTicket || 0;
+                        const stdDev = data?.performanceStats?.dispersion?.stdDev || 0;
+                        const cv = avgTicket > 0 ? (stdDev / avgTicket) * 100 : 0;
+                        return `${cv.toFixed(2)}%`;
+                      })()}
+                    </h3>
+                  </div>
+                </motion.div>
+
+                {/* Card 2: Desviación Estándar */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={kpiCardStyle}>
+                  <div style={{ ...kpiIconWrapperStyle, background: '#eff6ff', color: '#3b82f6' }}>
+                    <Scale size={20} />
+                  </div>
+                  <div>
+                    <p style={kpiLabelStyle}>Desviación Estándar (σ)</p>
+                    <h3 style={kpiValueStyle}>{formatCurrency(data?.performanceStats?.dispersion?.stdDev)}</h3>
+                  </div>
+                </motion.div>
+
+                {/* Card 3: Ticket Máximo */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={kpiCardStyle}>
+                  <div style={{ ...kpiIconWrapperStyle, background: '#ecfdf5', color: '#10b981' }}>
+                    <ArrowUpRight size={20} />
+                  </div>
+                  <div>
+                    <p style={kpiLabelStyle}>Ticket Máximo Registrado</p>
+                    <h3 style={kpiValueStyle}>{formatCurrency(data?.performanceStats?.dispersion?.maxTicket)}</h3>
+                  </div>
+                </motion.div>
+
+                {/* Card 4: Ticket Mínimo */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} style={kpiCardStyle}>
+                  <div style={{ ...kpiIconWrapperStyle, background: '#fff1f2', color: '#f43f5e' }}>
+                    <ArrowUpRight style={{ transform: 'rotate(90deg)' }} size={20} />
+                  </div>
+                  <div>
+                    <p style={kpiLabelStyle}>Ticket Mínimo Registrado</p>
+                    <h3 style={kpiValueStyle}>{formatCurrency(data?.performanceStats?.dispersion?.minTicket)}</h3>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Banner de Diagnóstico y Estabilidad */}
+              {(() => {
+                const avgTicket = data?.kpis?.averageTicket || 0;
+                const stdDev = data?.performanceStats?.dispersion?.stdDev || 0;
+                const cv = avgTicket > 0 ? (stdDev / avgTicket) * 100 : 0;
+                
+                let bannerBg = '#f0fdf4';
+                let bannerBorder = '#bbf7d0';
+                let iconColor = '#16a34a';
+                let titleColor = '#15803d';
+                let textColor = '#166534';
+                let diagnosticTitle = 'Estabilidad Comercial Alta (Semáforo Verde)';
+                let diagnosticDesc = 'La facturación muestra fluctuaciones muy bajas. El comportamiento de compra es altamente homogéneo y predecible, sin dependencia crítica de picos de facturación atípicos.';
+                let IconComponent = ShieldCheck;
+
+                if (cv >= 30 && cv <= 50) {
+                  bannerBg = '#fffbeb';
+                  bannerBorder = '#fde68a';
+                  iconColor = '#d97706';
+                  titleColor = '#b45309';
+                  textColor = '#92400e';
+                  diagnosticTitle = 'Variabilidad Comercial Moderada (Semáforo Amarillo)';
+                  diagnosticDesc = 'Existe una fluctuación moderada en los montos de compra. La facturación es generalmente estable, aunque se combinan compras cotidianas con algunos tickets de alto valor eventuales.';
+                  IconComponent = Info;
+                } else if (cv > 50) {
+                  bannerBg = '#fef2f2';
+                  bannerBorder = '#fecaca';
+                  iconColor = '#dc2626';
+                  titleColor = '#b91c1c';
+                  textColor = '#991b1b';
+                  diagnosticTitle = 'Alta Variabilidad Comercial (Semáforo Rojo)';
+                  diagnosticDesc = 'Se registra una alta dispersión en la facturación. El rendimiento comercial es altamente dependiente de compras esporádicas de gran volumen (outliers) o picos de ventas aislados.';
+                  IconComponent = AlertTriangle;
+                } else if (avgTicket === 0) {
+                  bannerBg = '#f8fafc';
+                  bannerBorder = '#e2e8f0';
+                  iconColor = '#64748b';
+                  titleColor = '#334155';
+                  textColor = '#475569';
+                  diagnosticTitle = 'Sin Datos Suficientes';
+                  diagnosticDesc = 'No hay transacciones registradas en este período para calcular la variabilidad de la facturación.';
+                  IconComponent = AlertCircle;
+                }
+
+                return (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.98 }} 
+                    animate={{ opacity: 1, scale: 1 }}
                     style={{
-                      padding: '14px',
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '16px',
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px'
+                      alignItems: 'center',
+                      gap: '16px',
+                      background: bannerBg,
+                      border: `1.5px solid ${bannerBorder}`,
+                      borderRadius: '20px',
+                      padding: '18px 24px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.015)'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Sede {sede.sedeId}</span>
-                      <ArrowUpRight size={14} color="#3b82f6" />
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#ffffff',
+                      borderRadius: '12px',
+                      padding: '8px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                      color: iconColor,
+                      flexShrink: 0
+                    }}>
+                      <IconComponent size={24} />
                     </div>
-                    <h4 style={{ margin: '2px 0 0', fontSize: '13px', fontWeight: 850, color: '#1e293b' }}>{sede.name}</h4>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '6px' }}>
-                      <span style={{ fontSize: '15px', fontWeight: 950, color: '#0f172a' }}>{formatCurrency(sede.amount)}</span>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>{sede.quantity} vtas</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 900, color: titleColor }}>{diagnosticTitle}</h4>
+                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 650, color: textColor, lineHeight: 1.5 }}>
+                        {diagnosticDesc}
+                      </p>
                     </div>
+                  </motion.div>
+                );
+              })()}
+
+              {/* Distribución Frecuencia por Días */}
+              <div style={dashboardCardStyle}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div>
+                    <h3 style={cardTitleStyle}>Distribución por Día de la Semana</h3>
+                    <p style={cardSubtitleStyle}>Frecuencia y volumen de facturación consolidada por día de atención.</p>
                   </div>
-                ))}
+                </div>
+                {!(data?.performanceStats?.weekdayDistribution) || data.performanceStats.weekdayDistribution.length === 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', color: '#94a3b8', fontSize: '12px' }}>
+                    Sin ventas registradas en el período.
+                  </div>
+                ) : (
+                  renderWeekdayChart(data?.performanceStats?.weekdayDistribution || [])
+                )}
+              </div>
+
+              {/* Concentración de Pareto (80/20) */}
+              <div style={dashboardCardStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <BarChart3 size={18} color="#2563eb" />
+                  <div>
+                    <h3 style={cardTitleStyle}>Análisis de Pareto de Artículos (Regla 80/20)</h3>
+                    <p style={cardSubtitleStyle}>Clasificación ABC de productos según su aportación acumulada a los ingresos totales.</p>
+                  </div>
+                </div>
+                {!(data?.performanceStats?.paretoProducts) || data.performanceStats.paretoProducts.length === 0 ? (
+                  <div style={{ padding: '30px 0', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
+                    Sin datos de ventas en este período para el análisis de Pareto.
+                  </div>
+                ) : (
+                  <div style={tableWrapperStyle}>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr>
+                          <th style={{ ...thStyle, width: '60px' }}>Rank</th>
+                          <th style={thStyle}>Código</th>
+                          <th style={thStyle}>Descripción de Artículo</th>
+                          <th style={{ ...thStyle, textAlign: 'right' }}>Cant. Vendida</th>
+                          <th style={{ ...thStyle, textAlign: 'right' }}>Ingresos</th>
+                          <th style={{ ...thStyle, textAlign: 'right' }}>% Aportación</th>
+                          <th style={{ ...thStyle, textAlign: 'right' }}>% Acumulado</th>
+                          <th style={{ ...thStyle, textAlign: 'center' }}>Clasificación</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(() => {
+                          let runningTotal = 0;
+                          const totalRevenue = data?.kpis?.totalRevenue || 1;
+                          return (data?.performanceStats?.paretoProducts || []).map((p, idx) => {
+                            const itemPct = (p.amount / totalRevenue) * 100;
+                            const prevRunningTotal = runningTotal;
+                            runningTotal += p.amount;
+                            const cumPct = (runningTotal / totalRevenue) * 100;
+
+                            let classification = 'C';
+                            let badgeColor = '#64748b';
+                            let badgeBg = '#f1f5f9';
+                            let badgeText = 'Clase C (Secundario)';
+
+                            if (prevRunningTotal / totalRevenue < 0.8) {
+                              classification = 'A';
+                              badgeColor = '#3730a3';
+                              badgeBg = '#e0e7ff';
+                              badgeText = 'Clase A (Crítico)';
+                            } else if (prevRunningTotal / totalRevenue < 0.95) {
+                              classification = 'B';
+                              badgeColor = '#92400e';
+                              badgeBg = '#fef3c7';
+                              badgeText = 'Clase B (Medio)';
+                            }
+
+                            return (
+                              <tr key={p.code} style={trStyle}>
+                                <td style={{ ...tdStyle, fontWeight: 950, color: '#64748b' }}>#{idx + 1}</td>
+                                <td style={{ ...tdStyle, fontWeight: 700, color: '#475569' }}>{p.code}</td>
+                                <td style={{ ...tdStyle, fontWeight: 800, color: '#1e293b' }}>{p.name}</td>
+                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 750 }}>{p.quantity} unds</td>
+                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(p.amount)}</td>
+                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 750, color: '#2563eb' }}>{itemPct.toFixed(2)}%</td>
+                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 850, color: '#475569' }}>{cumPct.toFixed(2)}%</td>
+                                <td style={{ ...tdStyle, textAlign: 'center' }}>
+                                  <span style={{
+                                    display: 'inline-block',
+                                    padding: '4px 10px',
+                                    borderRadius: '8px',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    color: badgeColor,
+                                    background: badgeBg
+                                  }}>
+                                    {badgeText}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}

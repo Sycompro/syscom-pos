@@ -251,6 +251,75 @@ export async function GET(request) {
       name: r.nompto?.trim() || `Sede ${r.codpto}`
     }));
 
+    // --- CONSULTA 7: RENDIMIENTO POR DÍA DE LA SEMANA ---
+    const weekdayRequest = pool.request();
+    appendFilterInputs(weekdayRequest);
+    const weekdayRes = await weekdayRequest.query(`
+      SELECT 
+        ((DATEPART(dw, CAST(f.fecha AS DATE)) + @@DATEFIRST - 2) % 7) + 1 as weekdayNum,
+        COUNT(*) as quantity,
+        ISNULL(SUM(f.totn), 0) as totalAmount
+      FROM mst01fac f WITH(nolock)
+      WHERE f.fecha >= @start AND f.fecha <= @end
+        AND f.flag = '0'
+        ${filtersCondition}
+      GROUP BY ((DATEPART(dw, CAST(f.fecha AS DATE)) + @@DATEFIRST - 2) % 7) + 1
+      ORDER BY weekdayNum ASC
+    `);
+    const weekdayMap = {
+      1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'
+    };
+    const weekdayDistribution = weekdayRes.recordset.map(r => ({
+      dayNum: r.weekdayNum,
+      dayName: weekdayMap[r.weekdayNum] || `Día ${r.weekdayNum}`,
+      quantity: r.quantity,
+      amount: r.totalAmount
+    }));
+
+    // --- CONSULTA 8: ESTADÍSTICAS DE DISPERSIÓN Y TICKET ---
+    const dispersionRequest = pool.request();
+    appendFilterInputs(dispersionRequest);
+    const dispersionRes = await dispersionRequest.query(`
+      SELECT 
+        ISNULL(STDEV(f.totn), 0) as stdDev,
+        ISNULL(MAX(f.totn), 0) as maxTicket,
+        ISNULL(MIN(f.totn), 0) as minTicket
+      FROM mst01fac f WITH(nolock)
+      WHERE f.fecha >= @start AND f.fecha <= @end
+        AND f.flag = '0'
+        ${filtersCondition}
+    `);
+    const dispData = dispersionRes.recordset[0];
+    const dispersion = {
+      stdDev: dispData.stdDev || 0,
+      maxTicket: dispData.maxTicket || 0,
+      minTicket: dispData.minTicket || 0
+    };
+
+    // --- CONSULTA 9: ANÁLISIS DE PARETO DE ARTÍCULOS ---
+    const paretoRequest = pool.request();
+    appendFilterInputs(paretoRequest);
+    const paretoRes = await paretoRequest.query(`
+      SELECT TOP 10
+        LTRIM(RTRIM(d.codart)) as codart,
+        LTRIM(RTRIM(d.descr)) as name,
+        SUM(d.cant) as quantity,
+        ISNULL(SUM(d.totn), 0) as totalAmount
+      FROM dtl01fac d WITH(nolock)
+      INNER JOIN mst01fac f WITH(nolock) ON f.cdocu = d.cdocu AND f.ndocu = d.ndocu
+      WHERE f.fecha >= @start AND f.fecha <= @end
+        AND f.flag = '0' AND d.flag = '0'
+        ${filtersCondition}
+      GROUP BY d.codart, d.descr
+      ORDER BY totalAmount DESC
+    `);
+    const paretoProducts = paretoRes.recordset.map(r => ({
+      code: r.codart,
+      name: r.name?.trim() || `Artículo ${r.codart}`,
+      quantity: r.quantity,
+      amount: r.totalAmount
+    }));
+
     return NextResponse.json({
       success: true,
       filters: {
@@ -272,7 +341,12 @@ export async function GET(request) {
       sellersRanking,
       timeEvolution,
       salesBySede,
-      sedes: activeSedes
+      sedes: activeSedes,
+      performanceStats: {
+        weekdayDistribution,
+        dispersion,
+        paretoProducts
+      }
     });
 
   } catch (error) {
