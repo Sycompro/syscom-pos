@@ -71,7 +71,7 @@ export default function CustomSelect({
     width: '100%',
     padding: '8px 12px',
     borderRadius: '10px',
-    border: '1px solid #e2e8f0',
+    border: isOpen ? '2px solid #3b82f6' : '2px solid #e2e8f0',
     background: '#ffffff',
     fontSize: large ? '14px' : '11px',
     fontWeight: 700,
@@ -80,42 +80,45 @@ export default function CustomSelect({
     height: large ? '54px' : '33px',
     boxSizing: 'border-box',
     userSelect: 'none',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-    ...style
+    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+    boxShadow: isOpen ? '0 0 0 4px rgba(59, 130, 246, 0.12)' : 'none',
+    ...style,
+    ...(isOpen ? { borderColor: '#3b82f6', border: '2px solid #3b82f6', boxShadow: '0 0 0 4px rgba(59, 130, 246, 0.12)' } : {})
   };
 
   const listContainerStyle = {
     position: 'absolute',
-    top: openUp ? 'auto' : 'calc(100% + 4px)',
-    bottom: openUp ? 'calc(100% + 4px)' : 'auto',
+    top: openUp ? 'auto' : 'calc(100% + 8px)',
+    bottom: openUp ? 'calc(100% + 8px)' : 'auto',
     left: 0,
     width: dropdownWidth || '100%',
     maxHeight: isOpen ? '280px' : '0px',
     overflowY: isOpen ? 'auto' : 'hidden',
-    background: 'rgba(255, 255, 255, 0.98)',
-    backdropFilter: 'blur(8px)',
-    border: isOpen ? '1px solid #e2e8f0' : '1px solid transparent',
-    borderRadius: '12px',
-    boxShadow: isOpen ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' : 'none',
+    background: 'rgba(255, 255, 255, 0.96)',
+    backdropFilter: 'blur(16px)',
+    border: isOpen ? '1px solid rgba(226, 232, 240, 0.8)' : '1px solid transparent',
+    borderRadius: '16px',
+    boxShadow: isOpen ? '0 12px 30px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03)' : 'none',
     zIndex: 999,
-    padding: isOpen ? '4px' : '0px 4px',
+    padding: isOpen ? '6px' : '0px 6px',
     boxSizing: 'border-box',
     opacity: isOpen ? 1 : 0,
-    transform: isOpen ? 'translateY(0)' : (openUp ? 'translateY(6px)' : 'translateY(-6px)'),
-    transition: 'max-height 0.22s ease, opacity 0.18s ease, transform 0.18s ease, padding 0.18s ease, border-color 0.18s ease',
+    transform: isOpen ? 'translateY(0) scale(1)' : (openUp ? 'translateY(8px) scale(0.97)' : 'translateY(-8px) scale(0.97)'),
+    transition: 'max-height 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), padding 0.2s ease, border-color 0.2s ease',
     pointerEvents: isOpen ? 'auto' : 'none'
   };
 
   const searchWrapperStyle = {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    padding: '6px 8px',
-    margin: '2px 2px 4px 2px',
-    borderRadius: '8px',
+    gap: '8px',
+    padding: '8px 12px',
+    margin: '2px 2px 6px 2px',
+    borderRadius: '10px',
     border: '1px solid #e2e8f0',
     background: '#f8fafc',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s',
   };
 
   const searchInputStyle = {
@@ -131,14 +134,15 @@ export default function CustomSelect({
   };
 
   const optionItemStyle = (isSelected) => ({
-    padding: large ? '12px 16px' : '8px 12px',
+    padding: large ? '12px 18px' : '8px 14px',
     fontSize: large ? '14px' : '11px',
     fontWeight: 700,
-    borderRadius: '8px',
+    borderRadius: '10px',
+    margin: '3px 0',
     cursor: 'pointer',
-    background: isSelected ? '#3b82f6' : 'transparent',
+    background: isSelected ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : 'transparent',
     color: isSelected ? '#ffffff' : '#1e293b',
-    transition: 'background 0.15s, color 0.15s',
+    transition: 'all 0.2s ease',
     userSelect: 'none',
     display: 'flex',
     alignItems: 'center',
@@ -150,8 +154,7 @@ export default function CustomSelect({
   });
 
   const addButtonStyle = {
-    borderTop: '1px solid #e2e8f0',
-    padding: '10px 12px',
+    padding: '12px 14px',
     color: '#3b82f6',
     fontWeight: 800,
     fontSize: '11px',
@@ -162,7 +165,8 @@ export default function CustomSelect({
     width: '100%',
     background: 'transparent',
     border: 'none',
-    borderTop: '1px solid #e2e8f0',
+    borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+    marginTop: '4px',
     borderRadius: 0,
     boxSizing: 'border-box',
     textAlign: 'left'
@@ -172,6 +176,22 @@ export default function CustomSelect({
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+      <style jsx>{`
+        .custom-select-list::-webkit-scrollbar {
+          width: 5px;
+          height: 5px;
+        }
+        .custom-select-list::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-select-list::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 20px;
+        }
+        .custom-select-list::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+      `}</style>
       <div onClick={handleToggle} style={controlStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: 'calc(100% - 20px)' }}>
           {icon && <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</span>}
@@ -212,7 +232,7 @@ export default function CustomSelect({
             Sin opciones
           </div>
         ) : (
-          <div style={{ maxHeight: searchable ? '180px' : '210px', overflowY: 'auto' }}>
+          <div className="custom-select-list" style={{ maxHeight: searchable ? '180px' : '210px', overflowY: 'auto' }}>
             {filteredOptions.map(opt => {
               const isSelected = opt.value === value;
               return (

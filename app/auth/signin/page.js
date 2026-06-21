@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import CustomSelect from '@/components/pos/CustomSelect';
 
 function SignInContent() {
   const router = useRouter();
@@ -134,28 +135,27 @@ function SignInContent() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <label className="input-label">EMPRESA / SEDE</label>
                 <div style={{ position: 'relative' }}>
-                  <select 
-                    value={selectedCompany?.id || ''}
+                  <CustomSelect 
+                    value={selectedCompany ? String(selectedCompany.id) : ''}
                     onChange={(e) => {
                       const comp = companies.find(c => String(c.id) === String(e.target.value));
                       setSelectedCompany(comp);
                     }}
                     disabled={loadingCompanies}
-                    className="custom-select"
-                  >
-                    {loadingCompanies ? (
-                      <option>Cargando empresas...</option>
-                    ) : companies.length === 0 ? (
-                      <option>Sin empresas disponibles</option>
-                    ) : (
-                      companies.map(c => (
-                        <option key={c.id} value={c.id} style={{ color: '#0f172a' }}>{c.name}</option>
-                      ))
-                    )}
-                  </select>
-                  <div className="select-arrow">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-                  </div>
+                    options={companies.map(c => ({ value: String(c.id), label: c.name }))}
+                    placeholder={loadingCompanies ? 'Cargando empresas...' : (companies.length === 0 ? 'Sin empresas disponibles' : 'Seleccionar Empresa')}
+                    large={true}
+                    style={{
+                      height: '56px',
+                      borderRadius: '20px',
+                      border: '2px solid #e2e8f0',
+                      background: '#f8fafc',
+                      fontSize: '15px',
+                      color: '#0f172a',
+                      fontWeight: 700,
+                      padding: '16px 22px'
+                    }}
+                  />
                 </div>
               </div>
 
