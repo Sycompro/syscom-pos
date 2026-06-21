@@ -1,8 +1,13 @@
-# Tareas - Refactorización de Edición de Productos
-
-- `[x]` Crear el endpoint GET `/api/products/details`
-- `[x]` Reescribir el endpoint PATCH `/api/products/update`
-- `[x]` Modificar `components/pos/ProductCreateModal.js` para soportar Modo Edición
-- `[x]` Modificar `components/pos/ProductsView.js` para utilizar el modal unificado
-- `[x]` Validar compilación local (`npm run build`)
-- `[x]` Desplegar a Railway y validar
+# Tareas - [x] Adaptar a Full-Width (quitar maxWidth y centrado auto):
+  - [x] Dashboard (`components/pos/DashboardView.js`)
+  - [x] Historial de Ventas (`components/pos/SalesView.js`)
+  - [x] Promociones (`components/pos/PromotionsView.js`)
+  - [x] Productos / Catálogo (`components/pos/ProductsView.js`)
+  - [x] Compras (`components/pos/PurchasesView.js`)
+  - [x] Proveedores (`components/pos/SuppliersView.js`)
+  - [x] Caja General (`components/pos/GeneralCashView.js`)
+  - [x] Egresos de Caja (`components/pos/ExpensesView.js`)
+  - [x] Ajustes POS (`components/pos/SettingsView.js`)
+  - [x] Configuración WhatsApp (`components/pos/WhatsappView.js`)
+- [x] Validar la compilación de Next.js mediante `npm run build` sin errores.
+- [x] Enviar cambios a la rama principal de Git para actualizar el servidor de producción en Railway. y validar

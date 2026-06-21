@@ -177,7 +177,7 @@ export default function SettingsView({ db, onSaved }) {
     };
 
     return (
-        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1, boxSizing: 'border-box' }}>
             {/* Cabecera superior integrada */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '12px' : '18px', flexWrap: 'wrap', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'center' }}>
@@ -225,7 +225,10 @@ export default function SettingsView({ db, onSaved }) {
                 borderRadius: isMobile ? '12px' : '16px',
                 padding: isMobile ? '12px' : '18px',
                 boxShadow: '0 4px 20px rgba(15, 23, 42, 0.02)',
-                border: '1px solid #f1f5f9'
+                border: '1px solid #f1f5f9',
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column'
             }}>
                 {loading ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0' }}>
@@ -274,7 +277,7 @@ export default function SettingsView({ db, onSaved }) {
                         </div>
 
                         {/* Contenido de la Pestaña */}
-                        <div style={{ minHeight: '180px', marginTop: '4px' }}>
+                        <div style={{ flex: 1, marginTop: '12px', display: 'flex', flexDirection: 'column' }}>
                             <AnimatePresence mode="wait">
                                 {currentTab === 'business' && (
                                     <motion.div

@@ -99,6 +99,8 @@ export default function WhatsappView({ useScreenKeyboards }) {
         boxShadow: '0 4px 20px rgba(15, 23, 42, 0.02)',
         border: '1px solid #f1f5f9',
         height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         boxSizing: 'border-box'
     };
 
@@ -227,7 +229,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
     );
 
     return (
-        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1, boxSizing: 'border-box' }}>
             <AnimatePresence>
                 {showSaved && (
                     <motion.div 
@@ -241,7 +243,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
                 )}
             </AnimatePresence>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(420px, 1fr))', gap: isMobile ? '12px' : '18px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(420px, 1fr))', gap: isMobile ? '12px' : '18px', alignItems: 'stretch', flex: 1 }}>
                 {/* Column 1: Config */}
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={cardStyle}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '14px' : '18px', flexWrap: 'wrap', gap: '10px' }}>
@@ -378,7 +380,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
                             ))}
                         </div>
                     ) : (
-                        <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                        <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #f1f5f9', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
                                 <thead>
                                     <tr style={{ background: '#f8fafc' }}>
