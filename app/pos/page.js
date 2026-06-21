@@ -1442,18 +1442,7 @@ export default function POSPage() {
                                             />
                                         )}
                                     </div>
-                                    {!isMobileDevice && (
-                                        <button
-                                            onClick={() => {
-                                                setCustomerSearch('');
-                                                setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
-                                            }}
-                                            style={{ background: '#fff1f2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                            title="Limpiar Cliente"
-                                        >
-                                            <X size={18} />
-                                        </button>
-                                    )}
+                                    
                                     {!isMobileDevice && (
                                         <button
                                             onClick={() => setShowHistoryModal(true)}
