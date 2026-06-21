@@ -195,7 +195,7 @@ export default function Sidebar({
         height: !isMobileMode ? 'calc(100% - 24px)' : '100%',
         width: isExpanded ? (isTablet ? '180px' : '220px') : (isMobileMode ? '100%' : '52px'),
         background: '#ffffff',
-        border: !isMobileMode ? '1px solid #e2e8f0' : 'none',
+        border: 'none',
         borderRadius: !isMobileMode ? '20px' : '0px',
         boxShadow: !isMobileMode 
             ? (isExpanded ? '0 20px 40px -10px rgba(15, 23, 42, 0.12)' : '0 4px 12px rgba(15, 23, 42, 0.03)') 
