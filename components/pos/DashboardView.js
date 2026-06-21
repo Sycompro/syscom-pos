@@ -487,39 +487,57 @@ export default function DashboardView() {
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Mes y Año:</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', flex: '1 1 auto' }}>
-                  <select 
-                    value={filterMonth} 
-                    onChange={e => setFilterMonth(parseInt(e.target.value))} 
-                    style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer', flex: '1 1 120px' }}
-                  >
-                    {[
-                      { value: 1, label: 'Enero' },
-                      { value: 2, label: 'Febrero' },
-                      { value: 3, label: 'Marzo' },
-                      { value: 4, label: 'Abril' },
-                      { value: 5, label: 'Mayo' },
-                      { value: 6, label: 'Junio' },
-                      { value: 7, label: 'Julio' },
-                      { value: 8, label: 'Agosto' },
-                      { value: 9, label: 'Septiembre' },
-                      { value: 10, label: 'Octubre' },
-                      { value: 11, label: 'Noviembre' },
-                      { value: 12, label: 'Diciembre' }
-                    ].map(m => (
-                      <option key={m.value} value={m.value}>{m.label}</option>
-                    ))}
-                  </select>
+                  <div style={{ flex: '1 1 120px', minWidth: '100px' }}>
+                    <CustomSelect 
+                      value={String(filterMonth)} 
+                      onChange={e => setFilterMonth(parseInt(e.target.value))} 
+                      options={[
+                        { value: '1', label: 'Enero' },
+                        { value: '2', label: 'Febrero' },
+                        { value: '3', label: 'Marzo' },
+                        { value: '4', label: 'Abril' },
+                        { value: '5', label: 'Mayo' },
+                        { value: '6', label: 'Junio' },
+                        { value: '7', label: 'Julio' },
+                        { value: '8', label: 'Agosto' },
+                        { value: '9', label: 'Septiembre' },
+                        { value: '10', label: 'Octubre' },
+                        { value: '11', label: 'Noviembre' },
+                        { value: '12', label: 'Diciembre' }
+                      ]}
+                      style={{
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '12px',
+                        background: '#fff',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                        height: '35px',
+                        fontSize: '12px',
+                        color: '#334155',
+                        fontWeight: 800,
+                      }}
+                    />
+                  </div>
 
-                  <select 
-                    value={filterYear} 
-                    onChange={e => setFilterYear(parseInt(e.target.value))} 
-                    style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer', flex: '1 1 100px' }}
-                  >
-                    {Array.from({ length: 5 }).map((_, i) => {
-                      const yr = new Date().getFullYear() - 3 + i;
-                      return <option key={yr} value={yr}>{yr}</option>;
-                    })}
-                  </select>
+                  <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
+                    <CustomSelect 
+                      value={String(filterYear)} 
+                      onChange={e => setFilterYear(parseInt(e.target.value))} 
+                      options={Array.from({ length: 5 }).map((_, i) => {
+                        const yr = new Date().getFullYear() - 3 + i;
+                        return { value: String(yr), label: String(yr) };
+                      })}
+                      style={{
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '12px',
+                        background: '#fff',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                        height: '35px',
+                        fontSize: '12px',
+                        color: '#334155',
+                        fontWeight: 800,
+                      }}
+                    />
+                  </div>
                 </div>
               </>
             )}
@@ -530,16 +548,26 @@ export default function DashboardView() {
                   <Calendar size={14} color="#3b82f6" />
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Año:</span>
                 </div>
-                <select 
-                  value={filterYear} 
-                  onChange={e => setFilterYear(parseInt(e.target.value))} 
-                  style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer', flex: '1 1 120px' }}
-                >
-                  {Array.from({ length: 5 }).map((_, i) => {
-                    const yr = new Date().getFullYear() - 3 + i;
-                    return <option key={yr} value={yr}>{yr}</option>;
-                  })}
-                </select>
+                <div style={{ flex: '1 1 120px', minWidth: '100px' }}>
+                  <CustomSelect 
+                    value={String(filterYear)} 
+                    onChange={e => setFilterYear(parseInt(e.target.value))} 
+                    options={Array.from({ length: 5 }).map((_, i) => {
+                      const yr = new Date().getFullYear() - 3 + i;
+                      return { value: String(yr), label: String(yr) };
+                    })}
+                    style={{
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      background: '#fff',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                      height: '35px',
+                      fontSize: '12px',
+                      color: '#334155',
+                      fontWeight: 800,
+                    }}
+                  />
+                </div>
               </>
             )}
           </div>
