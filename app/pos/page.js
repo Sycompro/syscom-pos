@@ -935,13 +935,14 @@ export default function POSPage() {
             <div style={{ 
                 width: isDrawerMode ? '100%' : '300px', 
                 height: isDrawerMode ? '100%' : 'calc(100% - 32px)', 
+                alignSelf: isDrawerMode ? 'auto' : 'center',
                 background: '#fff', 
                 display: 'flex', 
                 flexDirection: 'column', 
                 boxShadow: isDrawerMode ? 'none' : '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 20px -6px rgba(15, 23, 42, 0.04)', 
                 zIndex: 10,
                 borderRadius: isDrawerMode ? '0' : '16px',
-                margin: isDrawerMode ? '0' : '16px 16px 16px 0',
+                margin: isDrawerMode ? '0' : '16px',
                 border: isDrawerMode ? 'none' : '1px solid rgba(226, 232, 240, 0.8)',
                 overflow: 'hidden'
             }}>
