@@ -1173,7 +1173,17 @@ export default function POSPage() {
                                                             R.U.C. {companySettings.company.ruc}
                                                         </span>
                                                     )}
-                                                    
+                                                </div>
+                                                
+                                                {/* Dirección y Sede Activa */}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '2px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
+                                                        <MapPin size={12} style={{ color: '#94a3b8' }} />
+                                                        <span style={{ fontSize: isMobileDevice ? '9px' : '11px', fontWeight: 550 }}>
+                                                            {companySettings?.company?.address || 'Dirección no configurada'}
+                                                        </span>
+                                                    </div>
+
                                                     {/* Badge Sede Activa con LED Pulsante */}
                                                     <span style={{ 
                                                         display: 'inline-flex', 
@@ -1195,14 +1205,6 @@ export default function POSPage() {
                                                             display: 'inline-block'
                                                         }}></span>
                                                         SEDE ACTIVA
-                                                    </span>
-                                                </div>
-                                                
-                                                {/* Dirección */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
-                                                    <MapPin size={12} style={{ color: '#94a3b8' }} />
-                                                    <span style={{ fontSize: isMobileDevice ? '9px' : '11px', fontWeight: 550 }}>
-                                                        {companySettings?.company?.address || 'Dirección no configurada'}
                                                     </span>
                                                 </div>
                                             </div>
