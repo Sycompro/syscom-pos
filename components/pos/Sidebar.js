@@ -549,8 +549,27 @@ export default function Sidebar({
     }
 
     return (
-        <aside 
-            id="sidebar-container"
+        <>
+            {isExpandedInternal && (
+                <div 
+                    onClick={() => setIsExpandedInternal(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(15, 23, 42, 0.18)',
+                        backdropFilter: 'blur(5px)',
+                        WebkitBackdropFilter: 'blur(5px)',
+                        zIndex: 80,
+                        transition: 'opacity 0.25s ease-in-out',
+                        cursor: 'pointer'
+                    }}
+                />
+            )}
+            <aside 
+                id="sidebar-container"
             onMouseEnter={() => {
                 if (hasHoverSupport) {
                     setIsExpandedInternal(true);
@@ -1185,5 +1204,6 @@ export default function Sidebar({
                 </div>
             </div>
         </aside>
+    </>
     );
 }
