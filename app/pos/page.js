@@ -1373,15 +1373,6 @@ export default function POSPage() {
                                             <History size={18} />
                                         </button>
                                     )}
-                                    {!isMobileDevice && (
-                                        <button
-                                            onClick={() => setShowManualModal(true)}
-                                            style={{ background: '#eff6ff', color: '#3b82f6', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                            title="Registro Manual"
-                                        >
-                                            <Plus size={18} />
-                                        </button>
-                                    )}
 
                                     {!isMobileDevice && (
                                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', borderLeft: 'none', paddingLeft: '16px' }}>
