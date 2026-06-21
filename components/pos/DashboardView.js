@@ -271,14 +271,27 @@ export default function DashboardView() {
   return (
     <div style={containerStyle}>
       {/* Cabecera adaptada */}
-      <div style={isMobileView ? headerMobileStyle : headerStyle}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+        width: '100%'
+      }}>
         <div>
           <h2 style={titleStyle}>Panel de Control y Ventas</h2>
           <p style={subtitleStyle}>Métricas de facturación, transacciones consolidadas y rendimiento comercial.</p>
         </div>
 
         {/* Barra de Filtros Porcelain */}
-        <div style={isMobileView ? filtersMobileStyle : filtersStyle}>
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          width: '100%'
+        }}>
           {/* Selector de Sede */}
           <CustomSelect
             value={selectedSede}
@@ -300,7 +313,8 @@ export default function DashboardView() {
               fontSize: '12px',
               color: '#334155',
               fontWeight: 800,
-              minWidth: '220px'
+              flex: '1 1 200px',
+              minWidth: '150px'
             }}
           />
 
@@ -323,7 +337,8 @@ export default function DashboardView() {
               fontSize: '12px',
               color: '#334155',
               fontWeight: 800,
-              minWidth: '180px'
+              flex: '1 1 160px',
+              minWidth: '120px'
             }}
           />
 
@@ -348,7 +363,8 @@ export default function DashboardView() {
               fontSize: '12px',
               color: '#334155',
               fontWeight: 800,
-              minWidth: '180px'
+              flex: '1 1 160px',
+              minWidth: '120px'
             }}
           />
 
@@ -372,12 +388,18 @@ export default function DashboardView() {
               fontSize: '12px',
               color: '#334155',
               fontWeight: 800,
-              minWidth: '200px'
+              flex: '1 1 180px',
+              minWidth: '130px'
             }}
           />
 
           {/* Presets de Fecha */}
-          <div style={presetsWrapperStyle}>
+          <div style={{
+            ...presetsWrapperStyle,
+            flex: '1 1 280px',
+            minWidth: '240px',
+            justifyContent: 'space-around'
+          }}>
             <button 
               onClick={() => setDatePreset('day')}
               style={datePreset === 'day' ? activePresetBtnStyle : presetBtnStyle}
@@ -411,8 +433,8 @@ export default function DashboardView() {
         <div style={{ ...customRangeStyle, marginBottom: '8px' }}>
           <div style={{
             display: 'flex',
-            flexDirection: isMobileView ? 'column' : 'row',
-            alignItems: isMobileView ? 'stretch' : 'center',
+            flexWrap: 'wrap',
+            alignItems: 'center',
             gap: '12px',
             padding: '12px 16px',
             boxSizing: 'border-box'
@@ -427,7 +449,7 @@ export default function DashboardView() {
                   type="date" 
                   value={filterDay} 
                   onChange={e => setFilterDay(e.target.value)} 
-                  style={dateInputStyle} 
+                  style={{ ...dateInputStyle, flex: '1 1 150px' }} 
                 />
               </>
             )}
@@ -438,11 +460,11 @@ export default function DashboardView() {
                   <Calendar size={14} color="#3b82f6" />
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Mes y Año:</span>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', flex: '1 1 auto' }}>
                   <select 
                     value={filterMonth} 
                     onChange={e => setFilterMonth(parseInt(e.target.value))} 
-                    style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
+                    style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer', flex: '1 1 120px' }}
                   >
                     {[
                       { value: 1, label: 'Enero' },
@@ -465,7 +487,7 @@ export default function DashboardView() {
                   <select 
                     value={filterYear} 
                     onChange={e => setFilterYear(parseInt(e.target.value))} 
-                    style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
+                    style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer', flex: '1 1 100px' }}
                   >
                     {Array.from({ length: 5 }).map((_, i) => {
                       const yr = new Date().getFullYear() - 3 + i;
@@ -485,7 +507,7 @@ export default function DashboardView() {
                 <select 
                   value={filterYear} 
                   onChange={e => setFilterYear(parseInt(e.target.value))} 
-                  style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer' }}
+                  style={{ ...dateInputStyle, background: '#fff', cursor: 'pointer', flex: '1 1 120px' }}
                 >
                   {Array.from({ length: 5 }).map((_, i) => {
                     const yr = new Date().getFullYear() - 3 + i;
@@ -502,66 +524,33 @@ export default function DashboardView() {
         <div style={{ ...customRangeStyle, marginBottom: '8px' }}>
           <div style={{ 
             display: 'flex', 
-            flexDirection: isMobileView ? 'column' : 'row', 
-            alignItems: isMobileView ? 'stretch' : 'center', 
-            gap: isMobileView ? '10px' : '8px', 
-            padding: isMobileView ? '16px' : '12px 16px',
+            flexWrap: 'wrap', 
+            alignItems: 'center', 
+            gap: '12px', 
+            padding: '12px 16px',
             boxSizing: 'border-box'
           }}>
-            {isMobileView ? (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <Calendar size={16} color="#3b82f6" />
-                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b' }}>Seleccionar Rango</span>
-                </div>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Desde</span>
-                  <input 
-                    type="date" 
-                    value={startDate} 
-                    onChange={e => setStartDate(e.target.value)} 
-                    style={{ ...dateInputStyle, width: '100%', height: '38px', fontSize: '12px', boxSizing: 'border-box' }} 
-                  />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Hasta</span>
-                  <input 
-                    type="date" 
-                    value={endDate} 
-                    onChange={e => setEndDate(e.target.value)} 
-                    style={{ ...dateInputStyle, width: '100%', height: '38px', fontSize: '12px', boxSizing: 'border-box' }} 
-                  />
-                </div>
-
-                <button 
-                  onClick={fetchDashboardData} 
-                  style={{ ...queryBtnStyle, width: '100%', height: '38px', fontSize: '12px', fontWeight: 900, marginTop: '6px' }}
-                >
-                  Consultar Rango
-                </button>
-              </>
-            ) : (
-              <>
-                <Calendar size={14} color="#64748b" />
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Rango:</span>
-                <input 
-                  type="date" 
-                  value={startDate} 
-                  onChange={e => setStartDate(e.target.value)} 
-                  style={dateInputStyle} 
-                />
-                <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
-                <input 
-                  type="date" 
-                  value={endDate} 
-                  onChange={e => setEndDate(e.target.value)} 
-                  style={dateInputStyle} 
-                />
-                <button onClick={fetchDashboardData} style={queryBtnStyle}>Consultar</button>
-              </>
-            )}
+            <Calendar size={14} color="#64748b" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Rango:</span>
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={e => setStartDate(e.target.value)} 
+              style={{ ...dateInputStyle, flex: '1 1 130px', minWidth: '120px' }} 
+            />
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={e => setEndDate(e.target.value)} 
+              style={{ ...dateInputStyle, flex: '1 1 130px', minWidth: '120px' }} 
+            />
+            <button 
+              onClick={fetchDashboardData} 
+              style={{ ...queryBtnStyle, flex: '1 1 auto', minWidth: '100px', padding: '6px 16px' }}
+            >
+              Consultar
+            </button>
           </div>
         </div>
       )}
