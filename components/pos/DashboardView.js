@@ -936,7 +936,7 @@ const customRangeStyle = {
   borderRadius: '16px',
   border: '1px solid #e2e8f0',
   boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-  overflow: 'hidden',
+  overflow: 'visible',
   boxSizing: 'border-box',
   width: '100%',
   flexShrink: 0
