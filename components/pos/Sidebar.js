@@ -203,7 +203,7 @@ export default function Sidebar({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '0 0 6px 0',
+        padding: '0 0 2px 0',
         gap: '4px',
         flexShrink: 0,
         zIndex: 100,
@@ -639,7 +639,7 @@ export default function Sidebar({
                     alignItems: 'center', 
                     gap: '8px',
                     overflowY: 'auto',
-                    paddingBottom: '20px'
+                    paddingBottom: '2px'
                 }} 
                 className="no-scrollbar"
             >
@@ -1151,7 +1151,7 @@ export default function Sidebar({
                 </button>
 
                 {/* Botón de Cerrar Sesión Estilo Cápsula */}
-                <div style={{ marginTop: '20px', marginBottom: '0px', padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
+                <div style={{ marginTop: '10px', marginBottom: '2px', padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
                     <button 
                         onClick={onSignOut} 
                         title={isExpanded ? "" : "Cerrar Sesión"}
