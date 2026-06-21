@@ -561,6 +561,15 @@ export default function Sidebar({
                     {isExpanded && <span style={labelTextStyle}>Dashboard</span>}
                 </div>
                 
+                <div 
+                    onClick={() => handleTabSelect('sales')}
+                    style={getNavBtnStyle(activeTab === 'sales')}
+                    title={isExpanded ? "" : "Historial Ventas"}
+                >
+                    <History size={22} style={{ flexShrink: 0 }} />
+                    {isExpanded && <span style={labelTextStyle}>Historial Ventas</span>}
+                </div>
+                
 
                 <div 
                     onClick={() => handleTabSelect('memberships')}
