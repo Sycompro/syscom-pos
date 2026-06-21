@@ -582,7 +582,7 @@ export default function DashboardView() {
               </div>
               <div>
                 <p style={kpiLabelStyle}>Ventas Netas Totales</p>
-                <h3 style={kpiValueStyle}>{formatCurrency(data.kpis.totalRevenue)}</h3>
+                <h3 style={kpiValueStyle}>{formatCurrency(data?.kpis?.totalRevenue)}</h3>
               </div>
             </motion.div>
 
@@ -593,7 +593,7 @@ export default function DashboardView() {
               </div>
               <div>
                 <p style={kpiLabelStyle}>Transacciones Emitidas</p>
-                <h3 style={kpiValueStyle}>{data.kpis.totalTransactions} unds</h3>
+                <h3 style={kpiValueStyle}>{data?.kpis?.totalTransactions || 0} unds</h3>
               </div>
             </motion.div>
 
@@ -604,7 +604,7 @@ export default function DashboardView() {
               </div>
               <div>
                 <p style={kpiLabelStyle}>Valor Ticket Promedio</p>
-                <h3 style={kpiValueStyle}>{formatCurrency(data.kpis.averageTicket)}</h3>
+                <h3 style={kpiValueStyle}>{formatCurrency(data?.kpis?.averageTicket)}</h3>
               </div>
             </motion.div>
 
@@ -615,7 +615,7 @@ export default function DashboardView() {
               </div>
               <div>
                 <p style={kpiLabelStyle}>Monto Total Anulado</p>
-                <h3 style={{ ...kpiValueStyle, color: '#ef4444' }}>{formatCurrency(data.kpis.canceledRevenue)}</h3>
+                <h3 style={{ ...kpiValueStyle, color: '#ef4444' }}>{formatCurrency(data?.kpis?.canceledRevenue)}</h3>
               </div>
             </motion.div>
           </div>
@@ -632,12 +632,12 @@ export default function DashboardView() {
                 <span>Tiempo Real</span>
               </div>
             </div>
-            {data.timeEvolution.length === 0 ? (
+            {!(data?.timeEvolution) || data.timeEvolution.length === 0 ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', color: '#94a3b8', fontSize: '12px' }}>
                 Sin ventas registradas en el período.
               </div>
             ) : (
-              renderSVGChart(data.timeEvolution)
+              renderSVGChart(data?.timeEvolution || [])
             )}
           </div>
 
@@ -653,14 +653,14 @@ export default function DashboardView() {
                 <Award size={18} color="#eab308" />
                 <h3 style={cardTitleStyle}>Ranking de Vendedores</h3>
               </div>
-              {data.sellersRanking.length === 0 ? (
+              {!(data?.sellersRanking) || data.sellersRanking.length === 0 ? (
                 <div style={{ padding: '30px 0', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
                   Sin datos de ventas en este período.
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {data.sellersRanking.map((s, idx) => {
-                    const pct = data.kpis.totalRevenue > 0 ? (s.amount / data.kpis.totalRevenue) * 100 : 0;
+                  {(data?.sellersRanking || []).map((s, idx) => {
+                    const pct = (data?.kpis?.totalRevenue || 0) > 0 ? (s.amount / data.kpis.totalRevenue) * 100 : 0;
                     return (
                       <div key={s.code} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -695,14 +695,14 @@ export default function DashboardView() {
             {/* Tipos de Comprobantes */}
             <div style={dashboardCardStyle}>
               <h3 style={{ ...cardTitleStyle, marginBottom: '16px' }}>Tipos de Comprobantes</h3>
-              {data.documentTypes.length === 0 ? (
+              {!(data?.documentTypes) || data.documentTypes.length === 0 ? (
                 <div style={{ padding: '30px 0', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
                   Sin datos disponibles.
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {data.documentTypes.map(d => {
-                    const pct = data.kpis.totalRevenue > 0 ? (d.amount / data.kpis.totalRevenue) * 100 : 0;
+                  {(data?.documentTypes || []).map(d => {
+                    const pct = (data?.kpis?.totalRevenue || 0) > 0 ? (d.amount / data.kpis.totalRevenue) * 100 : 0;
                     return (
                       <div key={d.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
@@ -722,7 +722,7 @@ export default function DashboardView() {
           </div>
 
           {/* 4. SECCIÓN ADICIONAL: COMPARATIVA DE SEDES (Solo si es consolidado) */}
-          {selectedSede === 'all' && data.salesBySede?.length > 0 && (
+          {selectedSede === 'all' && (data?.salesBySede || []).length > 0 && (
             <div style={dashboardCardStyle}>
               <h3 style={{ ...cardTitleStyle, marginBottom: '16px' }}>Ventas Consolidadas por Sede</h3>
               <div style={{
@@ -730,7 +730,7 @@ export default function DashboardView() {
                 gridTemplateColumns: isMobileView ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
                 gap: '12px'
               }}>
-                {data.salesBySede.map(sede => (
+                {(data?.salesBySede || []).map(sede => (
                   <div 
                     key={sede.sedeId} 
                     style={{
