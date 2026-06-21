@@ -1276,6 +1276,37 @@ export default function POSPage() {
                                                 </AnimatePresence>
                                             </div>
                                         )}
+                                         {/* Botón de Ampliar/Minimizar Pantalla (Fullscreen) */}
+                                         <button
+                                             onClick={toggleFullscreen}
+                                             style={{
+                                                 background: '#f8fafc',
+                                                 border: '1px solid #e2e8f0',
+                                                 borderRadius: '10px',
+                                                 padding: '8px',
+                                                 cursor: 'pointer',
+                                                 color: '#64748b',
+                                                 display: 'flex',
+                                                 alignItems: 'center',
+                                                 justifyContent: 'center',
+                                                 transition: 'all 0.2s',
+                                                 boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                                                 marginRight: '2px'
+                                             }}
+                                             onMouseEnter={e => {
+                                                 e.currentTarget.style.background = '#eff6ff';
+                                                 e.currentTarget.style.color = '#3b82f6';
+                                                 e.currentTarget.style.borderColor = '#bfdbfe';
+                                             }}
+                                             onMouseLeave={e => {
+                                                 e.currentTarget.style.background = '#f8fafc';
+                                                 e.currentTarget.style.color = '#64748b';
+                                                 e.currentTarget.style.borderColor = '#e2e8f0';
+                                             }}
+                                             title={isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"}
+                                         >
+                                             {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+                                         </button>
 
                                         <div style={{ textAlign: 'right' }}>
                                             <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Tipo Cambio</p>

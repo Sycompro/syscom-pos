@@ -1149,17 +1149,6 @@ export default function Sidebar({
                     </div>
                 )}
 
-                {supportsFullscreen && (
-                    <button 
-                        onClick={onToggleFullscreen} 
-                        style={getNavBtnStyle(activeTab === 'fullscreen')}
-                        title={isExpanded ? "" : (isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa")}
-                    >
-                        {isFullscreen ? <Minimize size={iconSize} style={{ flexShrink: 0 }} /> : <Maximize size={iconSize} style={{ flexShrink: 0 }} />}
-                        {isExpanded && <span style={labelTextStyle}>{isFullscreen ? "Salir Completa" : "Pantalla Completa"}</span>}
-                    </button>
-                )}
-
                 {/* Botón de Cerrar Sesión Estilo Cápsula */}
                 <div style={{ marginTop: '10px', marginBottom: '2px', padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
                     <button 
