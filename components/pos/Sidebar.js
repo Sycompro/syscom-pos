@@ -559,7 +559,7 @@ export default function Sidebar({
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        background: 'rgba(219, 234, 254, 0.35)',
+                        background: 'rgba(15, 23, 42, 0.6)',
                         backdropFilter: 'blur(8px)',
                         WebkitBackdropFilter: 'blur(8px)',
                         zIndex: 80,
