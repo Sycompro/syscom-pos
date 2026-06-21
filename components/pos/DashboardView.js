@@ -277,7 +277,8 @@ export default function DashboardView() {
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px',
-        width: '100%'
+        width: '100%',
+        flexShrink: 0
       }}>
         <div>
           <h2 style={titleStyle}>Panel de Control y Ventas</h2>
@@ -293,105 +294,109 @@ export default function DashboardView() {
           width: '100%'
         }}>
           {/* Selector de Sede */}
-          <CustomSelect
-            value={selectedSede}
-            onChange={e => setSelectedSede(e.target.value)}
-            options={[
-              { value: 'all', label: 'Consolidado (Todas las Sedes)' },
-              // Inyectar la sede de la sesión si no está en la base de datos por estado
-              ...(session?.user?.sedeId && !data?.sedes?.some(s => s.id === session.user.sedeId) ? [{ value: session.user.sedeId, label: session.user.sedeName || `Sede ${session.user.sedeId}` }] : []),
-              ...(data?.sedes?.map(s => ({ value: s.id, label: s.name })) || [])
-            ]}
-            icon={<Building2 size={14} color="#64748b" />}
-            placeholder="Sedes..."
-            style={{
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              background: '#fff',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-              height: '35px',
-              fontSize: '12px',
-              color: '#334155',
-              fontWeight: 800,
-              flex: '1 1 200px',
-              minWidth: '150px'
-            }}
-          />
+          <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
+            <CustomSelect
+              value={selectedSede}
+              onChange={e => setSelectedSede(e.target.value)}
+              options={[
+                { value: 'all', label: 'Consolidado (Todas las Sedes)' },
+                // Inyectar la sede de la sesión si no está en la base de datos por estado
+                ...(session?.user?.sedeId && !data?.sedes?.some(s => s.id === session.user.sedeId) ? [{ value: session.user.sedeId, label: session.user.sedeName || `Sede ${session.user.sedeId}` }] : []),
+                ...(data?.sedes?.map(s => ({ value: s.id, label: s.name })) || [])
+              ]}
+              icon={<Building2 size={14} color="#64748b" />}
+              placeholder="Sedes..."
+              style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                background: '#fff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                height: '35px',
+                fontSize: '12px',
+                color: '#334155',
+                fontWeight: 800,
+                width: '100%'
+              }}
+            />
+          </div>
 
           {/* Selector de Vendedor */}
-          <CustomSelect
-            value={selectedSeller}
-            onChange={e => setSelectedSeller(e.target.value)}
-            options={[
-              { value: 'all', label: 'Todos los Vendedores' },
-              ...sellers.map(v => ({ value: v.id, label: v.name }))
-            ]}
-            icon={<User size={14} color="#64748b" />}
-            placeholder="Vendedor..."
-            style={{
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              background: '#fff',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-              height: '35px',
-              fontSize: '12px',
-              color: '#334155',
-              fontWeight: 800,
-              flex: '1 1 160px',
-              minWidth: '120px'
-            }}
-          />
+          <div style={{ flex: '1 1 160px', minWidth: '120px' }}>
+            <CustomSelect
+              value={selectedSeller}
+              onChange={e => setSelectedSeller(e.target.value)}
+              options={[
+                { value: 'all', label: 'Todos los Vendedores' },
+                ...sellers.map(v => ({ value: v.id, label: v.name }))
+              ]}
+              icon={<User size={14} color="#64748b" />}
+              placeholder="Vendedor..."
+              style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                background: '#fff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                height: '35px',
+                fontSize: '12px',
+                color: '#334155',
+                fontWeight: 800,
+                width: '100%'
+              }}
+            />
+          </div>
 
           {/* Selector de Tipo de Documento */}
-          <CustomSelect
-            value={selectedDocType}
-            onChange={e => setSelectedDocType(e.target.value)}
-            options={[
-              { value: 'all', label: 'Todos los Documentos' },
-              { value: '03', label: 'Boletas de Venta' },
-              { value: '01', label: 'Facturas' },
-              { value: '65', label: 'Notas de Venta' }
-            ]}
-            icon={<FileText size={14} color="#64748b" />}
-            placeholder="Documento..."
-            style={{
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              background: '#fff',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-              height: '35px',
-              fontSize: '12px',
-              color: '#334155',
-              fontWeight: 800,
-              flex: '1 1 160px',
-              minWidth: '120px'
-            }}
-          />
+          <div style={{ flex: '1 1 160px', minWidth: '120px' }}>
+            <CustomSelect
+              value={selectedDocType}
+              onChange={e => setSelectedDocType(e.target.value)}
+              options={[
+                { value: 'all', label: 'Todos los Documentos' },
+                { value: '03', label: 'Boletas de Venta' },
+                { value: '01', label: 'Facturas' },
+                { value: '65', label: 'Notas de Venta' }
+              ]}
+              icon={<FileText size={14} color="#64748b" />}
+              placeholder="Documento..."
+              style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                background: '#fff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                height: '35px',
+                fontSize: '12px',
+                color: '#334155',
+                fontWeight: 800,
+                width: '100%'
+              }}
+            />
+          </div>
 
           {/* Selector de Forma de Pago */}
-          <CustomSelect
-            value={selectedPaymentMethod}
-            onChange={e => setSelectedPaymentMethod(e.target.value)}
-            options={[
-              { value: 'all', label: 'Todas las Formas de Pago' },
-              { value: 'EF', label: 'Efectivo' },
-              ...paymentMethods.map(m => ({ value: m.id, label: m.name }))
-            ]}
-            icon={<CreditCard size={14} color="#64748b" />}
-            placeholder="Forma de pago..."
-            style={{
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              background: '#fff',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-              height: '35px',
-              fontSize: '12px',
-              color: '#334155',
-              fontWeight: 800,
-              flex: '1 1 180px',
-              minWidth: '130px'
-            }}
-          />
+          <div style={{ flex: '1 1 180px', minWidth: '130px' }}>
+            <CustomSelect
+              value={selectedPaymentMethod}
+              onChange={e => setSelectedPaymentMethod(e.target.value)}
+              options={[
+                { value: 'all', label: 'Todas las Formas de Pago' },
+                { value: 'EF', label: 'Efectivo' },
+                ...paymentMethods.map(m => ({ value: m.id, label: m.name }))
+              ]}
+              icon={<CreditCard size={14} color="#64748b" />}
+              placeholder="Forma de pago..."
+              style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                background: '#fff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                height: '35px',
+                fontSize: '12px',
+                color: '#334155',
+                fontWeight: 800,
+                width: '100%'
+              }}
+            />
+          </div>
 
           {/* Presets de Fecha */}
           <div style={{
@@ -884,7 +889,8 @@ const customRangeStyle = {
   boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
   overflow: 'hidden',
   boxSizing: 'border-box',
-  width: '100%'
+  width: '100%',
+  flexShrink: 0
 };
 
 const dateInputStyle = {
