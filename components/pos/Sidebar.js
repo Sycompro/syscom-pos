@@ -193,18 +193,18 @@ export default function Sidebar({
         left: !isMobileMode ? '12px' : '0',
         bottom: !isMobileMode ? '12px' : '0',
         height: !isMobileMode ? 'calc(100% - 24px)' : '100%',
-        width: isExpanded ? (isTablet ? '200px' : '260px') : (isMobileMode ? '100%' : '52px'),
+        width: isExpanded ? (isTablet ? '260px' : '320px') : (isMobileMode ? '100%' : '52px'),
         background: '#ffffff',
         border: 'none',
         borderRadius: !isMobileMode ? '20px' : '0px',
         boxShadow: !isMobileMode 
-            ? (isExpanded ? '0 20px 40px -10px rgba(15, 23, 42, 0.12)' : '0 4px 12px rgba(15, 23, 42, 0.03)') 
+            ? (isExpanded ? '0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.04)' : '0 4px 12px rgba(15, 23, 42, 0.03)') 
             : 'none',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         padding: '0 0 2px 0',
-        gap: '4px',
+        gap: '2px',
         flexShrink: 0,
         zIndex: 100,
         transition: isMobileMode ? 'none' : 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -218,25 +218,28 @@ export default function Sidebar({
     // Estilos de los botones del menú central
     const getNavBtnStyle = (isActive) => {
         return {
-            width: isExpanded ? 'calc(100% - 16px)' : '40px',
-            height: '40px',
-            background: isActive ? 'rgba(59,130,246,0.15)' : 'transparent',
-            borderRadius: '10px',
+            width: isExpanded ? 'calc(100% - 24px)' : '40px',
+            height: isExpanded ? '44px' : '40px',
+            background: isActive 
+                ? 'linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(99,102,241,0.08) 100%)' 
+                : 'transparent',
+            borderRadius: '12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: isExpanded ? 'flex-start' : 'center',
-            padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0',
+            padding: isExpanded ? (isTablet ? '0 10px' : '0 14px') : '0',
             color: isActive ? '#3b82f6' : '#475569',
-            border: 'none',
+            border: isActive ? '1px solid rgba(59,130,246,0.1)' : '1px solid transparent',
             cursor: 'pointer',
             transition: 'all 0.2s ease-in-out',
+            gap: isExpanded ? '0' : '0',
         };
     };
 
     // Estilos de los botones inferiores
     const getBottomBtnStyle = (customColor) => {
         return {
-            width: isExpanded ? 'calc(100% - 16px)' : '30px',
+            width: isExpanded ? 'calc(100% - 24px)' : '30px',
             height: '30px',
             borderRadius: '8px',
             background: 'transparent',
@@ -245,7 +248,7 @@ export default function Sidebar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: isExpanded ? 'flex-start' : 'center',
-            padding: isExpanded ? '0 8px' : '0',
+            padding: isExpanded ? '0 10px' : '0',
             cursor: 'pointer',
             transition: 'all 0.2s ease-in-out',
             gap: isExpanded ? '10px' : '0',
@@ -253,12 +256,13 @@ export default function Sidebar({
     };
 
     const labelTextStyle = {
-        fontSize: isTablet ? '10px' : '11px',
-        fontWeight: 800,
+        fontSize: isTablet ? '12px' : '13px',
+        fontWeight: 700,
         opacity: isExpanded ? 1 : 0,
         transition: 'opacity 0.2s ease-in-out',
         whiteSpace: 'nowrap',
-        marginLeft: isExpanded ? (isTablet ? '8px' : '10px') : '0px',
+        marginLeft: isExpanded ? (isTablet ? '10px' : '12px') : '0px',
+        letterSpacing: '-0.01em',
     };    if (isMobileMode) {
         return (
             <aside style={{
@@ -601,22 +605,26 @@ export default function Sidebar({
 
             {/* Cabecera del Sidebar con Marca y Botón de Toggle */}
             <div style={{ 
-                padding: isExpanded ? (isTablet ? '4px 8px 6px 8px' : '4px 12px 8px 12px') : '4px 0 8px 0', 
+                padding: isExpanded ? (isTablet ? '6px 12px 10px 12px' : '8px 16px 12px 16px') : '4px 0 8px 0', 
                 width: '100%', 
                 boxSizing: 'border-box', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                minHeight: '56px'
+                minHeight: isExpanded ? '68px' : '56px',
+                background: isExpanded ? 'linear-gradient(180deg, rgba(59,130,246,0.04) 0%, transparent 100%)' : 'transparent',
+                borderBottom: isExpanded ? '1px solid rgba(15, 23, 42, 0.06)' : 'none',
             }}>
                 {isExpanded ? (
                     <div style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
-                        width: '100%'
+                        width: '100%',
+                        gap: '10px'
                     }}>
-                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: isTablet ? '15px' : '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                        <Isotipo isTablet={isTablet} />
+                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: isTablet ? '17px' : '20px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                             <span style={{ color: '#3b82f6' }}>Syscom</span>
                             <span style={{ color: '#0f172a' }}>.click</span>
                         </span>
@@ -656,15 +664,16 @@ export default function Sidebar({
                     display: 'flex', 
                     flexDirection: 'column', 
                     alignItems: 'center', 
-                    gap: '8px',
+                    gap: '3px',
                     overflowY: 'auto',
-                    paddingBottom: '2px'
+                    paddingBottom: '2px',
+                    paddingTop: isExpanded ? '4px' : '0'
                 }} 
                 className="no-scrollbar"
             >
                 {/* NAVEGACIÓN SECTION */}
                 {isExpanded && (
-                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: isTablet ? '8px 8px 6px 8px' : '8px 12px 6px 12px', textTransform: 'uppercase', width: isTablet ? 'calc(100% - 16px)' : 'calc(100% - 24px)', textAlign: 'left' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', margin: isTablet ? '8px 12px 6px 12px' : '8px 16px 6px 16px', textTransform: 'uppercase', width: isTablet ? 'calc(100% - 24px)' : 'calc(100% - 32px)', textAlign: 'left' }}>
                         Navegación
                     </div>
                 )}
@@ -1088,9 +1097,12 @@ export default function Sidebar({
 
                 {/* CONFIGURACIÓN / MI CUENTA SECTION */}
                 {isExpanded && (
-                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: isTablet ? '20px 8px 6px 8px' : '20px 12px 6px 12px', textTransform: 'uppercase', width: isTablet ? 'calc(100% - 16px)' : 'calc(100% - 24px)', textAlign: 'left' }}>
+                    <>
+                    <div style={{ width: isTablet ? 'calc(100% - 24px)' : 'calc(100% - 32px)', height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15,23,42,0.08), transparent)', margin: '12px 0 4px 0' }} />
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', margin: isTablet ? '8px 12px 6px 12px' : '8px 16px 6px 16px', textTransform: 'uppercase', width: isTablet ? 'calc(100% - 24px)' : 'calc(100% - 32px)', textAlign: 'left' }}>
                         Mi Cuenta
                     </div>
+                    </>
                 )}
 
                 {/* Configuración (Expandible) */}
@@ -1152,32 +1164,36 @@ export default function Sidebar({
             </div>
 
             {/* Botón de Cerrar Sesión Estilo Cápsula (Fijado al borde inferior del aside) */}
-            <div style={{ marginTop: '8px', marginBottom: !isMobileMode ? '10px' : '6px', padding: isExpanded ? (isTablet ? '0 8px' : '0 12px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
+            <div style={{ marginTop: '8px', marginBottom: !isMobileMode ? '14px' : '6px', padding: isExpanded ? (isTablet ? '0 12px' : '0 16px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
                 <button 
                     onClick={onSignOut} 
                     title={isExpanded ? "" : "Cerrar Sesión"}
                     style={{
                         width: isExpanded ? '100%' : '40px',
-                        height: isExpanded ? '44px' : '40px',
-                        borderRadius: isExpanded ? '24px' : '50%',
-                        border: 'none',
-                        background: '#fee2e2',
+                        height: isExpanded ? '46px' : '40px',
+                        borderRadius: isExpanded ? '14px' : '50%',
+                        border: '1px solid rgba(239, 68, 68, 0.15)',
+                        background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
                         color: '#ef4444',
-                        fontWeight: 900,
-                        fontSize: '12px',
+                        fontWeight: 800,
+                        fontSize: '13px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: isExpanded ? (isTablet ? '6px' : '8px') : '0',
+                        gap: isExpanded ? (isTablet ? '8px' : '10px') : '0',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        boxShadow: '0 2px 6px rgba(239, 68, 68, 0.05)'
+                        boxShadow: '0 2px 8px rgba(239, 68, 68, 0.08)'
                     }}
                     onMouseEnter={e => {
-                        e.currentTarget.style.background = '#fef2f2';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.15)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
                     }}
                     onMouseLeave={e => {
-                        e.currentTarget.style.background = '#fee2e2';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.08)';
+                        e.currentTarget.style.transform = 'translateY(0)';
                     }}
                 >
                     <LogOut size={isTablet ? 16 : 18} style={{ flexShrink: 0 }} />
