@@ -564,7 +564,7 @@ export default function Sidebar({
             onClick={handleAsideClick}
             style={{
                 ...asideStyle,
-                overflowY: 'auto'
+                overflowY: 'hidden'
             }}
             className="no-scrollbar"
         >
@@ -631,7 +631,19 @@ export default function Sidebar({
 
 
             {/* Acciones principales - Menu Limpio */}
-            <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <div 
+                style={{ 
+                    flex: 1, 
+                    width: '100%', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    overflowY: 'auto',
+                    paddingBottom: '20px'
+                }} 
+                className="no-scrollbar"
+            >
                 {/* NAVEGACIÓN SECTION */}
                 {isExpanded && (
                     <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: isTablet ? '8px 8px 6px 8px' : '8px 12px 6px 12px', textTransform: 'uppercase', width: isTablet ? 'calc(100% - 16px)' : 'calc(100% - 24px)', textAlign: 'left' }}>
