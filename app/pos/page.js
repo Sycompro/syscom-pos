@@ -296,7 +296,12 @@ export default function POSPage() {
             }
             if (Array.isArray(salesData)) {
                 setSalespeople(salesData);
-                if (salesData.length > 0) setSelectedSalesperson(salesData[0].id);
+                const savedSalesperson = localStorage.getItem('selectedSalesperson');
+                if (savedSalesperson && salesData.some(v => v.id === savedSalesperson)) {
+                    setSelectedSalesperson(savedSalesperson);
+                } else if (salesData.length > 0) {
+                    setSelectedSalesperson(salesData[0].id);
+                }
             }
             if (Array.isArray(catsData)) {
                 setCategories([
@@ -310,6 +315,12 @@ export default function POSPage() {
 
         return () => window.removeEventListener('resize', checkSize);
     }, [session]);
+
+    useEffect(() => {
+        if (selectedSalesperson) {
+            localStorage.setItem('selectedSalesperson', selectedSalesperson);
+        }
+    }, [selectedSalesperson]);
 
     useEffect(() => {
         if (activeTab === 'pos') {
@@ -1540,7 +1551,7 @@ export default function POSPage() {
                                              <div style={{ minWidth: '180px' }}>
                                                  <CustomSelect
                                                      value={selectedSalesperson}
-                                                     onChange={(val) => setSelectedSalesperson(val)}
+                                                     onChange={e => setSelectedSalesperson(e.target.value)}
                                                      options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
                                                      placeholder="Seleccionar Vendedor"
                                                  />
