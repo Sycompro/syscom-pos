@@ -1137,7 +1137,7 @@ export default function POSPage() {
                                         background: '#ffffff', 
                                         padding: '12px 20px', 
                                         minHeight: '70px', 
-                                        borderBottom: '1px solid #e2e8f0', 
+                                        borderBottom: 'none', 
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         justifyContent: 'space-between',
