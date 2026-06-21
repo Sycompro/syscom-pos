@@ -229,7 +229,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
     );
 
     return (
-        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1, boxSizing: 'border-box' }}>
+        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, boxSizing: 'border-box' }}>
             <AnimatePresence>
                 {showSaved && (
                     <motion.div 
@@ -243,9 +243,9 @@ export default function WhatsappView({ useScreenKeyboards }) {
                 )}
             </AnimatePresence>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(420px, 1fr))', gap: isMobile ? '12px' : '18px', alignItems: 'stretch', flex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(420px, 1fr))', gap: isMobile ? '12px' : '18px', alignItems: 'stretch', flex: 1, minHeight: 0 }}>
                 {/* Column 1: Config */}
-                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={cardStyle}>
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={{ ...cardStyle, alignSelf: 'start' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '14px' : '18px', flexWrap: 'wrap', gap: '10px' }}>
                         <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'center' }}>
                             <div style={iconBoxStyle}><Globe size={isMobile ? 20 : 22} /></div>
@@ -322,7 +322,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
                 </motion.div>
 
                 {/* Column 2: History */}
-                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={cardStyle}>
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ ...cardStyle, flex: 1, minHeight: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '14px' : '18px' }}>
                         <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'center' }}>
                             <div style={{ ...iconBoxStyle, background: '#f8fafc', color: '#64748b' }}><History size={isMobile ? 20 : 22} /></div>
@@ -380,7 +380,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
                             ))}
                         </div>
                     ) : (
-                        <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #f1f5f9', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ overflowX: 'auto', overflowY: 'auto', borderRadius: '12px', border: '1px solid #f1f5f9', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
                                 <thead>
                                     <tr style={{ background: '#f8fafc' }}>
