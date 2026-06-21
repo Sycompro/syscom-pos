@@ -15,7 +15,8 @@ export default function CustomSelect({
   onAdd,
   addLabel = '+ Crear nuevo',
   openUp = false,
-  large = false
+  large = false,
+  iconOnly = false
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -175,7 +176,7 @@ export default function CustomSelect({
   const hasNoResults = filteredOptions.length === 0;
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+    <div ref={containerRef} style={{ position: 'relative', width: iconOnly ? 'auto' : '100%' }}>
       <style jsx>{`
         .custom-select-list::-webkit-scrollbar {
           width: 5px;
@@ -193,22 +194,35 @@ export default function CustomSelect({
         }
       `}</style>
       <div onClick={handleToggle} style={controlStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: 'calc(100% - 20px)' }}>
-          {icon && <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</span>}
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {selectedOption ? selectedOption.label : placeholder}
-          </span>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: iconOnly ? 'center' : 'flex-start',
+          gap: '8px', 
+          overflow: 'hidden', 
+          textOverflow: 'ellipsis', 
+          whiteSpace: 'nowrap', 
+          width: '100%' 
+        }}>
+          {icon && <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</span>}
+          {!iconOnly && (
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {selectedOption ? selectedOption.label : placeholder}
+            </span>
+          )}
         </div>
-        <ChevronDown 
-          size={large ? 18 : 14} 
-          style={{ 
-            color: '#94a3b8', 
-            transition: 'transform 0.2s', 
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            marginLeft: '4px',
-            flexShrink: 0
-          }} 
-        />
+        {!iconOnly && (
+          <ChevronDown 
+            size={large ? 18 : 14} 
+            style={{ 
+              color: '#94a3b8', 
+              transition: 'transform 0.2s', 
+              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              marginLeft: '4px',
+              flexShrink: 0
+            }} 
+          />
+        )}
       </div>
 
       <div style={listContainerStyle}>

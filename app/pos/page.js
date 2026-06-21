@@ -1494,32 +1494,29 @@ export default function POSPage() {
                                       {/* En móviles, la fila de botones (Vendedor + Comprobantes) va primero */}
                                       {isMobileDevice && (
                                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                                              {/* Selector de Vendedor */}
-                                              <div style={{ 
-                                                  position: 'relative', width: '36px', height: '36px', borderRadius: isMobileDevice ? '50%' : '10px', 
-                                                  border: 'none', 
-                                                  background: selectedSalesperson ? '#eff6ff' : '#f1f5f9', 
-                                                  color: selectedSalesperson ? '#3b82f6' : '#64748b', 
-                                                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                  boxShadow: selectedSalesperson ? '0 2px 6px rgba(79, 70, 229, 0.1)' : 'none',
-                                                  flexShrink: 0
-                                              }} title="Seleccionar Vendedor">
-                                                  <User size={18} />
-                                                  <select
-                                                      value={selectedSalesperson}
-                                                      onChange={(e) => setSelectedSalesperson(e.target.value)}
-                                                      style={{
-                                                          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                                                          opacity: 0, cursor: 'pointer', zIndex: 10
-                                                      }}
-                                                  >
-                                                      {salespeople.map(v => (
-                                                          <option key={v.id} value={v.id}>
-                                                              {v.name.trim()}
-                                                          </option>
-                                                      ))}
-                                                  </select>
-                                              </div>
+                                              <CustomSelect
+                                                value={selectedSalesperson}
+                                                onChange={(e) => setSelectedSalesperson(e.target.value)}
+                                                options={salespeople.map(v => ({ value: v.id, label: v.name.trim() }))}
+                                                placeholder="Vendedor"
+                                                icon={<User size={18} />}
+                                                iconOnly={true}
+                                                dropdownWidth="220px"
+                                                style={{
+                                                    width: '36px',
+                                                    height: '36px',
+                                                    borderRadius: '50%',
+                                                    padding: 0,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    border: 'none',
+                                                    background: selectedSalesperson ? '#eff6ff' : '#f1f5f9',
+                                                    color: selectedSalesperson ? '#3b82f6' : '#64748b',
+                                                    boxShadow: selectedSalesperson ? '0 2px 6px rgba(79, 70, 229, 0.1)' : 'none',
+                                                    flexShrink: 0
+                                                }}
+                                            />
  
                                               {/* Selector de Boleta/Factura/Nota */}
                                               <div style={{ display: 'flex', gap: '6px', flex: 1, justifyContent: 'flex-end' }}>
