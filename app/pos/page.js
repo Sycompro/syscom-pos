@@ -1467,161 +1467,213 @@ export default function POSPage() {
                                                   )}
                                               </button>
 
-                                             {/* Dropdown de Alertas */}
-                                             <AnimatePresence>
-                                                 {showAlertDropdown && (
-                                                     <motion.div
-                                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                         transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-                                                         style={{
-                                                             position: 'absolute',
-                                                             top: '100%',
-                                                             right: 0,
-                                                             marginTop: '12px',
-                                                             width: '320px',
-                                                             background: 'rgba(255, 255, 255, 0.96)',
-                                                             backdropFilter: 'blur(16px)',
-                                                             WebkitBackdropFilter: 'blur(16px)',
-                                                             borderRadius: '16px',
-                                                             boxShadow: '0 20px 40px rgba(15, 23, 42, 0.15)',
-                                                             zIndex: 9999,
-                                                             border: '1px solid rgba(226, 232, 240, 0.8)',
-                                                             overflow: 'hidden'
-                                                         }}
-                                                     >
-                                                         {/* Cabecera del Panel */}
-                                                         <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                             <span style={{ fontSize: '11px', fontWeight: 900, color: '#1e293b', letterSpacing: '0.03em' }}>ALERTAS DEL SISTEMA</span>
-                                                             {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 && (
-                                                                 <button
-                                                                     onClick={markAllAlertsAsResolved}
-                                                                     style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
-                                                                 >
-                                                                     Atender todo
-                                                                 </button>
-                                                             )}
-                                                         </div>
+                                             {/* Modal de Alertas (Centrado y de Gran Tamaño) */}
+                                              <AnimatePresence>
+                                                  {showAlertDropdown && (
+                                                      <div 
+                                                          onClick={() => setShowAlertDropdown(false)}
+                                                          style={{
+                                                              position: 'fixed',
+                                                              top: 0,
+                                                              left: 0,
+                                                              width: '100vw',
+                                                              height: '100vh',
+                                                              background: 'rgba(15, 23, 42, 0.6)',
+                                                              backdropFilter: 'blur(8px)',
+                                                              WebkitBackdropFilter: 'blur(8px)',
+                                                              zIndex: 99999,
+                                                              display: 'flex',
+                                                              alignItems: 'center',
+                                                              justifyContent: 'center',
+                                                              padding: '16px',
+                                                              boxSizing: 'border-box'
+                                                          }}
+                                                      >
+                                                          <motion.div
+                                                              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                                              transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+                                                              onClick={(e) => e.stopPropagation()}
+                                                              style={{
+                                                                  width: '100%',
+                                                                  maxWidth: '520px',
+                                                                  maxHeight: '80vh',
+                                                                  background: '#ffffff',
+                                                                  borderRadius: '20px',
+                                                                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 20px -5px rgba(0, 0, 0, 0.15)',
+                                                                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                                                                  display: 'flex',
+                                                                  flexDirection: 'column',
+                                                                  overflow: 'hidden'
+                                                              }}
+                                                          >
+                                                              {/* Cabecera del Modal */}
+                                                              <div style={{ padding: '16px 20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                      <span style={{ fontSize: '13px', fontWeight: 900, color: '#0f172a', letterSpacing: '0.03em' }}>ALERTAS Y NOTIFICACIONES</span>
+                                                                      <span style={{ background: '#fef2f2', color: '#ef4444', fontSize: '10px', fontWeight: 900, padding: '2px 8px', borderRadius: '12px', border: '1px solid #fee2e2' }}>
+                                                                          {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length} PENDIENTES
+                                                                      </span>
+                                                                  </div>
+                                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                                      {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 && (
+                                                                          <button
+                                                                              onClick={markAllAlertsAsResolved}
+                                                                              style={{ background: '#eff6ff', border: 'none', color: '#2563eb', fontSize: '10px', fontWeight: 800, padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                                              onMouseEnter={e => e.currentTarget.style.background = '#dbeafe'}
+                                                                              onMouseLeave={e => e.currentTarget.style.background = '#eff6ff'}
+                                                                          >
+                                                                              Atender todo
+                                                                          </button>
+                                                                      )}
+                                                                      <button 
+                                                                          onClick={() => setShowAlertDropdown(false)}
+                                                                          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '50%', transition: 'all 0.2s' }}
+                                                                          onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#475569'; }}
+                                                                          onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#94a3b8'; }}
+                                                                      >
+                                                                          <X size={18} />
+                                                                      </button>
+                                                                  </div>
+                                                              </div>
 
-                                                         {/* Lista de Alertas */}
-                                                         <div className="custom-select-list" style={{ maxHeight: '280px', overflowY: 'auto', padding: '6px' }}>
-                                                             {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length === 0 ? (
-                                                                 <div style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8' }}>
-                                                                     <Sparkles size={24} style={{ color: '#10b981', marginBottom: '8px', margin: '0 auto' }} />
-                                                                     <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: '#475569' }}>¡Todo al día!</p>
-                                                                     <p style={{ margin: 0, fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>No hay alertas pendientes de atención</p>
-                                                                 </div>
-                                                             ) : (
-                                                                 alerts.filter(a => !resolvedAlertIds.includes(a.id)).map(a => {
-                                                                     let Icon = AlertCircle;
-                                                                     let iconColor = '#f59e0b';
-                                                                     let iconBg = '#fffbeb';
-                                                                     
-                                                                     if (a.type === 'membership_expired') {
-                                                                         Icon = Clock;
-                                                                         iconColor = '#ef4444';
-                                                                         iconBg = '#fef2f2';
-                                                                     } else if (a.type === 'birthday') {
-                                                                         Icon = Sparkles;
-                                                                         iconColor = '#ec4899';
-                                                                         iconBg = '#fdf2f8';
-                                                                     }
-
-                                                                     return (
-                                                                         <div
-                                                                             key={a.id}
-                                                                             style={{
-                                                                                 padding: '10px',
-                                                                                 borderRadius: '10px',
-                                                                                 borderBottom: '1px solid #f8fafc',
-                                                                                 display: 'flex',
-                                                                                 flexDirection: 'column',
-                                                                                 gap: '6px',
-                                                                                 transition: 'background 0.2s'
-                                                                             }}
-                                                                         >
-                                                                             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                                                                                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
-                                                                                     <Icon size={14} />
-                                                                                 </div>
-                                                                                 <div style={{ flex: 1 }}>
-                                                                                     <p style={{ margin: 0, fontSize: '10px', fontWeight: 900, color: '#0f172a' }}>{a.title}</p>
-                                                                                     <p style={{ margin: '2px 0 0 0', fontSize: '9px', color: '#64748b', lineHeight: '1.3', fontWeight: 500 }}>{a.message}</p>
-                                                                                     <p style={{ margin: '2px 0 0 0', fontSize: '8px', color: '#94a3b8', fontWeight: 700 }}>{a.metadata?.sede || 'SEDE'}</p>
-                                                                                 </div>
-                                                                             </div>
-                                                                             <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', marginTop: '2px' }}>
-                                                                                 {/* Botón Ir a Ver */}
-                                                                                 <button
-                                                                                     onClick={() => handleAlertRedirect(a)}
-                                                                                     style={{
-                                                                                         background: '#eff6ff',
-                                                                                         color: '#2563eb',
-                                                                                         border: 'none',
-                                                                                         borderRadius: '6px',
-                                                                                         padding: '4px 8px',
-                                                                                         fontSize: '9px',
-                                                                                         fontWeight: 800,
-                                                                                         cursor: 'pointer',
-                                                                                         display: 'flex',
-                                                                                         alignItems: 'center',
-                                                                                         gap: '4px'
-                                                                                     }}
-                                                                                 >
-                                                                                     Ir a ver
-                                                                                 </button>
-                                                                                 {/* Botón Atendido */}
-                                                                                 <button
-                                                                                     onClick={() => markAlertAsResolved(a.id)}
-                                                                                     style={{
-                                                                                         background: '#f1f5f9',
-                                                                                         color: '#475569',
-                                                                                         border: 'none',
-                                                                                         borderRadius: '6px',
-                                                                                         padding: '4px 8px',
-                                                                                         fontSize: '9px',
-                                                                                         fontWeight: 800,
-                                                                                         cursor: 'pointer'
-                                                                                     }}
-                                                                                 >
-                                                                                     Atendido
-                                                                                 </button>
-                                                                                 {/* WhatsApp rápido si corresponde */}
-                                                                                 {a.metadata?.phone && (
-                                                                                     <button
-                                                                                         onClick={() => {
-                                                                                             const msg = a.type === 'birthday' 
-                                                                                                 ? `¡Feliz cumpleaños ${a.metadata.name}! Te deseamos lo mejor en tu día. De parte de ${companySettings?.company?.commercialName || companySettings?.company?.name || 'nuestro equipo'}.` 
-                                                                                                 : `Hola ${a.metadata.name}, te recordamos que tu membresía vence el ${a.metadata.endDate}. ¡Te esperamos para renovar!`;
-                                                                                             addToWaQueue(a.metadata.phone, msg);
-                                                                                             markAlertAsResolved(a.id);
-                                                                                         }}
-                                                                                         style={{
-                                                                                             background: '#f0fdf4',
-                                                                                             color: '#166534',
-                                                                                             border: 'none',
-                                                                                             borderRadius: '6px',
-                                                                                             padding: '4px',
-                                                                                             cursor: 'pointer',
-                                                                                             display: 'flex',
-                                                                                             alignItems: 'center',
-                                                                                             justifyContent: 'center'
-                                                                                         }}
-                                                                                         title="Enviar recordatorio WhatsApp"
-                                                                                     >
-                                                                                         <Phone size={10} />
-                                                                                     </button>
-                                                                                 )}
-                                                                             </div>
-                                                                         </div>
-                                                                     );
-                                                                 })
-                                                             )}
-                                                         </div>
-                                                     </motion.div>
-                                                 )}
-                                             </AnimatePresence>
+                                                              {/* Lista de Alertas */}
+                                                              <div className="custom-select-list" style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                                  {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length === 0 ? (
+                                                                      <div style={{ padding: '48px 24px', textAlign: 'center', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                                                                          <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                                                                              <Sparkles size={28} />
+                                                                          </div>
+                                                                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>¡Todo al día!</p>
+                                                                          <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748b' }}>No tienes alertas ni notificaciones pendientes</p>
+                                                                      </div>
+                                                                  ) : (
+                                                                      alerts.filter(a => !resolvedAlertIds.includes(a.id)).map(a => {
+                                                                          let Icon = AlertCircle;
+                                                                          let iconColor = '#f59e0b';
+                                                                          let iconBg = '#fffbeb';
+                                                                          
+                                                                          if (a.type === 'membership_expired') {
+                                                                              Icon = Clock;
+                                                                              iconColor = '#ef4444';
+                                                                              iconBg = '#fef2f2';
+                                                                          } else if (a.type === 'birthday') {
+                                                                              Icon = Sparkles;
+                                                                              iconColor = '#ec4899';
+                                                                              iconBg = '#fdf2f8';
+                                                                          }
+                                                                          
+                                                                          return (
+                                                                              <div
+                                                                                  key={a.id}
+                                                                                  style={{
+                                                                                      padding: '14px',
+                                                                                      borderRadius: '12px',
+                                                                                      background: '#f8fafc',
+                                                                                      border: '1px solid #f1f5f9',
+                                                                                      display: 'flex',
+                                                                                      flexDirection: 'column',
+                                                                                      gap: '10px',
+                                                                                      transition: 'all 0.2s',
+                                                                                      boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
+                                                                                  }}
+                                                                                  onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                                                                  onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#f1f5f9'; }}
+                                                                              >
+                                                                                  <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                                                      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
+                                                                                          <Icon size={16} />
+                                                                                      </div>
+                                                                                      <div style={{ flex: 1 }}>
+                                                                                          <p style={{ margin: 0, fontSize: '11px', fontWeight: 900, color: '#0f172a' }}>{a.title}</p>
+                                                                                          <p style={{ margin: '3px 0 0 0', fontSize: '10px', color: '#475569', lineHeight: '1.4', fontWeight: 650 }}>{a.message}</p>
+                                                                                          <span style={{ display: 'inline-block', margin: '4px 0 0 0', fontSize: '8px', color: '#94a3b8', fontWeight: 800, background: '#ffffff', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px' }}>
+                                                                                              {a.metadata?.sede || 'SEDE PRINCIPAL'}
+                                                                                          </span>
+                                                                                      </div>
+                                                                                  </div>
+                                                                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                                                                                      {/* Botón Ir a Ver */}
+                                                                                      <button
+                                                                                          onClick={() => handleAlertRedirect(a)}
+                                                                                          style={{
+                                                                                              background: '#eff6ff',
+                                                                                              color: '#2563eb',
+                                                                                              border: 'none',
+                                                                                              borderRadius: '6px',
+                                                                                              padding: '6px 12px',
+                                                                                              fontSize: '10px',
+                                                                                              fontWeight: 800,
+                                                                                              cursor: 'pointer',
+                                                                                              display: 'flex',
+                                                                                              alignItems: 'center',
+                                                                                              gap: '4px',
+                                                                                              transition: 'all 0.2s'
+                                                                                          }}
+                                                                                          onMouseEnter={e => e.currentTarget.style.background = '#dbeafe'}
+                                                                                          onMouseLeave={e => e.currentTarget.style.background = '#eff6ff'}
+                                                                                      >
+                                                                                          Ir a ver
+                                                                                      </button>
+                                                                                      {/* Botón Atendido */}
+                                                                                      <button
+                                                                                          onClick={() => markAlertAsResolved(a.id)}
+                                                                                          style={{
+                                                                                              background: '#f1f5f9',
+                                                                                              color: '#475569',
+                                                                                              border: 'none',
+                                                                                              borderRadius: '6px',
+                                                                                              padding: '6px 12px',
+                                                                                              fontSize: '10px',
+                                                                                              fontWeight: 800,
+                                                                                              cursor: 'pointer',
+                                                                                              transition: 'all 0.2s'
+                                                                                          }}
+                                                                                          onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
+                                                                                          onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+                                                                                      >
+                                                                                          Atendido
+                                                                                      </button>
+                                                                                      {/* WhatsApp rápido si corresponde */}
+                                                                                      {a.metadata?.phone && (
+                                                                                          <button
+                                                                                              onClick={() => {
+                                                                                                  const msg = a.type === 'birthday' 
+                                                                                                      ? `¡Feliz cumpleaños ${a.metadata.name}! Te deseamos lo mejor en tu día. De parte de ${companySettings?.company?.commercialName || companySettings?.company?.name || 'nuestro equipo'}.` 
+                                                                                                      : `Hola ${a.metadata.name}, te recordamos que tu membresía vence el ${a.metadata.endDate}. ¡Te esperamos para renovar!`;
+                                                                                                  addToWaQueue(a.metadata.phone, msg);
+                                                                                                  markAlertAsResolved(a.id);
+                                                                                              }}
+                                                                                              style={{
+                                                                                                  background: '#f0fdf4',
+                                                                                                  color: '#166534',
+                                                                                                  border: 'none',
+                                                                                                  borderRadius: '6px',
+                                                                                                  padding: '6px 8px',
+                                                                                                  cursor: 'pointer',
+                                                                                                  display: 'flex',
+                                                                                                  alignItems: 'center',
+                                                                                                  justifyContent: 'center',
+                                                                                                  transition: 'all 0.2s'
+                                                                                              }}
+                                                                                              onMouseEnter={e => e.currentTarget.style.background = '#dcfce7'}
+                                                                                              onMouseLeave={e => e.currentTarget.style.background = '#f0fdf4'}
+                                                                                              title="Enviar recordatorio WhatsApp"
+                                                                                          >
+                                                                                              <Phone size={12} />
+                                                                                          </button>
+                                                                                      )}
+                                                                                  </div>
+                                                                              </div>
+                                                                          );
+                                                                      })
+                                                                  )}
+                                                              </div>
+                                                          </motion.div>
+                                                      </div>
+                                                  )}
+                                              </AnimatePresence>
                                          </div>
 
                                         <div style={{ textAlign: 'right' }}>
