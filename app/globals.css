@@ -190,3 +190,13 @@ body {
   animation: led-pulse 2s infinite ease-in-out;
 }
 
+/* Ocultar barra de desplazamiento en contenedores con clase no-scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE y Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
