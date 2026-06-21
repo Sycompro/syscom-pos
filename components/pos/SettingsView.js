@@ -15,18 +15,28 @@ export default function SettingsView({ db, onSaved }) {
     const [whatsappToken, setWhatsappToken] = useState('');
     const [useScreenKeyboards, setUseScreenKeyboards] = useState(true);
     const [currentTab, setCurrentTab] = useState('business'); // 'business' | 'interface' | 'brand'
- 
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const getTabButtonStyle = (tabName) => {
         const isActive = currentTab === tabName;
         return {
-            flex: 1,
+            flex: isMobile ? '0 0 auto' : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px',
-            padding: '12px 16px',
-            borderRadius: '10px',
-            fontSize: '13px',
+            gap: '6px',
+            padding: isMobile ? '8px 12px' : '12px 16px',
+            borderRadius: '8px',
+            fontSize: isMobile ? '12px' : '13px',
             fontWeight: isActive ? 850 : 650,
             color: isActive ? '#3b82f6' : '#64748b',
             background: isActive ? '#ffffff' : 'transparent',
@@ -36,13 +46,13 @@ export default function SettingsView({ db, onSaved }) {
             transition: 'all 0.2s ease-in-out'
         };
     };
- 
+
     const availableLogos = [
-        { id: 'logocia01.jpg', name: 'Logo Empresa 01' },
-        { id: 'logocia02.jpg', name: 'Logo Empresa 02' },
-        { id: 'logocia03.jpg', name: 'Logo Empresa 03' },
+        { id: 'logocia01.jpg', name: 'Logo 01' },
+        { id: 'logocia02.jpg', name: 'Logo 02' },
+        { id: 'logocia03.jpg', name: 'Logo 03' },
     ];
- 
+
     useEffect(() => {
         const fetchSettings = async () => {
             setLoading(true);
@@ -65,16 +75,16 @@ export default function SettingsView({ db, onSaved }) {
                 setLoading(false);
             }
         };
- 
+
         // Cargar preferencia de teclado desde localStorage (per-device)
         const savedKbd = localStorage.getItem('pos_use_screen_keyboards');
         if (savedKbd !== null) {
             setUseScreenKeyboards(savedKbd === 'true');
         }
- 
+
         fetchSettings();
     }, [db]);
- 
+
     const handleLogoUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -83,14 +93,14 @@ export default function SettingsView({ db, onSaved }) {
             alert('El archivo es muy pesado. Por favor sube una imagen de menos de 500KB.');
             return;
         }
- 
+
         const reader = new FileReader();
         reader.onloadend = () => {
             setPosLogo(reader.result);
         };
         reader.readAsDataURL(file);
     };
- 
+
     const handleSave = async () => {
         try {
             // Guardar todo en SQL Server a través del API
@@ -106,10 +116,10 @@ export default function SettingsView({ db, onSaved }) {
                     whatsappToken
                 })
             });
- 
+
             // Guardar preferencia de teclado localmente
             localStorage.setItem('pos_use_screen_keyboards', useScreenKeyboards);
- 
+
             if (onSaved) onSaved();
             setSaved(true);
             setTimeout(() => {
@@ -119,18 +129,64 @@ export default function SettingsView({ db, onSaved }) {
             alert("Error al guardar la configuración");
         }
     };
- 
+
+    // Estilos responsivos locales
+    const labelStyle = { display: 'block', fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '8px' };
+    const infoTextStyle = { fontSize: isMobile ? '11px' : '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px', lineHeight: 1.4 };
+    const gridStyle = { display: 'flex', flexDirection: 'column', gap: '12px' };
+    
+    const getOptionCardStyle = (type) => {
+        const isActive = businessType === type;
+        return {
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: isMobile ? '12px' : '20px', 
+            padding: isMobile ? '14px' : '18px 20px', 
+            borderRadius: '16px',
+            border: '2px solid',
+            borderColor: isActive ? '#3b82f6' : '#f1f5f9',
+            background: isActive ? '#eff6ff' : '#f8fafc',
+            cursor: 'pointer', 
+            transition: 'all 0.2s ease', 
+            position: 'relative'
+        };
+    };
+
+    const getIconWrapperStyle = (type) => {
+        const isActive = businessType === type;
+        return {
+            width: isMobile ? '40px' : '48px', 
+            height: isMobile ? '40px' : '48px', 
+            borderRadius: '12px', 
+            display: 'flex',
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            transition: 'all 0.2s ease',
+            background: isActive ? '#3b82f6' : '#e2e8f0', 
+            color: isActive ? '#fff' : '#64748b',
+            flexShrink: 0
+        };
+    };
+
+    const optionTitleStyle = { margin: 0, fontSize: isMobile ? '13px' : '15px', fontWeight: 800, color: '#1e293b' };
+    const optionDescStyle = { margin: '2px 0 0', fontSize: isMobile ? '11px' : '12px', color: '#64748b', lineHeight: '1.4' };
+    const checkCircleStyle = {
+        position: 'absolute', top: '10px', right: '10px', background: '#3b82f6',
+        color: '#fff', borderRadius: '50%', width: '18px', height: '18px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
+    };
+
     return (
-        <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', width: '100%', minHeight: '100vh', boxSizing: 'border-box' }}>
+        <div style={{ padding: isMobile ? '12px 14px' : '24px 40px', maxWidth: '1000px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
             {/* Cabecera superior integrada */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
-                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center' }}>
-                        <Settings size={24} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '16px' : '24px', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: isMobile ? '10px' : '14px', alignItems: 'center' }}>
+                    <div style={{ width: isMobile ? '36px' : '44px', height: isMobile ? '36px' : '44px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Settings size={isMobile ? 20 : 22} />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Configuración del POS</h1>
-                        <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0' }}>Ajusta el comportamiento general y la identidad visual de tu sistema</p>
+                        <h1 style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ajustes POS</h1>
+                        {!isMobile && <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0' }}>Comportamiento general e identidad visual del sistema</p>}
                     </div>
                 </div>
                 <button 
@@ -140,50 +196,63 @@ export default function SettingsView({ db, onSaved }) {
                         background: '#3b82f6',
                         color: '#fff',
                         border: 'none',
-                        borderRadius: '12px',
-                        padding: '12px 24px',
+                        borderRadius: '10px',
+                        padding: isMobile ? '10px 16px' : '12px 20px',
                         fontWeight: 800,
-                        fontSize: '13px',
+                        fontSize: isMobile ? '12px' : '13px',
                         cursor: 'pointer',
-                        boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.2)',
+                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
-                        transition: 'all 0.2s'
+                        gap: '6px',
+                        transition: 'all 0.2s',
+                        width: isMobile ? '100%' : 'auto',
+                        justifyContent: 'center'
                     }}
                 >
                     {loading ? (
-                        <Loader2 className="animate-spin" size={16} />
+                        <Loader2 className="animate-spin" size={14} />
                     ) : (
-                        <Save size={16} />
+                        <Save size={14} />
                     )}
-                    <span>{saved ? '¡Configuración Guardada!' : 'Guardar Ajustes'}</span>
+                    <span>{saved ? '¡Guardado!' : 'Guardar Ajustes'}</span>
                 </button>
             </div>
- 
+
             {/* Contenido principal en Tarjeta Premium */}
             <div style={{
                 background: '#ffffff',
-                borderRadius: '24px',
-                padding: '32px',
-                boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.03), 0 8px 10px -6px rgba(15, 23, 42, 0.03)',
+                borderRadius: isMobile ? '16px' : '20px',
+                padding: isMobile ? '16px' : '24px',
+                boxShadow: '0 4px 20px rgba(15, 23, 42, 0.02)',
                 border: '1px solid #f1f5f9'
             }}>
                 {loading ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 0' }}>
-                        <Loader2 className="animate-spin" size={40} color="#3b82f6" />
-                        <p style={{ marginTop: '16px', fontSize: '14px', fontWeight: 700, color: '#64748b' }}>Cargando configuraciones...</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0' }}>
+                        <Loader2 className="animate-spin" size={32} color="#3b82f6" />
+                        <p style={{ marginTop: '12px', fontSize: '13px', fontWeight: 700, color: '#64748b' }}>Cargando...</p>
                     </div>
                 ) : (
                     <>
                         {/* Selector de Pestañas */}
-                        <div style={tabsContainerStyle}>
+                        <div style={{
+                            display: 'flex',
+                            gap: '4px',
+                            background: '#f1f5f9',
+                            padding: '4px',
+                            borderRadius: '10px',
+                            marginBottom: '20px',
+                            border: '1px solid #e2e8f0',
+                            flexShrink: 0,
+                            overflowX: 'auto',
+                            whiteSpace: 'nowrap'
+                        }} className="no-scrollbar">
                             <button 
                                 type="button"
                                 onClick={() => setCurrentTab('business')} 
                                 style={getTabButtonStyle('business')}
                             >
-                                <Briefcase size={16} />
+                                <Briefcase size={14} />
                                 <span>Rubro y Negocio</span>
                             </button>
                             <button 
@@ -191,7 +260,7 @@ export default function SettingsView({ db, onSaved }) {
                                 onClick={() => setCurrentTab('interface')} 
                                 style={getTabButtonStyle('interface')}
                             >
-                                <Keyboard size={16} />
+                                <Keyboard size={14} />
                                 <span>Interfaz</span>
                             </button>
                             <button 
@@ -199,153 +268,147 @@ export default function SettingsView({ db, onSaved }) {
                                 onClick={() => setCurrentTab('brand')} 
                                 style={getTabButtonStyle('brand')}
                             >
-                                <Palette size={16} />
+                                <Palette size={14} />
                                 <span>Marca y Logo</span>
                             </button>
                         </div>
- 
+
                         {/* Contenido de la Pestaña */}
-                        <div style={{ minHeight: '300px', marginTop: '12px' }}>
+                        <div style={{ minHeight: '180px', marginTop: '4px' }}>
                             <AnimatePresence mode="wait">
                                 {currentTab === 'business' && (
                                     <motion.div
                                         key="business"
-                                        initial={{ opacity: 0, y: 10 }}
+                                        initial={{ opacity: 0, y: 5 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
+                                        exit={{ opacity: 0, y: -5 }}
                                         transition={{ duration: 0.15 }}
                                     >
                                         <label style={labelStyle}>RUBRO DEL NEGOCIO</label>
                                         <p style={infoTextStyle}>
-                                            <Info size={14} /> Determina las reglas de negocio y las alertas específicas que se envían por WhatsApp.
+                                            <Info size={13} style={{ flexShrink: 0 }} /> Determina las reglas de negocio y las alertas específicas que se envían por WhatsApp.
                                         </p>
- 
+
                                         <div style={gridStyle}>
                                             <div 
                                                 onClick={() => setBusinessType('gym')}
-                                                style={{
-                                                    ...optionCardStyle,
-                                                    borderColor: businessType === 'gym' ? '#3b82f6' : '#f1f5f9',
-                                                    background: businessType === 'gym' ? '#eff6ff' : '#f8fafc'
-                                                }}
+                                                style={getOptionCardStyle('gym')}
                                             >
-                                                <div style={{ ...iconWrapperStyle, background: businessType === 'gym' ? '#3b82f6' : '#e2e8f0', color: businessType === 'gym' ? '#fff' : '#64748b' }}>
-                                                    <Dumbbell size={24} />
+                                                <div style={getIconWrapperStyle('gym')}>
+                                                    <Dumbbell size={isMobile ? 20 : 22} />
                                                 </div>
                                                 <div style={{ flex: 1 }}>
                                                     <h3 style={optionTitleStyle}>Gimnasio / Fit</h3>
-                                                    <p style={optionDescStyle}>Habilita el control de vigencia, días de membresía y alertas automáticas de vencimiento en mensajes.</p>
+                                                    <p style={optionDescStyle}>Habilita el control de vigencia, días de membresía y alertas automáticas de vencimiento.</p>
                                                 </div>
-                                                {businessType === 'gym' && <div style={checkCircleStyle}><Check size={14} /></div>}
+                                                {businessType === 'gym' && <div style={checkCircleStyle}><Check size={12} /></div>}
                                             </div>
- 
+
                                             <div 
                                                 onClick={() => setBusinessType('universal')}
-                                                style={{
-                                                    ...optionCardStyle,
-                                                    borderColor: businessType === 'universal' ? '#3b82f6' : '#f1f5f9',
-                                                    background: businessType === 'universal' ? '#eff6ff' : '#f8fafc'
-                                                }}
+                                                style={getOptionCardStyle('universal')}
                                             >
-                                                <div style={{ ...iconWrapperStyle, background: businessType === 'universal' ? '#3b82f6' : '#e2e8f0', color: businessType === 'universal' ? '#fff' : '#64748b' }}>
-                                                    <Store size={24} />
+                                                <div style={getIconWrapperStyle('universal')}>
+                                                    <Store size={isMobile ? 20 : 22} />
                                                 </div>
                                                 <div style={{ flex: 1 }}>
                                                     <h3 style={optionTitleStyle}>Universal / Comercial</h3>
                                                     <p style={optionDescStyle}>Mensajes estándar de agradecimiento de compra sin gestión ni vigencia de membresías.</p>
                                                 </div>
-                                                {businessType === 'universal' && <div style={checkCircleStyle}><Check size={14} /></div>}
+                                                {businessType === 'universal' && <div style={checkCircleStyle}><Check size={12} /></div>}
                                             </div>
                                         </div>
                                     </motion.div>
                                 )}
- 
+
                                 {currentTab === 'interface' && (
                                     <motion.div
                                         key="interface"
-                                        initial={{ opacity: 0, y: 10 }}
+                                        initial={{ opacity: 0, y: 5 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
+                                        exit={{ opacity: 0, y: -5 }}
                                         transition={{ duration: 0.15 }}
                                     >
                                         <label style={labelStyle}>INTERFAZ Y TECLADO</label>
                                         <p style={infoTextStyle}>
-                                            <Info size={14} /> Activa o desactiva los teclados virtuales en pantalla para la aplicación.
+                                            <Info size={13} style={{ flexShrink: 0 }} /> Activa o desactiva los teclados virtuales en pantalla para la aplicación.
                                         </p>
- 
+
                                         <div style={{ 
-                                            background: '#f8fafc', padding: '24px', borderRadius: '20px', 
-                                            border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '16px' 
+                                            background: '#f8fafc', padding: isMobile ? '16px' : '20px', borderRadius: '16px', 
+                                            border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px' 
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>
+                                                <div style={{ flex: 1, minWidth: '200px' }}>
+                                                    <h4 style={{ margin: 0, fontSize: isMobile ? '13px' : '14px', fontWeight: 800, color: '#1e293b' }}>
                                                         Usar Teclados en Pantalla
                                                     </h4>
-                                                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                                                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b', lineHeight: 1.4 }}>
                                                         Ideal para pantallas táctiles y tablets. Desactívalo si utilizas una computadora con teclado físico.
                                                     </p>
                                                 </div>
                                                 <div 
                                                     onClick={() => setUseScreenKeyboards(!useScreenKeyboards)}
                                                     style={{
-                                                        width: '52px', height: '28px', borderRadius: '24px',
+                                                        width: '46px', height: '24px', borderRadius: '20px',
                                                         background: useScreenKeyboards ? '#3b82f6' : '#cbd5e1',
-                                                        padding: '4px', cursor: 'pointer', transition: 'all 0.3s ease',
+                                                        padding: '3px', cursor: 'pointer', transition: 'all 0.3s ease',
                                                         display: 'flex', alignItems: 'center',
                                                         justifyContent: useScreenKeyboards ? 'flex-end' : 'flex-start',
-                                                        boxSizing: 'border-box'
+                                                        boxSizing: 'border-box',
+                                                        flexShrink: 0
                                                     }}
                                                 >
-                                                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
+                                                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
                                                 </div>
                                             </div>
                                         </div>
                                     </motion.div>
                                 )}
- 
+
                                 {currentTab === 'brand' && (
                                     <motion.div
                                         key="brand"
-                                        initial={{ opacity: 0, y: 10 }}
+                                        initial={{ opacity: 0, y: 5 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
+                                        exit={{ opacity: 0, y: -5 }}
                                         transition={{ duration: 0.15 }}
                                     >
                                         <label style={labelStyle}>IDENTIDAD DE MARCA</label>
                                         <p style={infoTextStyle}>
-                                            <Info size={14} /> Personaliza el nombre comercial y logotipo de los comprobantes impresos y en PDF.
+                                            <Info size={13} style={{ flexShrink: 0 }} /> Personaliza el nombre comercial y logotipo de los comprobantes impresos y en PDF.
                                         </p>
- 
+
                                         <div style={{ 
-                                            background: '#f8fafc', padding: '24px', borderRadius: '20px', 
-                                            border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '16px',
-                                            marginBottom: '24px'
+                                            background: '#f8fafc', padding: isMobile ? '16px' : '20px', borderRadius: '16px', 
+                                            border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px',
+                                            marginBottom: '20px'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>
+                                                <div style={{ flex: 1, minWidth: '200px' }}>
+                                                    <h4 style={{ margin: 0, fontSize: isMobile ? '13px' : '14px', fontWeight: 800, color: '#1e293b' }}>
                                                         Usar Nombre Personalizado
                                                     </h4>
-                                                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                                                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b', lineHeight: 1.4 }}>
                                                         Activa esta opción para definir un nombre comercial personalizado en lugar del nombre legal del RUC.
                                                     </p>
                                                 </div>
                                                 <div 
                                                     onClick={() => setUseCustomName(!useCustomName)}
                                                     style={{
-                                                        width: '52px', height: '28px', borderRadius: '24px',
+                                                        width: '46px', height: '24px', borderRadius: '20px',
                                                         background: useCustomName ? '#10b981' : '#cbd5e1',
-                                                        padding: '4px', cursor: 'pointer', transition: 'all 0.3s ease',
+                                                        padding: '3px', cursor: 'pointer', transition: 'all 0.3s ease',
                                                         display: 'flex', alignItems: 'center',
                                                         justifyContent: useCustomName ? 'flex-end' : 'flex-start',
-                                                        boxSizing: 'border-box'
+                                                        boxSizing: 'border-box',
+                                                        flexShrink: 0
                                                     }}
                                                 >
-                                                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
+                                                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
                                                 </div>
                                             </div>
- 
+
                                             <AnimatePresence>
                                                 {useCustomName && (
                                                     <motion.div
@@ -356,29 +419,29 @@ export default function SettingsView({ db, onSaved }) {
                                                     >
                                                         <input 
                                                             type="text"
-                                                            placeholder="Escribe el nombre comercial de tu negocio aquí..."
+                                                            placeholder="Nombre comercial de tu negocio..."
                                                             value={customName}
                                                             onChange={(e) => setCustomName(e.target.value)}
                                                             style={{
-                                                                width: '100%', padding: '14px 18px', borderRadius: '12px',
+                                                                width: '100%', padding: '10px 14px', borderRadius: '8px',
                                                                 border: '2px solid #3b82f6', outline: 'none',
-                                                                fontSize: '14px', fontWeight: 600, color: '#1e293b',
-                                                                boxSizing: 'border-box', marginTop: '12px'
+                                                                fontSize: '13px', fontWeight: 600, color: '#1e293b',
+                                                                boxSizing: 'border-box', marginTop: '8px'
                                                             }}
                                                         />
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
                                         </div>
- 
+
                                         <label style={labelStyle}>LOGO DE COMPROBANTE</label>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', marginTop: '8px' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px', marginTop: '8px' }}>
                                             {/* Botón de Subir Personalizado */}
                                             <label style={{
-                                                padding: '16px', border: '2px dashed #cbd5e1', borderRadius: '20px',
+                                                padding: '12px', border: '2px dashed #cbd5e1', borderRadius: '16px',
                                                 cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
                                                 background: '#f8fafc', display: 'flex', flexDirection: 'column',
-                                                alignItems: 'center', justifyContent: 'center', minHeight: '100px',
+                                                alignItems: 'center', justifyContent: 'center', minHeight: '80px',
                                                 boxSizing: 'border-box'
                                             }}>
                                                 <input 
@@ -387,25 +450,25 @@ export default function SettingsView({ db, onSaved }) {
                                                     onChange={handleLogoUpload} 
                                                     style={{ display: 'none' }} 
                                                 />
-                                                <UploadCloud size={28} style={{ color: '#94a3b8', marginBottom: '8px' }} />
-                                                <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b' }}>Subir Logo</span>
+                                                <UploadCloud size={24} style={{ color: '#94a3b8', marginBottom: '6px' }} />
+                                                <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b' }}>Subir Logo</span>
                                             </label>
- 
+
                                             {/* Mostrar logo personalizado si está en base64 */}
                                             {posLogo && posLogo.startsWith('data:image') && (
                                                 <div style={{
-                                                    padding: '16px', border: '2px solid', borderRadius: '20px',
+                                                    padding: '12px', border: '2px solid', borderRadius: '16px',
                                                     cursor: 'pointer', textAlign: 'center',
                                                     borderColor: '#3b82f6', background: '#eff6ff',
-                                                    boxSizing: 'border-box'
+                                                    boxSizing: 'border-box', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                                 }}>
-                                                    <div style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                                                    <div style={{ height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px' }}>
                                                         <img src={posLogo} alt="Mi Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                                     </div>
-                                                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#3b82f6' }}>Mi Logo (Actual)</span>
+                                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#3b82f6' }}>Mi Logo (Activo)</span>
                                                 </div>
                                             )}
- 
+
                                             {availableLogos.map(logo => {
                                                 const isActive = posLogo === logo.id;
                                                 return (
@@ -413,17 +476,18 @@ export default function SettingsView({ db, onSaved }) {
                                                         key={logo.id}
                                                         onClick={() => setPosLogo(logo.id)}
                                                         style={{
-                                                            padding: '16px', border: '2px solid', borderRadius: '20px',
+                                                            padding: '12px', border: '2px solid', borderRadius: '16px',
                                                             cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
                                                             borderColor: isActive ? '#3b82f6' : '#f1f5f9',
                                                             background: isActive ? '#eff6ff' : '#fff',
-                                                            boxSizing: 'border-box'
+                                                            boxSizing: 'border-box',
+                                                            minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                                         }}
                                                     >
-                                                        <div style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                                                        <div style={{ height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px' }}>
                                                             <img src={`/logos/${logo.id}`} alt={logo.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                                         </div>
-                                                        <span style={{ fontSize: '11px', fontWeight: 800, color: isActive ? '#3b82f6' : '#64748b' }}>{logo.name}</span>
+                                                        <span style={{ fontSize: '10px', fontWeight: 800, color: isActive ? '#3b82f6' : '#64748b' }}>{logo.name}</span>
                                                     </div>
                                                 );
                                             })}
@@ -438,39 +502,4 @@ export default function SettingsView({ db, onSaved }) {
         </div>
     );
 }
- 
-// Estilos
-const tabsContainerStyle = {
-    display: 'flex',
-    gap: '8px',
-    background: '#f1f5f9',
-    padding: '6px',
-    borderRadius: '14px',
-    marginBottom: '28px',
-    border: '1px solid #e2e8f0',
-    flexShrink: 0
-};
- 
-const labelStyle = { display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '8px' };
-const infoTextStyle = { fontSize: '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '24px' };
- 
-const gridStyle = { display: 'flex', flexDirection: 'column', gap: '16px' };
- 
-const optionCardStyle = {
-    display: 'flex', alignItems: 'center', gap: '20px', padding: '20px', borderRadius: '20px',
-    border: '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s ease', position: 'relative'
-};
- 
-const iconWrapperStyle = {
-    width: '56px', height: '56px', borderRadius: '16px', display: 'flex',
-    alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease'
-};
- 
-const optionTitleStyle = { margin: 0, fontSize: '16px', fontWeight: 800, color: '#1e293b' };
-const optionDescStyle = { margin: '4px 0 0', fontSize: '13px', color: '#64748b', lineHeight: '1.4' };
- 
-const checkCircleStyle = {
-    position: 'absolute', top: '12px', right: '12px', background: '#3b82f6',
-    color: '#fff', borderRadius: '50%', width: '22px', height: '22px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center'
-};
+
