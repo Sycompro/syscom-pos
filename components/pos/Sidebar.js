@@ -27,7 +27,7 @@ export default function Sidebar({
     );
     const [supportsFullscreen, setSupportsFullscreen] = useState(false);
 
-    const isExpanded = true;
+    const isExpanded = isMobileMode ? true : isExpandedInternal;
 
     const userName = session?.user?.name || "Syscom";
     const avatarLetter = userName.charAt(0).toUpperCase();
@@ -116,6 +116,9 @@ export default function Sidebar({
         setIsProductsExpanded(false);
         setIsPurchasesExpanded(false);
         setIsSettingsExpanded(false);
+        if (!isMobileMode) {
+            setIsExpandedInternal(false);
+        }
         if (isMobileMode && onCloseMobileMenu) {
             onCloseMobileMenu();
         }
@@ -469,6 +472,8 @@ export default function Sidebar({
 
     return (
         <aside 
+            onMouseEnter={() => setIsExpandedInternal(true)}
+            onMouseLeave={() => setIsExpandedInternal(false)}
             style={{
                 ...asideStyle,
                 overflowY: 'auto'
@@ -488,12 +493,16 @@ export default function Sidebar({
             )}
 
             {/* Marca Syscom.click en el Menú */}
-            <div style={{ padding: '16px 16px 8px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ color: '#3b82f6' }}>Syscom</span>
-                    <span style={{ color: '#0f172a' }}>.click</span>
-                </span>
-            </div>
+            {isExpanded ? (
+                <div style={{ padding: '16px 16px 8px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#3b82f6' }}>Syscom</span>
+                        <span style={{ color: '#0f172a' }}>.click</span>
+                    </span>
+                </div>
+            ) : (
+                <div style={{ height: '20px' }}></div>
+            )}
 
             {/* Perfil de la Empresa (Escritorio) */}
             <div style={{
@@ -539,9 +548,11 @@ export default function Sidebar({
             {/* Acciones principales - Menu Limpio */}
             <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                 {/* NAVEGACIÓN SECTION */}
-                <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '8px 12px 6px 12px', textTransform: 'uppercase', width: 'calc(100% - 24px)', textAlign: 'left' }}>
-                    Navegación
-                </div>
+                {isExpanded && (
+                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '8px 12px 6px 12px', textTransform: 'uppercase', width: 'calc(100% - 24px)', textAlign: 'left' }}>
+                        Navegación
+                    </div>
+                )}
 
                 <div 
                     onClick={() => handleTabSelect('pos')}
@@ -595,7 +606,7 @@ export default function Sidebar({
                 >
                     <Package size={22} style={{ flexShrink: 0 }} />
                     <span style={labelTextStyle}>Productos</span>
-                    {isProductsExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
+                    {isExpanded && (isProductsExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
                 {isExpanded && isProductsExpanded && (
@@ -692,7 +703,7 @@ export default function Sidebar({
                 >
                     <Contact size={22} style={{ flexShrink: 0 }} />
                     <span style={labelTextStyle}>Clientes</span>
-                    {isCustomersExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
+                    {isExpanded && (isCustomersExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
                 
                 {/* Subapartados de Clientes (Desplegables dinámicos y sin iconos) */}
@@ -790,7 +801,7 @@ export default function Sidebar({
                 >
                     <ShoppingBag size={22} style={{ flexShrink: 0 }} />
                     <span style={labelTextStyle}>Compras</span>
-                    {isPurchasesExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
+                    {isExpanded && (isPurchasesExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
                 {isExpanded && isPurchasesExpanded && (
@@ -896,7 +907,7 @@ export default function Sidebar({
                 >
                     <Banknote size={22} style={{ flexShrink: 0 }} />
                     <span style={labelTextStyle}>Finanzas</span>
-                    {isFinanceExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
+                    {isExpanded && (isFinanceExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
 
                 {/* Subapartados de Finanzas (Desplegables dinámicos y sin iconos) */}
@@ -961,9 +972,11 @@ export default function Sidebar({
                 )}
 
                 {/* CONFIGURACIÓN / MI CUENTA SECTION */}
-                <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '20px 12px 6px 12px', textTransform: 'uppercase', width: 'calc(100% - 24px)', textAlign: 'left' }}>
-                    Mi Cuenta
-                </div>
+                {isExpanded && (
+                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', margin: '20px 12px 6px 12px', textTransform: 'uppercase', width: 'calc(100% - 24px)', textAlign: 'left' }}>
+                        Mi Cuenta
+                    </div>
+                )}
 
                 {/* Configuración (Expandible) */}
                 <div 
@@ -1042,13 +1055,14 @@ export default function Sidebar({
                 </button>
 
                 {/* Botón de Cerrar Sesión Estilo Cápsula */}
-                <div style={{ marginTop: '20px', marginBottom: '16px', padding: '0 12px', width: '100%', boxSizing: 'border-box' }}>
+                <div style={{ marginTop: '20px', marginBottom: '16px', padding: isExpanded ? '0 12px' : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
                     <button 
                         onClick={onSignOut} 
+                        title={isExpanded ? "" : "Cerrar Sesión"}
                         style={{
-                            width: '100%',
+                            width: isExpanded ? '100%' : '40px',
                             height: '44px',
-                            borderRadius: '24px',
+                            borderRadius: isExpanded ? '24px' : '10px',
                             border: 'none',
                             background: '#fee2e2',
                             color: '#ef4444',
@@ -1057,7 +1071,7 @@ export default function Sidebar({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '8px',
+                            gap: isExpanded ? '8px' : '0',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
                             boxShadow: '0 2px 6px rgba(239, 68, 68, 0.05)'
@@ -1070,7 +1084,7 @@ export default function Sidebar({
                         }}
                     >
                         <LogOut size={18} style={{ flexShrink: 0 }} />
-                        <span>Cerrar Sesión</span>
+                        {isExpanded && <span>Cerrar Sesión</span>}
                     </button>
                 </div>
             </div>
