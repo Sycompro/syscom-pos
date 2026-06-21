@@ -3,6 +3,27 @@ import { useState, useEffect } from 'react';
 import { LayoutGrid, Zap, History, Settings, LogOut, Lock, Users, MessageCircle, Banknote, Maximize, Minimize, Contact, X, Tag, Package, TrendingUp, ShoppingBag, Truck, ChevronDown, ChevronUp, Menu } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
+const Isotipo = () => (
+    <div style={{
+        width: '32px',
+        height: '32px',
+        borderRadius: '8px',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff',
+        fontWeight: 900,
+        fontSize: '16px',
+        fontFamily: "'Outfit', sans-serif",
+        boxShadow: '0 3px 8px rgba(59, 130, 246, 0.2)',
+        flexShrink: 0,
+        userSelect: 'none'
+    }}>
+        S
+    </div>
+);
+
 export default function Sidebar({ 
     onSignOut, onOpenCloseCash, onOpenHistory, onOpenSettings, 
     onToggleFullscreen, isFullscreen, activeTab, setActiveTab,
@@ -237,7 +258,13 @@ export default function Sidebar({
             }} className="no-scrollbar">
                 {/* Cabecera del Menú */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', borderBottom: 'none', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a' }}>Menú</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Isotipo />
+                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none' }}>
+                            <span style={{ color: '#3b82f6' }}>Syscom</span>
+                            <span style={{ color: '#0f172a' }}>.click</span>
+                        </span>
+                    </div>
                     {onCloseMobileMenu && (
                         <button 
                             onClick={onCloseMobileMenu}
@@ -544,71 +571,44 @@ export default function Sidebar({
                 boxSizing: 'border-box', 
                 display: 'flex', 
                 alignItems: 'center', 
-                justifyContent: isExpanded ? 'space-between' : 'center',
+                justifyContent: isExpanded ? 'flex-start' : 'center',
                 minHeight: '56px'
             }}>
                 {isExpanded ? (
-                    <>
-                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '10px',
+                        width: '100%'
+                    }}>
+                        <Isotipo />
+                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                             <span style={{ color: '#3b82f6' }}>Syscom</span>
                             <span style={{ color: '#0f172a' }}>.click</span>
                         </span>
-                        <button 
-                            onClick={() => setIsExpandedInternal(false)}
-                            style={{
-                                border: 'none',
-                                background: '#f1f5f9',
-                                color: '#64748b',
-                                cursor: 'pointer',
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s',
-                                outline: 'none'
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.background = '#e2e8f0';
-                                e.currentTarget.style.color = '#0f172a';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.background = '#f1f5f9';
-                                e.currentTarget.style.color = '#64748b';
-                            }}
-                        >
-                            <Menu size={16} />
-                        </button>
-                    </>
+                    </div>
                 ) : (
-                    <button 
+                    <div 
                         onClick={() => setIsExpandedInternal(true)}
                         style={{
-                            border: 'none',
-                            background: 'transparent',
-                            color: '#475569',
                             cursor: 'pointer',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '10px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            transition: 'all 0.2s',
-                            outline: 'none'
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '10px',
+                            transition: 'all 0.2s ease-in-out',
                         }}
                         onMouseEnter={e => {
-                            e.currentTarget.style.background = '#f1f5f9';
-                            e.currentTarget.style.color = '#3b82f6';
+                            e.currentTarget.style.transform = 'scale(1.05)';
                         }}
                         onMouseLeave={e => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#475569';
+                            e.currentTarget.style.transform = 'scale(1)';
                         }}
                     >
-                        <Menu size={22} />
-                    </button>
+                        <Isotipo />
+                    </div>
                 )}
             </div>
 

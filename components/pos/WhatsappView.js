@@ -94,8 +94,8 @@ export default function WhatsappView({ useScreenKeyboards }) {
     // Estilos responsivos
     const cardStyle = {
         background: '#fff',
-        borderRadius: isMobile ? '16px' : '24px',
-        padding: isMobile ? '16px 20px' : '24px',
+        borderRadius: isMobile ? '12px' : '16px',
+        padding: isMobile ? '12px 14px' : '18px',
         boxShadow: '0 4px 20px rgba(15, 23, 42, 0.02)',
         border: '1px solid #f1f5f9',
         height: '100%',
@@ -127,11 +127,11 @@ export default function WhatsappView({ useScreenKeyboards }) {
 
     const inputStyle = {
         width: '100%',
-        padding: isMobile ? '12px 14px' : '14px 18px',
+        padding: isMobile ? '10px 12px' : '11px 14px',
         background: '#f8fafc',
         border: '1px solid #e2e8f0',
-        borderRadius: '12px',
-        fontSize: isMobile ? '13px' : '14px',
+        borderRadius: '10px',
+        fontSize: isMobile ? '12px' : '13px',
         color: '#1e293b',
         outline: 'none',
         transition: 'all 0.3s',
@@ -147,9 +147,9 @@ export default function WhatsappView({ useScreenKeyboards }) {
         background: '#0f172a',
         color: '#fff',
         border: 'none',
-        borderRadius: '10px',
-        padding: isMobile ? '10px 16px' : '12px 20px',
-        fontSize: isMobile ? '12px' : '13px',
+        borderRadius: '8px',
+        padding: isMobile ? '8px 14px' : '10px 16px',
+        fontSize: isMobile ? '11px' : '12px',
         fontWeight: 800,
         cursor: 'pointer',
         transition: 'all 0.3s',
@@ -162,8 +162,8 @@ export default function WhatsappView({ useScreenKeyboards }) {
         background: '#f8fafc',
         border: '1px solid #e2e8f0',
         color: '#64748b',
-        borderRadius: '10px',
-        padding: isMobile ? '10px' : '12px',
+        borderRadius: '8px',
+        padding: isMobile ? '8px' : '10px',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -173,14 +173,14 @@ export default function WhatsappView({ useScreenKeyboards }) {
     };
 
     const infoBoxStyle = {
-        padding: isMobile ? '12px' : '16px',
+        padding: isMobile ? '10px' : '12px',
         background: '#f0f9ff',
-        borderRadius: '12px',
+        borderRadius: '10px',
         border: '1px solid #e0f2fe',
         display: 'flex',
         alignItems: 'flex-start',
-        gap: '12px',
-        marginTop: '20px'
+        gap: '8px',
+        marginTop: '14px'
     };
 
     const thStyle = {
@@ -190,13 +190,13 @@ export default function WhatsappView({ useScreenKeyboards }) {
         color: '#94a3b8',
         textTransform: 'uppercase',
         letterSpacing: '0.1em',
-        padding: isMobile ? '10px 8px' : '16px'
+        padding: isMobile ? '8px' : '10px 12px'
     };
 
     const tdStyle = {
         fontSize: isMobile ? '12px' : '13px',
         color: '#1e293b',
-        padding: isMobile ? '10px 8px' : '16px'
+        padding: isMobile ? '8px' : '10px 12px'
     };
 
     const toastStyle = {
@@ -227,7 +227,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
     );
 
     return (
-        <div style={{ padding: isMobile ? '12px 14px' : '24px 40px', maxWidth: '1400px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', maxWidth: '1400px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
             <AnimatePresence>
                 {showSaved && (
                     <motion.div 
@@ -241,11 +241,11 @@ export default function WhatsappView({ useScreenKeyboards }) {
                 )}
             </AnimatePresence>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(420px, 1fr))', gap: isMobile ? '16px' : '24px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(420px, 1fr))', gap: isMobile ? '12px' : '18px', alignItems: 'start' }}>
                 {/* Column 1: Config */}
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={cardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '20px' : '28px', flexWrap: 'wrap', gap: '12px' }}>
-                        <div style={{ display: 'flex', gap: isMobile ? '10px' : '16px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '14px' : '18px', flexWrap: 'wrap', gap: '10px' }}>
+                        <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'center' }}>
                             <div style={iconBoxStyle}><Globe size={isMobile ? 20 : 22} /></div>
                             <div>
                                 <h2 style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Conexión API</h2>
@@ -268,7 +268,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
                         </div>
                     </div>
 
-                    <div style={{ marginBottom: '16px' }}>
+                    <div style={{ marginBottom: '12px' }}>
                         <label style={labelStyle}><Activity size={12} /> URL DEL SERVICIO</label>
                         <input 
                             type="text" 
@@ -280,7 +280,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
                         />
                     </div>
 
-                    <div style={{ marginBottom: '24px' }}>
+                    <div style={{ marginBottom: '16px' }}>
                         <label style={labelStyle}><ShieldCheck size={12} /> TOKEN DE ACCESO (API KEY)</label>
                         <div style={{ position: 'relative' }}>
                             <input 
@@ -321,12 +321,12 @@ export default function WhatsappView({ useScreenKeyboards }) {
 
                 {/* Column 2: History */}
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={cardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '20px' : '24px' }}>
-                        <div style={{ display: 'flex', gap: isMobile ? '10px' : '16px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '14px' : '18px' }}>
+                        <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'center' }}>
                             <div style={{ ...iconBoxStyle, background: '#f8fafc', color: '#64748b' }}><History size={isMobile ? 20 : 22} /></div>
                             <div>
                                 <h2 style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Historial de Envíos</h2>
-                                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Mensajes recientes procesados</p>
+                                <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Mensajes recientes procesados</p>
                             </div>
                         </div>
                         <button onClick={loadAll} style={{ ...refreshBtnStyle, background: '#fff', border: '1px solid #e2e8f0', padding: isMobile ? '8px' : '10px' }}>
@@ -334,38 +334,27 @@ export default function WhatsappView({ useScreenKeyboards }) {
                         </button>
                     </div>
 
-                    <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
-                            <thead>
-                                <tr style={{ background: '#f8fafc' }}>
-                                    <th style={thStyle}>DESTINATARIO</th>
-                                    <th style={thStyle}>ESTADO</th>
-                                    <th style={thStyle}>FECHA Y HORA</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {logs.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="3" style={{ padding: '40px 10px', textAlign: 'center', color: '#94a3b8' }}>
-                                            <div style={{ marginBottom: '8px', opacity: 0.5 }}><MessageCircle size={32} style={{ margin: '0 auto' }} /></div>
-                                            <p style={{ fontWeight: 600, fontSize: '12px' }}>No hay envíos recientes</p>
-                                        </td>
-                                    </tr>
-                                ) : logs.map(log => (
-                                    <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                        <td style={{ ...tdStyle, fontWeight: 700 }}>{log.phone}</td>
-                                        <td style={tdStyle}>
-                                            <div style={{ 
-                                                padding: '4px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: 900,
-                                                background: log.status === 'EXITOSO' ? '#ecfdf5' : '#fef2f2',
-                                                color: log.status === 'EXITOSO' ? '#10b981' : '#ef4444',
-                                                display: 'inline-flex', alignItems: 'center', gap: '4px'
-                                            }}>
-                                                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: log.status === 'EXITOSO' ? '#10b981' : '#ef4444' }}></div>
-                                                {log.status}
-                                            </div>
-                                        </td>
-                                        <td style={{ ...tdStyle, color: '#64748b' }}>
+                    {isMobile ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {logs.length === 0 ? (
+                                <div style={{ padding: '30px 10px', textAlign: 'center', color: '#94a3b8', background: '#fff', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                                    <div style={{ marginBottom: '6px', opacity: 0.5 }}><MessageCircle size={24} style={{ margin: '0 auto' }} /></div>
+                                    <p style={{ fontWeight: 600, fontSize: '11px', margin: 0 }}>No hay envíos recientes</p>
+                                </div>
+                            ) : logs.map(log => (
+                                <div key={log.id} style={{ 
+                                    background: '#ffffff', 
+                                    padding: '10px 12px', 
+                                    borderRadius: '10px', 
+                                    border: '1px solid #f1f5f9',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.01)'
+                                }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b' }}>{log.phone}</span>
+                                        <span style={{ fontSize: '10px', color: '#64748b' }}>
                                             {new Date(log.created_at).toLocaleString('es-PE', { 
                                                 timeZone: 'America/Lima',
                                                 day: '2-digit', 
@@ -374,12 +363,68 @@ export default function WhatsappView({ useScreenKeyboards }) {
                                                 minute: '2-digit',
                                                 hour12: false
                                             })}
-                                        </td>
+                                        </span>
+                                    </div>
+                                    <div style={{ 
+                                        padding: '3px 6px', borderRadius: '20px', fontSize: '9px', fontWeight: 900,
+                                        background: log.status === 'EXITOSO' ? '#ecfdf5' : '#fef2f2',
+                                        color: log.status === 'EXITOSO' ? '#10b981' : '#ef4444',
+                                        display: 'flex', alignItems: 'center', gap: '3px'
+                                    }}>
+                                        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: log.status === 'EXITOSO' ? '#10b981' : '#ef4444' }}></div>
+                                        {log.status}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
+                                <thead>
+                                    <tr style={{ background: '#f8fafc' }}>
+                                        <th style={thStyle}>DESTINATARIO</th>
+                                        <th style={thStyle}>ESTADO</th>
+                                        <th style={thStyle}>FECHA Y HORA</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {logs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="3" style={{ padding: '40px 10px', textAlign: 'center', color: '#94a3b8' }}>
+                                                <div style={{ marginBottom: '8px', opacity: 0.5 }}><MessageCircle size={32} style={{ margin: '0 auto' }} /></div>
+                                                <p style={{ fontWeight: 600, fontSize: '12px' }}>No hay envíos recientes</p>
+                                            </td>
+                                        </tr>
+                                    ) : logs.map(log => (
+                                        <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                            <td style={{ ...tdStyle, fontWeight: 700 }}>{log.phone}</td>
+                                            <td style={tdStyle}>
+                                                <div style={{ 
+                                                    padding: '4px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: 900,
+                                                    background: log.status === 'EXITOSO' ? '#ecfdf5' : '#fef2f2',
+                                                    color: log.status === 'EXITOSO' ? '#10b981' : '#ef4444',
+                                                    display: 'inline-flex', alignItems: 'center', gap: '4px'
+                                                }}>
+                                                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: log.status === 'EXITOSO' ? '#10b981' : '#ef4444' }}></div>
+                                                    {log.status}
+                                                </div>
+                                            </td>
+                                            <td style={{ ...tdStyle, color: '#64748b' }}>
+                                                {new Date(log.created_at).toLocaleString('es-PE', { 
+                                                    timeZone: 'America/Lima',
+                                                    day: '2-digit', 
+                                                    month: '2-digit', 
+                                                    hour: '2-digit', 
+                                                    minute: '2-digit',
+                                                    hour12: false
+                                                })}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </motion.div>
             </div>
         </div>

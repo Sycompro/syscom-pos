@@ -132,17 +132,17 @@ export default function SettingsView({ db, onSaved }) {
 
     // Estilos responsivos locales
     const labelStyle = { display: 'block', fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '8px' };
-    const infoTextStyle = { fontSize: isMobile ? '11px' : '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px', lineHeight: 1.4 };
-    const gridStyle = { display: 'flex', flexDirection: 'column', gap: '12px' };
+    const infoTextStyle = { fontSize: isMobile ? '11px' : '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', lineHeight: 1.4 };
+    const gridStyle = { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' };
     
     const getOptionCardStyle = (type) => {
         const isActive = businessType === type;
         return {
             display: 'flex', 
             alignItems: 'center', 
-            gap: isMobile ? '12px' : '20px', 
-            padding: isMobile ? '14px' : '18px 20px', 
-            borderRadius: '16px',
+            gap: isMobile ? '10px' : '14px', 
+            padding: isMobile ? '10px 12px' : '12px 14px', 
+            borderRadius: '12px',
             border: '2px solid',
             borderColor: isActive ? '#3b82f6' : '#f1f5f9',
             background: isActive ? '#eff6ff' : '#f8fafc',
@@ -155,9 +155,9 @@ export default function SettingsView({ db, onSaved }) {
     const getIconWrapperStyle = (type) => {
         const isActive = businessType === type;
         return {
-            width: isMobile ? '40px' : '48px', 
-            height: isMobile ? '40px' : '48px', 
-            borderRadius: '12px', 
+            width: isMobile ? '34px' : '38px', 
+            height: isMobile ? '34px' : '38px', 
+            borderRadius: '10px', 
             display: 'flex',
             alignItems: 'center', 
             justifyContent: 'center', 
@@ -168,25 +168,25 @@ export default function SettingsView({ db, onSaved }) {
         };
     };
 
-    const optionTitleStyle = { margin: 0, fontSize: isMobile ? '13px' : '15px', fontWeight: 800, color: '#1e293b' };
-    const optionDescStyle = { margin: '2px 0 0', fontSize: isMobile ? '11px' : '12px', color: '#64748b', lineHeight: '1.4' };
+    const optionTitleStyle = { margin: 0, fontSize: isMobile ? '12px' : '13px', fontWeight: 800, color: '#1e293b' };
+    const optionDescStyle = { margin: '2px 0 0', fontSize: isMobile ? '10px' : '11px', color: '#64748b', lineHeight: '1.4' };
     const checkCircleStyle = {
-        position: 'absolute', top: '10px', right: '10px', background: '#3b82f6',
-        color: '#fff', borderRadius: '50%', width: '18px', height: '18px',
+        position: 'absolute', top: '8px', right: '8px', background: '#3b82f6',
+        color: '#fff', borderRadius: '50%', width: '16px', height: '16px',
         display: 'flex', alignItems: 'center', justifyContent: 'center'
     };
 
     return (
-        <div style={{ padding: isMobile ? '12px 14px' : '24px 40px', maxWidth: '1000px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', maxWidth: '1000px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
             {/* Cabecera superior integrada */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '16px' : '24px', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', gap: isMobile ? '10px' : '14px', alignItems: 'center' }}>
-                    <div style={{ width: isMobile ? '36px' : '44px', height: isMobile ? '36px' : '44px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Settings size={isMobile ? 20 : 22} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '12px' : '18px', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'center' }}>
+                    <div style={{ width: isMobile ? '32px' : '38px', height: isMobile ? '32px' : '38px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Settings size={isMobile ? 18 : 20} />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ajustes POS</h1>
-                        {!isMobile && <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0' }}>Comportamiento general e identidad visual del sistema</p>}
+                        <h1 style={{ fontSize: isMobile ? '16px' : '20px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ajustes POS</h1>
+                        {!isMobile && <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0' }}>Comportamiento general e identidad visual del sistema</p>}
                     </div>
                 </div>
                 <button 
@@ -196,10 +196,10 @@ export default function SettingsView({ db, onSaved }) {
                         background: '#3b82f6',
                         color: '#fff',
                         border: 'none',
-                        borderRadius: '10px',
-                        padding: isMobile ? '10px 16px' : '12px 20px',
+                        borderRadius: '8px',
+                        padding: isMobile ? '8px 14px' : '10px 18px',
                         fontWeight: 800,
-                        fontSize: isMobile ? '12px' : '13px',
+                        fontSize: isMobile ? '11px' : '12px',
                         cursor: 'pointer',
                         boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)',
                         display: 'flex',
@@ -222,8 +222,8 @@ export default function SettingsView({ db, onSaved }) {
             {/* Contenido principal en Tarjeta Premium */}
             <div style={{
                 background: '#ffffff',
-                borderRadius: isMobile ? '16px' : '20px',
-                padding: isMobile ? '16px' : '24px',
+                borderRadius: isMobile ? '12px' : '16px',
+                padding: isMobile ? '12px' : '18px',
                 boxShadow: '0 4px 20px rgba(15, 23, 42, 0.02)',
                 border: '1px solid #f1f5f9'
             }}>
@@ -239,9 +239,9 @@ export default function SettingsView({ db, onSaved }) {
                             display: 'flex',
                             gap: '4px',
                             background: '#f1f5f9',
-                            padding: '4px',
-                            borderRadius: '10px',
-                            marginBottom: '20px',
+                            padding: '3px',
+                            borderRadius: '8px',
+                            marginBottom: '14px',
                             border: '1px solid #e2e8f0',
                             flexShrink: 0,
                             overflowX: 'auto',
@@ -435,13 +435,13 @@ export default function SettingsView({ db, onSaved }) {
                                         </div>
 
                                         <label style={labelStyle}>LOGO DE COMPROBANTE</label>
-                                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px', marginTop: '8px' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(auto-fit, minmax(90px, 1fr))', gap: isMobile ? '6px' : '10px', marginTop: '8px' }}>
                                             {/* Botón de Subir Personalizado */}
                                             <label style={{
-                                                padding: '12px', border: '2px dashed #cbd5e1', borderRadius: '16px',
+                                                padding: '8px', border: '2px dashed #cbd5e1', borderRadius: '12px',
                                                 cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
                                                 background: '#f8fafc', display: 'flex', flexDirection: 'column',
-                                                alignItems: 'center', justifyContent: 'center', minHeight: '80px',
+                                                alignItems: 'center', justifyContent: 'center', minHeight: '65px',
                                                 boxSizing: 'border-box'
                                             }}>
                                                 <input 
@@ -450,22 +450,22 @@ export default function SettingsView({ db, onSaved }) {
                                                     onChange={handleLogoUpload} 
                                                     style={{ display: 'none' }} 
                                                 />
-                                                <UploadCloud size={24} style={{ color: '#94a3b8', marginBottom: '6px' }} />
-                                                <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b' }}>Subir Logo</span>
+                                                <UploadCloud size={20} style={{ color: '#94a3b8', marginBottom: '4px' }} />
+                                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#64748b' }}>Subir Logo</span>
                                             </label>
 
                                             {/* Mostrar logo personalizado si está en base64 */}
                                             {posLogo && posLogo.startsWith('data:image') && (
                                                 <div style={{
-                                                    padding: '12px', border: '2px solid', borderRadius: '16px',
+                                                    padding: '8px', border: '2px solid', borderRadius: '12px',
                                                     cursor: 'pointer', textAlign: 'center',
                                                     borderColor: '#3b82f6', background: '#eff6ff',
-                                                    boxSizing: 'border-box', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
+                                                    boxSizing: 'border-box', minHeight: '65px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                                 }}>
-                                                    <div style={{ height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px' }}>
+                                                    <div style={{ height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
                                                         <img src={posLogo} alt="Mi Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                                     </div>
-                                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#3b82f6' }}>Mi Logo (Activo)</span>
+                                                    <span style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6' }}>Mi Logo</span>
                                                 </div>
                                             )}
 
@@ -476,18 +476,18 @@ export default function SettingsView({ db, onSaved }) {
                                                         key={logo.id}
                                                         onClick={() => setPosLogo(logo.id)}
                                                         style={{
-                                                            padding: '12px', border: '2px solid', borderRadius: '16px',
+                                                            padding: '8px', border: '2px solid', borderRadius: '12px',
                                                             cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
                                                             borderColor: isActive ? '#3b82f6' : '#f1f5f9',
                                                             background: isActive ? '#eff6ff' : '#fff',
                                                             boxSizing: 'border-box',
-                                                            minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
+                                                            minHeight: '65px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                                         }}
                                                     >
-                                                        <div style={{ height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px' }}>
+                                                        <div style={{ height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
                                                             <img src={`/logos/${logo.id}`} alt={logo.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                                         </div>
-                                                        <span style={{ fontSize: '10px', fontWeight: 800, color: isActive ? '#3b82f6' : '#64748b' }}>{logo.name}</span>
+                                                        <span style={{ fontSize: '9px', fontWeight: 800, color: isActive ? '#3b82f6' : '#64748b' }}>{logo.name}</span>
                                                     </div>
                                                 );
                                             })}
