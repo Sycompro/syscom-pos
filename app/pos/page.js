@@ -932,7 +932,19 @@ export default function POSPage() {
 
     const renderCartContent = (isDrawerMode = false) => {
         return (
-            <div style={{ width: isDrawerMode ? '100%' : '300px', height: '100%', background: '#fff', display: 'flex', flexDirection: 'column', boxShadow: isDrawerMode ? 'none' : '-4px 0 20px rgba(15, 23, 42, 0.02)', zIndex: 10 }}>
+            <div style={{ 
+                width: isDrawerMode ? '100%' : '300px', 
+                height: isDrawerMode ? '100%' : 'calc(100% - 32px)', 
+                background: '#fff', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                boxShadow: isDrawerMode ? 'none' : '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 20px -6px rgba(15, 23, 42, 0.04)', 
+                zIndex: 10,
+                borderRadius: isDrawerMode ? '0' : '16px',
+                margin: isDrawerMode ? '0' : '16px 16px 16px 0',
+                border: isDrawerMode ? 'none' : '1px solid rgba(226, 232, 240, 0.8)',
+                overflow: 'hidden'
+            }}>
                 <div style={{ padding: '10px 16px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 'none' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {isDrawerMode && (
