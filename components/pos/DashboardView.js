@@ -849,8 +849,6 @@ const containerStyle = {
   background: '#f8fafc',
   overflowY: 'auto',
   width: '100%',
-  maxWidth: '1400px',
-  margin: '0 auto',
   boxSizing: 'border-box'
 };
 

@@ -931,7 +931,7 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
 }
 
 // Estilos Porcelain Glass UI
-const containerStyle = { display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px', height: '100%', overflowY: 'auto', width: '100%', maxWidth: '1400px', margin: '0 auto' };
+const containerStyle = { display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px', height: '100%', overflowY: 'auto', width: '100%' };
 
 const kpiGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' };
 const kpiCardStyle = { display: 'flex', alignItems: 'center', gap: '16px', background: '#ffffff', borderRadius: '18px', padding: '16px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', border: '1px solid #f1f5f9' };

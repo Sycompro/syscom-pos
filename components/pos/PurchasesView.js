@@ -1811,9 +1811,7 @@ const containerStyle = {
   gap: '20px',
   background: '#f8fafc',
   overflowY: 'auto',
-  width: '100%',
-  maxWidth: '1400px',
-  margin: '0 auto'
+  width: '100%'
 };
 
 const warningContainerStyle = {

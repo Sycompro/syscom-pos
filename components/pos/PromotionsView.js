@@ -363,7 +363,7 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
 }
 
 // ESTILOS PREMIUM
-const containerStyle = { height: '100%', padding: '30px', display: 'flex', flexDirection: 'column', gap: '25px', background: '#f8fafc', width: '100%', maxWidth: '1400px', margin: '0 auto' };
+const containerStyle = { height: '100%', padding: '30px', display: 'flex', flexDirection: 'column', gap: '25px', background: '#f8fafc', width: '100%' };
 
 const dashboardHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
 const impactCardStyle = { display: 'flex', alignItems: 'center', gap: '15px', background: '#fff', padding: '12px 20px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' };

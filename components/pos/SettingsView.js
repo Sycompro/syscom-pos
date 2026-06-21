@@ -177,7 +177,7 @@ export default function SettingsView({ db, onSaved }) {
     };
 
     return (
-        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', maxWidth: '1000px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', width: '100%', boxSizing: 'border-box' }}>
             {/* Cabecera superior integrada */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '12px' : '18px', flexWrap: 'wrap', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'center' }}>

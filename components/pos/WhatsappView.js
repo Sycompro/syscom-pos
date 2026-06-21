@@ -227,7 +227,7 @@ export default function WhatsappView({ useScreenKeyboards }) {
     );
 
     return (
-        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', maxWidth: '1400px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ padding: isMobile ? '8px 10px' : '16px 24px', width: '100%', boxSizing: 'border-box' }}>
             <AnimatePresence>
                 {showSaved && (
                     <motion.div 
