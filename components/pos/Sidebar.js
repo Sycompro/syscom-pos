@@ -582,18 +582,19 @@ export default function Sidebar({
 
             {/* Cabecera del Sidebar con Marca y Botón de Toggle */}
             <div style={{ 
-                padding: isExpanded ? (isTablet ? '5px 8px 6px 16px' : '6px 12px 8px 20px') : '6px 0 8px 0', 
+                padding: isExpanded ? (isTablet ? '4px 8px 6px 8px' : '4px 12px 8px 12px') : '4px 0 8px 0', 
                 width: '100%', 
                 boxSizing: 'border-box', 
                 display: 'flex', 
                 alignItems: 'center', 
-                justifyContent: isExpanded ? 'flex-start' : 'center',
+                justifyContent: 'center',
                 minHeight: '56px'
             }}>
                 {isExpanded ? (
                     <div style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
+                        justifyContent: 'center',
                         width: '100%'
                     }}>
                         <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: isTablet ? '15px' : '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
