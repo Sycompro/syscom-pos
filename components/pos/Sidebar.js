@@ -47,6 +47,32 @@ export default function Sidebar({
         }
     }, []);
 
+    useEffect(() => {
+        if (typeof window === 'undefined' || isMobileMode) return;
+
+        const handleClickOutside = (event) => {
+            const sidebarElement = document.getElementById('sidebar-container');
+            if (isExpandedInternal && sidebarElement && !sidebarElement.contains(event.target)) {
+                setIsExpandedInternal(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [isExpandedInternal, isMobileMode]);
+
+    const handleAsideClick = (e) => {
+        if (!isMobileMode && !isExpandedInternal) {
+            setIsExpandedInternal(true);
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    };
+
     const toggleProducts = () => {
         setIsProductsExpanded(prev => {
             const next = !prev;
@@ -481,6 +507,7 @@ export default function Sidebar({
 
     return (
         <aside 
+            id="sidebar-container"
             onMouseEnter={() => {
                 if (hasHoverSupport) {
                     setIsExpandedInternal(true);
@@ -491,6 +518,7 @@ export default function Sidebar({
                     setIsExpandedInternal(false);
                 }
             }}
+            onClick={handleAsideClick}
             style={{
                 ...asideStyle,
                 overflowY: 'auto'
