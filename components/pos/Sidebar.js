@@ -7,7 +7,7 @@ const Isotipo = ({ isTablet = false }) => (
     <div style={{
         width: isTablet ? '28px' : '32px',
         height: isTablet ? '28px' : '32px',
-        borderRadius: isTablet ? '6px' : '8px',
+        borderRadius: '50%',
         background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
         display: 'flex',
         alignItems: 'center',
@@ -582,7 +582,7 @@ export default function Sidebar({
 
             {/* Cabecera del Sidebar con Marca y Botón de Toggle */}
             <div style={{ 
-                padding: isExpanded ? (isTablet ? '12px 8px 6px 16px' : '16px 12px 8px 20px') : '16px 0 8px 0', 
+                padding: isExpanded ? (isTablet ? '6px 8px 6px 16px' : '8px 12px 8px 20px') : '8px 0 8px 0', 
                 width: '100%', 
                 boxSizing: 'border-box', 
                 display: 'flex', 

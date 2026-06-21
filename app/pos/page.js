@@ -48,7 +48,7 @@ const Isotipo = () => (
     <div style={{
         width: '32px',
         height: '32px',
-        borderRadius: '8px',
+        borderRadius: '50%',
         background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
         display: 'flex',
         alignItems: 'center',
