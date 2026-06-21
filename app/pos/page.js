@@ -1248,7 +1248,6 @@ export default function POSPage() {
                                     </div>
 
                                     <div style={{ flex: isMobileDevice ? 1 : 'none', width: isMobileDevice ? 'auto' : '160px', position: 'relative' }}>
-                                        {!isMobileDevice && <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={16} />}
                                         <input
                                             type="text"
                                             inputMode="none" // Evita el teclado nativo en tablets
@@ -1272,7 +1271,7 @@ export default function POSPage() {
                                             maxLength={searchType === 'DNI' ? 8 : 11}
                                             style={{ 
                                                 width: '100%', 
-                                                paddingLeft: isMobileDevice ? '14px' : '30px', 
+                                                paddingLeft: '14px', 
                                                 paddingRight: isMobileDevice ? (customerSearch ? '32px' : '10px') : '10px', 
                                                 paddingTop: isMobileDevice ? '10px' : '8px', 
                                                 paddingBottom: isMobileDevice ? '10px' : '8px', 
