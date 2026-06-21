@@ -11,7 +11,7 @@ import {
     BellRing, Smartphone, RefreshCw, AlertCircle, Calendar, Menu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Maximize, Minimize, History, ScanBarcode } from 'lucide-react';
+import { Maximize, Minimize, History, ScanBarcode, Building2, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
 import Sidebar from '@/components/pos/Sidebar';
@@ -1101,22 +1101,96 @@ export default function POSPage() {
 
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
                                 {!isMobileDevice && (
-                                    <div style={{ background: '#fff', padding: '10px 16px', minHeight: '60px', borderBottom: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ 
+                                        background: '#ffffff', 
+                                        padding: '12px 20px', 
+                                        minHeight: '70px', 
+                                        borderBottom: '1px solid #e2e8f0', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'space-between',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                                    }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-
-                                            <div style={{ background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: 'none' }}>
-                                                <p style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
+                                            {/* Icono de Sede Estilizado */}
+                                            <div style={{ 
+                                                width: '42px', 
+                                                height: '42px', 
+                                                borderRadius: '12px', 
+                                                background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center', 
+                                                color: '#2563eb',
+                                                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.08)',
+                                                flexShrink: 0
+                                            }}>
+                                                <Building2 size={20} />
                                             </div>
-                                        <div>
-                                            <h1 style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                {companySettings?.company?.legalName || companySettings?.company?.name || 'Cargando sede...'}
-                                                <span style={{ fontSize: '10px', fontWeight: 600, color: '#94a3b8' }}>• R.U.C. {companySettings?.company?.ruc || ''}</span>
-                                            </h1>
-                                            <p style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', margin: 0 }}>
-                                                {companySettings?.company?.address || 'Dirección no configurada'}
-                                            </p>
+                                            
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                                    {/* Nombre de la Sede */}
+                                                    <h1 style={{ 
+                                                        fontSize: '15px', 
+                                                        fontWeight: 800, 
+                                                        color: '#0f172a', 
+                                                        margin: 0,
+                                                        letterSpacing: '-0.02em',
+                                                        lineHeight: '1.2'
+                                                    }}>
+                                                        {companySettings?.company?.legalName || companySettings?.company?.name || 'Cargando sede...'}
+                                                    </h1>
+                                                    
+                                                    {/* Badge de RUC */}
+                                                    {companySettings?.company?.ruc && (
+                                                        <span style={{ 
+                                                            background: '#f8fafc', 
+                                                            color: '#475569', 
+                                                            padding: '2px 10px', 
+                                                            borderRadius: '20px', 
+                                                            fontSize: '10px', 
+                                                            fontWeight: 700,
+                                                            letterSpacing: '0.02em',
+                                                            border: '1px solid #e2e8f0'
+                                                        }}>
+                                                            R.U.C. {companySettings.company.ruc}
+                                                        </span>
+                                                    )}
+                                                    
+                                                    {/* Badge Sede Activa con LED Pulsante */}
+                                                    <span style={{ 
+                                                        display: 'inline-flex', 
+                                                        alignItems: 'center', 
+                                                        gap: '6px', 
+                                                        background: '#f0fdf4', 
+                                                        color: '#166534', 
+                                                        padding: '2px 10px', 
+                                                        borderRadius: '20px', 
+                                                        fontSize: '10px', 
+                                                        fontWeight: 800,
+                                                        border: '1px solid #dcfce7'
+                                                    }}>
+                                                        <span className="ping-dot" style={{ 
+                                                            width: '6px', 
+                                                            height: '6px', 
+                                                            borderRadius: '50%', 
+                                                            background: '#22c55e', 
+                                                            display: 'inline-block'
+                                                        }}></span>
+                                                        SEDE ACTIVA
+                                                    </span>
+                                                </div>
+                                                
+                                                {/* Dirección */}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
+                                                    <MapPin size={12} style={{ color: '#94a3b8' }} />
+                                                    <span style={{ fontSize: '11px', fontWeight: 550 }}>
+                                                        {companySettings?.company?.address || 'Dirección no configurada'}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
                                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                         {/* MONITOR DE WHATSAPP */}
                                         {(waQueue.length > 0 || isProcessingWa) && (
