@@ -1443,15 +1443,15 @@ export default function POSPage() {
                                               <div style={{ display: 'flex', gap: '6px', flex: 1, justifyContent: 'flex-end' }}>
                                                   {['03', '01', '65'].map(t => {
                                                       const isSelected = docType === t;
-                                                      let activeBg = '#eff6ff'; // Boleta: Celeste pastel
-                                                      let activeColor = '#3b82f6';
+                                                      let activeBg = '#dbeafe'; // Boleta: Celeste pastel con cuerpo
+                                                      let activeColor = '#1e40af';
                                                       
-                                                      if (t === '01') { // Factura: Verde menta pastel
-                                                          activeBg = '#ecfdf5';
-                                                          activeColor = '#10b981';
-                                                      } else if (t === '65') { // Nota: Naranja melón pastel
-                                                          activeBg = '#fff7ed';
-                                                          activeColor = '#f97316';
+                                                      if (t === '01') { // Factura: Verde menta pastel con cuerpo
+                                                          activeBg = '#d1fae5';
+                                                          activeColor = '#065f46';
+                                                      } else if (t === '65') { // Nota: Naranja melón pastel con cuerpo
+                                                          activeBg = '#ffedd5';
+                                                          activeColor = '#9a3412';
                                                       }
  
                                                       return (
@@ -1549,15 +1549,15 @@ export default function POSPage() {
                                              <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '6px', padding: '2px', gap: '2px', border: 'none' }}>
                                                  {['03', '01', '65'].map(t => {
                                                      const isSelected = docType === t;
-                                                     let activeBg = '#eff6ff'; // Boleta: Azul
-                                                     let activeColor = '#3b82f6';
+                                                     let activeBg = '#dbeafe'; 
+                                                     let activeColor = '#1e40af';
                                                      
-                                                     if (t === '01') { // Factura: Verde/Esmeralda
-                                                         activeBg = '#ecfdf5';
-                                                         activeColor = '#10b981';
-                                                     } else if (t === '65') { // Nota: Naranja corporativo
-                                                         activeBg = '#fff7ed';
-                                                         activeColor = '#f97316';
+                                                     if (t === '01') { 
+                                                         activeBg = '#d1fae5';
+                                                         activeColor = '#065f46';
+                                                     } else if (t === '65') { 
+                                                         activeBg = '#ffedd5';
+                                                         activeColor = '#9a3412';
                                                      }
 
                                                      return (
