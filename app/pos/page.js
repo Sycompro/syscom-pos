@@ -1385,59 +1385,87 @@ export default function POSPage() {
                                          </button>
                                          {/* SISTEMA DE ALERTAS INTERACTIVO */}
                                          <div style={{ position: 'relative' }}>
-                                             <button
-                                                 onClick={() => setShowAlertDropdown(!showAlertDropdown)}
-                                                 style={{
-                                                     background: '#f8fafc',
-                                                     border: '1px solid #e2e8f0',
-                                                     borderRadius: '10px',
-                                                     padding: '8px',
-                                                     cursor: 'pointer',
-                                                     color: alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 ? '#ef4444' : '#64748b',
-                                                     display: 'flex',
-                                                     alignItems: 'center',
-                                                     justifyContent: 'center',
-                                                     transition: 'all 0.2s',
-                                                     boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
-                                                     position: 'relative'
-                                                 }}
-                                                 onMouseEnter={e => {
-                                                     e.currentTarget.style.background = '#eff6ff';
-                                                     if (alerts.filter(a => !resolvedAlertIds.includes(a.id)).length === 0) {
-                                                         e.currentTarget.style.color = '#3b82f6';
-                                                     }
-                                                     e.currentTarget.style.borderColor = '#bfdbfe';
-                                                 }}
-                                                 onMouseLeave={e => {
-                                                     e.currentTarget.style.background = '#f8fafc';
-                                                     e.currentTarget.style.color = alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 ? '#ef4444' : '#64748b';
-                                                     e.currentTarget.style.borderColor = '#e2e8f0';
-                                                 }}
-                                                 title="Alertas del Sistema"
-                                             >
-                                                 <BellRing size={14} />
-                                                 {/* Badge con el contador */}
-                                                 {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 && (
-                                                     <span style={{
-                                                         position: 'absolute',
-                                                         top: '-4px',
-                                                         right: '-4px',
-                                                         background: '#ef4444',
-                                                         color: '#fff',
-                                                         fontSize: '8px',
-                                                         fontWeight: 900,
-                                                         borderRadius: '50%',
-                                                         width: '14px',
-                                                         height: '14px',
-                                                         display: 'flex',
-                                                         alignItems: 'center',
-                                                         justifyContent: 'center',
-                                                         boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
-                                                     }}>
-                                                         {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length}
-                                                     </span>
-                                                 )}
-                                             </button>
+                                              <button
+                                                  onClick={() => setShowAlertDropdown(!showAlertDropdown)}
+                                                  style={{
+                                                      background: alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 ? '#fef2f2' : '#f8fafc',
+                                                      border: alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 ? '1px solid #fca5a5' : '1px solid #e2e8f0',
+                                                      borderRadius: '10px',
+                                                      padding: '8px',
+                                                      cursor: 'pointer',
+                                                      color: alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 ? '#ef4444' : '#64748b',
+                                                      display: 'flex',
+                                                      alignItems: 'center',
+                                                      justifyContent: 'center',
+                                                      transition: 'all 0.2s',
+                                                      boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                                                      position: 'relative'
+                                                  }}
+                                                  onMouseEnter={e => {
+                                                      const hasActive = alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0;
+                                                      e.currentTarget.style.background = hasActive ? '#fee2e2' : '#eff6ff';
+                                                      e.currentTarget.style.borderColor = hasActive ? '#fca5a5' : '#bfdbfe';
+                                                      if (!hasActive) {
+                                                          e.currentTarget.style.color = '#3b82f6';
+                                                      }
+                                                  }}
+                                                  onMouseLeave={e => {
+                                                      const hasActive = alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0;
+                                                      e.currentTarget.style.background = hasActive ? '#fef2f2' : '#f8fafc';
+                                                      e.currentTarget.style.borderColor = hasActive ? '#fca5a5' : '#e2e8f0';
+                                                      e.currentTarget.style.color = hasActive ? '#ef4444' : '#64748b';
+                                                  }}
+                                                  title="Alertas del Sistema"
+                                              >
+                                                  <motion.div
+                                                      animate={alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 ? {
+                                                          rotate: [0, -15, 12, -10, 8, -4, 0],
+                                                      } : {}}
+                                                      transition={{
+                                                          repeat: Infinity,
+                                                          repeatType: "loop",
+                                                          duration: 1.2,
+                                                          repeatDelay: 3.5,
+                                                          ease: "easeInOut"
+                                                      }}
+                                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                  >
+                                                      <BellRing size={14} />
+                                                  </motion.div>
+                                                  {/* Badge con el contador */}
+                                                  {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 && (
+                                                      <motion.span
+                                                          animate={{
+                                                              scale: [1, 1.05, 1],
+                                                          }}
+                                                          transition={{
+                                                              repeat: Infinity,
+                                                              duration: 2,
+                                                              ease: "easeInOut"
+                                                          }}
+                                                          style={{
+                                                              position: 'absolute',
+                                                              top: '-4px',
+                                                              right: '-4px',
+                                                              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                                              color: '#fff',
+                                                              fontSize: '8px',
+                                                              fontWeight: 900,
+                                                              padding: '0 4px',
+                                                              minWidth: '15px',
+                                                              height: '15px',
+                                                              borderRadius: '7.5px',
+                                                              display: 'flex',
+                                                              alignItems: 'center',
+                                                              justifyContent: 'center',
+                                                              boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
+                                                              boxSizing: 'border-box'
+                                                          }}
+                                                      >
+                                                          {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length}
+                                                      </motion.span>
+                                                  )}
+                                              </button>
 
                                              {/* Dropdown de Alertas */}
                                              <AnimatePresence>
