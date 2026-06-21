@@ -84,30 +84,7 @@ export default function Sidebar({
         height: isMobileMode ? '100%' : 'auto'
     };
 
-    // Estilo del logo
-    const logoContainerStyle = {
-        width: isExpanded ? 'calc(100% - 16px)' : '32px',
-        height: '32px',
-        background: '#3b82f6',
-        borderRadius: '10px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: isExpanded ? 'space-between' : 'center',
-        padding: isExpanded ? '0 10px' : '0',
-        marginBottom: '12px',
-        gap: '8px',
-        transition: 'all 0.2s ease-in-out',
-    };
-
-    const logoTextStyle = {
-        color: '#fff',
-        fontSize: '11px',
-        fontWeight: 950,
-        letterSpacing: '0.05em',
-        opacity: isExpanded ? 1 : 0,
-        transition: 'opacity 0.2s ease-in-out',
-        whiteSpace: 'nowrap',
-    };
+    // Estilo de logo eliminado según feedback del usuario
 
     // Estilos de los botones del menú central
     const getNavBtnStyle = (isActive) => {
@@ -451,21 +428,17 @@ export default function Sidebar({
             onMouseLeave={() => !isMobileMode && setIsExpandedInternal(false)}
             style={asideStyle}
         >
-            {/* Logo */}
-            <div style={logoContainerStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: isExpanded ? 'flex-start' : 'center', width: isExpanded ? 'auto' : '100%', gap: '8px', overflow: 'hidden' }}>
-                    <Zap size={18} style={{ color: '#fff', fill: '#fff', flexShrink: 0 }} />
-                    {isExpanded && <span style={logoTextStyle}>SYSCOM POS</span>}
-                </div>
-                {isMobileMode && onCloseMobileMenu && (
+            {/* Botón de cerrar para menú móvil */}
+            {isMobileMode && onCloseMobileMenu && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', padding: '4px 12px 8px 12px' }}>
                     <button 
                         onClick={onCloseMobileMenu}
-                        style={{ border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        style={{ border: 'none', background: '#f1f5f9', color: '#64748b', cursor: 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <X size={18} />
+                        <X size={16} />
                     </button>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Perfil de la Empresa (Escritorio) */}
             <div style={{
@@ -478,7 +451,7 @@ export default function Sidebar({
                 padding: isExpanded ? '10px' : '4px 0',
                 border: 'none',
                 boxShadow: isExpanded ? '0 2px 8px rgba(15, 23, 42, 0.02)' : 'none',
-                margin: '10px 12px 14px 12px',
+                margin: isMobileMode ? '0px 12px 14px 12px' : '10px 12px 14px 12px',
                 width: isExpanded ? 'calc(100% - 24px)' : 'auto',
                 boxSizing: 'border-box',
                 transition: 'all 0.3s ease',

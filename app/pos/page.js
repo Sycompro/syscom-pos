@@ -1103,10 +1103,15 @@ export default function POSPage() {
                                 {/* LÍNEA 1: DATOS DE LA EMPRESA / SEDE (NUEVA) */}
                                 {!isMobileDevice && (
                                     <div style={{ background: '#fff', padding: '10px 16px', minHeight: '60px', borderBottom: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                            {/* Marca Principal */}
+                                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                                                <span style={{ color: '#3b82f6' }}>Syscom</span>
+                                                <span style={{ color: '#0f172a' }}>.click</span>
+                                            </span>
                                             <div style={{ background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: 'none' }}>
-                                            <p style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
-                                        </div>
+                                                <p style={{ fontSize: '9px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', margin: 0, letterSpacing: '0.05em' }}>Sede Activa</p>
+                                            </div>
                                         <div>
                                             <h1 style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 {companySettings?.company?.legalName || companySettings?.company?.name || 'Cargando sede...'}
