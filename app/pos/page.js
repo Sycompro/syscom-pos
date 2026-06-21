@@ -925,13 +925,7 @@ export default function POSPage() {
                     borderBottom: 'none',
                     transition: 'all 0.3s'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyRules: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Calendar size={18} color={isRegularizing ? '#d97706' : '#94a3b8'} />
-                            <span style={{ fontSize: '10px', fontWeight: 800, color: isRegularizing ? '#92400e' : '#64748b' }}>
-                                INICIO PERSONALIZADO
-                            </span>
-                        </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div 
                             onClick={() => {
                                 setIsRegularizing(!isRegularizing);
@@ -941,10 +935,18 @@ export default function POSPage() {
                                 width: '36px', height: '18px', borderRadius: '18px',
                                 background: isRegularizing ? '#d97706' : '#e2e8f0',
                                 padding: '2px', cursor: 'pointer', display: 'flex',
-                                alignItems: 'center', justifyContent: isRegularizing ? 'flex-end' : 'flex-start'
+                                alignItems: 'center', justifyContent: isRegularizing ? 'flex-end' : 'flex-start',
+                                flexShrink: 0
                             }}
                         >
                             <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#fff' }} />
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Calendar size={18} color={isRegularizing ? '#d97706' : '#94a3b8'} />
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: isRegularizing ? '#92400e' : '#64748b' }}>
+                                INICIO PERSONALIZADO
+                            </span>
                         </div>
                     </div>
                     
