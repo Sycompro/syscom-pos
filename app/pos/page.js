@@ -83,6 +83,69 @@ export default function POSPage() {
     const [posLogo, setPosLogo] = useState('logocia01.jpg');
     const [companySettings, setCompanySettings] = useState(null);
 
+    // Sistema de Alertas Dinámicas (Membresías y Cumpleaños)
+    const [alerts, setAlerts] = useState([]);
+    const [resolvedAlertIds, setResolvedAlertIds] = useState([]);
+    const [showAlertDropdown, setShowAlertDropdown] = useState(false);
+    const [isFetchingAlerts, setIsFetchingAlerts] = useState(false);
+    const [membershipsSearchTerm, setMembershipsSearchTerm] = useState('');
+    const [membershipsFilterStatus, setMembershipsFilterStatus] = useState('all');
+
+    // Cargar IDs de alertas atendidas del localStorage al iniciar
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const saved = localStorage.getItem('syscom_resolved_alerts');
+                if (saved) setResolvedAlertIds(JSON.parse(saved));
+            } catch (e) {
+                console.error('Error loading resolved alerts from localStorage', e);
+            }
+        }
+    }, []);
+
+    // Cargar alertas del backend
+    const fetchAlerts = async () => {
+        setIsFetchingAlerts(true);
+        try {
+            const res = await fetch('/api/alerts');
+            const data = await res.json();
+            if (data.success) {
+                setAlerts(data.alerts || []);
+            }
+        } catch (err) {
+            console.error('Error fetching alerts:', err);
+        } finally {
+            setIsFetchingAlerts(false);
+        }
+    };
+
+    // Consultar alertas al iniciar y cada 2 minutos
+    useEffect(() => {
+        fetchAlerts();
+        const interval = setInterval(fetchAlerts, 120000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const markAlertAsResolved = (alertId) => {
+        const updated = [...resolvedAlertIds, alertId];
+        setResolvedAlertIds(updated);
+        localStorage.setItem('syscom_resolved_alerts', JSON.stringify(updated));
+    };
+
+    const markAllAlertsAsResolved = () => {
+        const activeAlertIds = alerts.map(a => a.id);
+        const updated = Array.from(new Set([...resolvedAlertIds, ...activeAlertIds]));
+        setResolvedAlertIds(updated);
+        localStorage.setItem('syscom_resolved_alerts', JSON.stringify(updated));
+    };
+
+    const handleAlertRedirect = (alert) => {
+        setMembershipsSearchTerm(alert.targetSearch || '');
+        setMembershipsFilterStatus(alert.targetStatus || 'all');
+        setActiveTab('memberships');
+        setShowAlertDropdown(false);
+    };
+
     // Estados para cargar miembros en Promociones
     const [membersForPromotions, setMembersForPromotions] = useState([]);
     const [loadingMembersForPromotions, setLoadingMembersForPromotions] = useState(false);
@@ -1307,6 +1370,219 @@ export default function POSPage() {
                                          >
                                              {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
                                          </button>
+                                         {/* SISTEMA DE ALERTAS INTERACTIVO */}
+                                         <div style={{ position: 'relative' }}>
+                                             <button
+                                                 onClick={() => setShowAlertDropdown(!showAlertDropdown)}
+                                                 style={{
+                                                     background: '#f8fafc',
+                                                     border: '1px solid #e2e8f0',
+                                                     borderRadius: '10px',
+                                                     padding: '8px',
+                                                     cursor: 'pointer',
+                                                     color: alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 ? '#ef4444' : '#64748b',
+                                                     display: 'flex',
+                                                     alignItems: 'center',
+                                                     justifyContent: 'center',
+                                                     transition: 'all 0.2s',
+                                                     boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                                                     position: 'relative'
+                                                 }}
+                                                 onMouseEnter={e => {
+                                                     e.currentTarget.style.background = '#eff6ff';
+                                                     if (alerts.filter(a => !resolvedAlertIds.includes(a.id)).length === 0) {
+                                                         e.currentTarget.style.color = '#3b82f6';
+                                                     }
+                                                     e.currentTarget.style.borderColor = '#bfdbfe';
+                                                 }}
+                                                 onMouseLeave={e => {
+                                                     e.currentTarget.style.background = '#f8fafc';
+                                                     e.currentTarget.style.color = alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 ? '#ef4444' : '#64748b';
+                                                     e.currentTarget.style.borderColor = '#e2e8f0';
+                                                 }}
+                                                 title="Alertas del Sistema"
+                                             >
+                                                 <BellRing size={14} />
+                                                 {/* Badge con el contador */}
+                                                 {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 && (
+                                                     <span style={{
+                                                         position: 'absolute',
+                                                         top: '-4px',
+                                                         right: '-4px',
+                                                         background: '#ef4444',
+                                                         color: '#fff',
+                                                         fontSize: '8px',
+                                                         fontWeight: 900,
+                                                         borderRadius: '50%',
+                                                         width: '14px',
+                                                         height: '14px',
+                                                         display: 'flex',
+                                                         alignItems: 'center',
+                                                         justifyContent: 'center',
+                                                         boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+                                                         border: '2px solid #fff'
+                                                     }}>
+                                                         {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length}
+                                                     </span>
+                                                 )}
+                                             </button>
+
+                                             {/* Dropdown de Alertas */}
+                                             <AnimatePresence>
+                                                 {showAlertDropdown && (
+                                                     <motion.div
+                                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                         animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                         transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+                                                         style={{
+                                                             position: 'absolute',
+                                                             top: '100%',
+                                                             right: 0,
+                                                             marginTop: '12px',
+                                                             width: '320px',
+                                                             background: 'rgba(255, 255, 255, 0.96)',
+                                                             backdropFilter: 'blur(16px)',
+                                                             WebkitBackdropFilter: 'blur(16px)',
+                                                             borderRadius: '16px',
+                                                             boxShadow: '0 20px 40px rgba(15, 23, 42, 0.15)',
+                                                             zIndex: 9999,
+                                                             border: '1px solid rgba(226, 232, 240, 0.8)',
+                                                             overflow: 'hidden'
+                                                         }}
+                                                     >
+                                                         {/* Cabecera del Panel */}
+                                                         <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                             <span style={{ fontSize: '11px', fontWeight: 900, color: '#1e293b', letterSpacing: '0.03em' }}>ALERTAS DEL SISTEMA</span>
+                                                             {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 && (
+                                                                 <button
+                                                                     onClick={markAllAlertsAsResolved}
+                                                                     style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
+                                                                 >
+                                                                     Atender todo
+                                                                 </button>
+                                                             )}
+                                                         </div>
+
+                                                         {/* Lista de Alertas */}
+                                                         <div className="custom-select-list" style={{ maxHeight: '280px', overflowY: 'auto', padding: '6px' }}>
+                                                             {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length === 0 ? (
+                                                                 <div style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8' }}>
+                                                                     <Sparkles size={24} style={{ color: '#10b981', marginBottom: '8px', margin: '0 auto' }} />
+                                                                     <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: '#475569' }}>¡Todo al día!</p>
+                                                                     <p style={{ margin: 0, fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>No hay alertas pendientes de atención</p>
+                                                                 </div>
+                                                             ) : (
+                                                                 alerts.filter(a => !resolvedAlertIds.includes(a.id)).map(a => {
+                                                                     let Icon = AlertCircle;
+                                                                     let iconColor = '#f59e0b';
+                                                                     let iconBg = '#fffbeb';
+                                                                     
+                                                                     if (a.type === 'membership_expired') {
+                                                                         Icon = Clock;
+                                                                         iconColor = '#ef4444';
+                                                                         iconBg = '#fef2f2';
+                                                                     } else if (a.type === 'birthday') {
+                                                                         Icon = Sparkles;
+                                                                         iconColor = '#ec4899';
+                                                                         iconBg = '#fdf2f8';
+                                                                     }
+
+                                                                     return (
+                                                                         <div
+                                                                             key={a.id}
+                                                                             style={{
+                                                                                 padding: '10px',
+                                                                                 borderRadius: '10px',
+                                                                                 borderBottom: '1px solid #f8fafc',
+                                                                                 display: 'flex',
+                                                                                 flexDirection: 'column',
+                                                                                 gap: '6px',
+                                                                                 transition: 'background 0.2s'
+                                                                             }}
+                                                                         >
+                                                                             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                                                                                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
+                                                                                     <Icon size={14} />
+                                                                                 </div>
+                                                                                 <div style={{ flex: 1 }}>
+                                                                                     <p style={{ margin: 0, fontSize: '10px', fontWeight: 900, color: '#0f172a' }}>{a.title}</p>
+                                                                                     <p style={{ margin: '2px 0 0 0', fontSize: '9px', color: '#64748b', lineHeight: '1.3', fontWeight: 500 }}>{a.message}</p>
+                                                                                     <p style={{ margin: '2px 0 0 0', fontSize: '8px', color: '#94a3b8', fontWeight: 700 }}>{a.metadata?.sede || 'SEDE'}</p>
+                                                                                 </div>
+                                                                             </div>
+                                                                             <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', marginTop: '2px' }}>
+                                                                                 {/* Botón Ir a Ver */}
+                                                                                 <button
+                                                                                     onClick={() => handleAlertRedirect(a)}
+                                                                                     style={{
+                                                                                         background: '#eff6ff',
+                                                                                         color: '#2563eb',
+                                                                                         border: 'none',
+                                                                                         borderRadius: '6px',
+                                                                                         padding: '4px 8px',
+                                                                                         fontSize: '9px',
+                                                                                         fontWeight: 800,
+                                                                                         cursor: 'pointer',
+                                                                                         display: 'flex',
+                                                                                         alignItems: 'center',
+                                                                                         gap: '4px'
+                                                                                     }}
+                                                                                 >
+                                                                                     Ir a ver
+                                                                                 </button>
+                                                                                 {/* Botón Atendido */}
+                                                                                 <button
+                                                                                     onClick={() => markAlertAsResolved(a.id)}
+                                                                                     style={{
+                                                                                         background: '#f1f5f9',
+                                                                                         color: '#475569',
+                                                                                         border: 'none',
+                                                                                         borderRadius: '6px',
+                                                                                         padding: '4px 8px',
+                                                                                         fontSize: '9px',
+                                                                                         fontWeight: 800,
+                                                                                         cursor: 'pointer'
+                                                                                     }}
+                                                                                 >
+                                                                                     Atendido
+                                                                                 </button>
+                                                                                 {/* WhatsApp rápido si corresponde */}
+                                                                                 {a.metadata?.phone && (
+                                                                                     <button
+                                                                                         onClick={() => {
+                                                                                             const msg = a.type === 'birthday' 
+                                                                                                 ? `¡Feliz cumpleaños ${a.metadata.name}! Te deseamos lo mejor en tu día. De parte de ${companySettings?.company?.commercialName || companySettings?.company?.name || 'nuestro equipo'}.` 
+                                                                                                 : `Hola ${a.metadata.name}, te recordamos que tu membresía vence el ${a.metadata.endDate}. ¡Te esperamos para renovar!`;
+                                                                                             addToWaQueue(a.metadata.phone, msg);
+                                                                                             markAlertAsResolved(a.id);
+                                                                                         }}
+                                                                                         style={{
+                                                                                             background: '#f0fdf4',
+                                                                                             color: '#166534',
+                                                                                             border: 'none',
+                                                                                             borderRadius: '6px',
+                                                                                             padding: '4px',
+                                                                                             cursor: 'pointer',
+                                                                                             display: 'flex',
+                                                                                             alignItems: 'center',
+                                                                                             justifyContent: 'center'
+                                                                                         }}
+                                                                                         title="Enviar recordatorio WhatsApp"
+                                                                                     >
+                                                                                         <Phone size={10} />
+                                                                                     </button>
+                                                                                 )}
+                                                                             </div>
+                                                                         </div>
+                                                                     );
+                                                                 })
+                                                             )}
+                                                         </div>
+                                                     </motion.div>
+                                                 )}
+                                             </AnimatePresence>
+                                         </div>
 
                                         <div style={{ textAlign: 'right' }}>
                                             <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Tipo Cambio</p>
@@ -1929,6 +2205,8 @@ export default function POSPage() {
                                 companyName={companySettings?.company?.commercialName || companySettings?.company?.name}
                                 useScreenKeyboards={useScreenKeyboards}
                                 idApeCaj={idApeCaj}
+                                initialSearchTerm={membershipsSearchTerm}
+                                initialFilterStatus={membershipsFilterStatus}
                             />
                         </motion.div>
                     )}

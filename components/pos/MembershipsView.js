@@ -15,7 +15,15 @@ import CustomSelect from './CustomSelect';
 import AlphanumericKeyboard from './AlphanumericKeyboard';
 import NumericKeypad from './NumericKeypad';
 
-export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName, useScreenKeyboards, idApeCaj }) {
+export default function MembershipsView({ 
+    onRenew, 
+    onQueueWhatsApp, 
+    companyName, 
+    useScreenKeyboards, 
+    idApeCaj,
+    initialSearchTerm = '',
+    initialFilterStatus = 'all'
+}) {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     
@@ -23,8 +31,18 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
     const finalCompanyName = companyName || 'Gym';
     const [members, setMembers] = useState([]);
     const [stats, setStats] = useState({ total: 0, active: 0, expiring: 0, expired: 0 });
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState('all');
+    const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+    const [filterStatus, setFilterStatus] = useState(initialFilterStatus);
+
+    // Sincronizar filtros externos de alertas
+    useEffect(() => {
+        if (initialSearchTerm !== undefined) {
+            setSearchTerm(initialSearchTerm);
+        }
+        if (initialFilterStatus !== undefined) {
+            setFilterStatus(initialFilterStatus);
+        }
+    }, [initialSearchTerm, initialFilterStatus]);
     const [filterSede, setFilterSede] = useState('my');
     const [renewingMember, setRenewingMember] = useState(null);
     const [plans, setPlans] = useState([]);
