@@ -239,7 +239,7 @@ export async function GET(request) {
       // CONSULTA 9: ANÁLISIS DE PARETO DE ARTÍCULOS
       runQuery('ParetoProducts', () => createRequest().query(`
         SELECT TOP 10
-          LTRIM(RTRIM(d.codart)) as codart,
+          LTRIM(RTRIM(d.codi)) as codart,
           LTRIM(RTRIM(d.descr)) as name,
           SUM(d.cant) as quantity,
           ISNULL(SUM(d.totn), 0) as totalAmount
@@ -248,7 +248,7 @@ export async function GET(request) {
         WHERE f.fecha >= @start AND f.fecha <= @end
           AND f.flag = '0' AND d.flag = '0'
           ${filtersCondition}
-        GROUP BY d.codart, d.descr
+        GROUP BY d.codi, d.descr
         ORDER BY totalAmount DESC
       `))
     ]);
