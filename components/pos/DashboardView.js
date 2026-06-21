@@ -48,8 +48,10 @@ export default function DashboardView() {
   const [endDate, setEndDate] = useState(todayStr);
 
   const [windowWidth, setWindowWidth] = useState(1280);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setWindowWidth(window.innerWidth);
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -249,6 +251,22 @@ export default function DashboardView() {
       </div>
     );
   };
+
+  if (!mounted) {
+    return (
+      <div style={containerStyle}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '300px',
+          width: '100%'
+        }}>
+          <Loader2 className="animate-spin" size={36} color="#3b82f6" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={containerStyle}>
