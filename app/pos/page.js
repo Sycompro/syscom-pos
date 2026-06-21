@@ -744,36 +744,22 @@ export default function POSPage() {
                         <label style={{ fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '0.05em', display: 'block', marginBottom: '8px', paddingLeft: '4px' }}>
                             Vendedor de Turno
                         </label>
-                        <div style={{ position: 'relative' }}>
-                            <select
-                                value={selectedSalesperson}
-                                onChange={e => setSelectedSalesperson(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '16px 20px',
-                                    borderRadius: '16px',
-                                    border: '2px solid #f1f5f9',
-                                    fontSize: '14px',
-                                    fontWeight: 700,
-                                    color: '#0f172a',
-                                    outline: 'none',
-                                    transition: 'all 0.2s',
-                                    background: '#f8fafc',
-                                    appearance: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <option value="" disabled>Seleccione un vendedor...</option>
-                                {salespeople.map(v => (
-                                    <option key={v.id} value={v.id}>
-                                        {v.name.trim()}
-                                    </option>
-                                ))}
-                            </select>
-                            <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }}>
-                                <ChevronDown size={18} />
-                            </div>
-                        </div>
+                        <CustomSelect
+                            value={selectedSalesperson}
+                            onChange={e => setSelectedSalesperson(e.target.value)}
+                            options={salespeople.map(v => ({ value: v.id, label: v.name.trim() }))}
+                            placeholder="Seleccione un vendedor..."
+                            icon={<User size={14} color="#64748b" />}
+                            style={{
+                                border: '2px solid #f1f5f9',
+                                borderRadius: '16px',
+                                background: '#f8fafc',
+                                height: '54px',
+                                fontSize: '14px',
+                                color: '#0f172a',
+                                fontWeight: 700,
+                            }}
+                        />
                     </div>
 
                     <div style={{ position: 'relative', marginBottom: '24px' }}>
