@@ -2392,7 +2392,7 @@ export default function POSPage() {
                             left: 0, 
                             right: 0, 
                             bottom: 0, 
-                            background: 'rgba(255, 255, 255, 0.35)', 
+                            background: 'rgba(219, 234, 254, 0.35)', 
                             backdropFilter: 'blur(8px)',
                             WebkitBackdropFilter: 'blur(8px)',
                             zIndex: 9500, 
