@@ -90,7 +90,6 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
     };
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
     
     // Estados para edición
     const [editingCustomer, setEditingCustomer] = useState(null);
@@ -133,14 +132,17 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
         }
     }, [activeTab, selectedMonth]);
 
+    const [windowWidth, setWindowWidth] = useState(1280);
+    const isMobile = windowWidth < 768;
+
     // Detección de responsividad móvil/tablet
     useEffect(() => {
-        const checkSize = () => {
-            setIsMobile(window.innerWidth < 768);
+        setWindowWidth(window.innerWidth);
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
         };
-        checkSize();
-        window.addEventListener('resize', checkSize);
-        return () => window.removeEventListener('resize', checkSize);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     const [creditFilter, setCreditFilter] = useState('credit'); // 'credit', 'debt', 'all'
@@ -387,7 +389,7 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                         ) : (
                             // VISTA TABLETS / PC (Tabla clásica compacta)
                             <div style={tableWrapperStyle}>
-                                <table style={tableStyle}>
+                                <table style={{ ...tableStyle, minWidth: windowWidth < 1024 ? '900px' : '100%' }}>
                                     <thead>
                                         <tr>
                                             <th style={{ ...thStyle, borderRadius: '12px 0 0 12px' }}>Código</th>
@@ -591,7 +593,7 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                     ) : (
                         // Vista Desktop
                         <div style={tableWrapperStyle}>
-                            <table style={tableStyle}>
+                            <table style={{ ...tableStyle, minWidth: windowWidth < 1024 ? '850px' : '100%' }}>
                                 <thead>
                                     <tr>
                                         <th style={{ ...thStyle, borderRadius: '12px 0 0 12px' }}>Código</th>
@@ -1312,7 +1314,7 @@ const tableWrapperStyle = {
     background: '#fff',
     borderRadius: '12px',
     border: '1px solid #e2e8f0',
-    overflow: 'hidden',
+    overflowX: 'auto',
     boxShadow: '0 4px 12px rgba(0,0,0,0.01)'
 };
 

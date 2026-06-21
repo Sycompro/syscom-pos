@@ -249,7 +249,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
 
             <>
                     {/* RESUMEN DE ESTADOS (Compacto) */}
-                    <div style={statsCompactGridStyle}>
+                    <div style={{ ...statsCompactGridStyle, gridTemplateColumns: windowWidth < 1024 ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
                         <StatCard 
                             title="ACTIVAS" 
                             count={stats.active} 
@@ -281,7 +281,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                     </div>
 
                     {/* BARRA DE ACCIÓN Y FILTROS INTEGRADA */}
-                    <div style={integratedFilterBarStyle}>
+                    <div style={{ ...integratedFilterBarStyle, flexWrap: 'wrap' }}>
                         <div style={compactSearchWrapperStyle}>
                             <Search size={16} style={{ color: '#94a3b8' }} />
                             <input 
@@ -328,9 +328,9 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                     </div>
 
                     {/* Tabla de Resultados */}
-                    <div style={tableContainerStyle}>
+                    <div style={{ ...tableContainerStyle, overflowX: windowWidth < 1024 ? 'auto' : 'hidden' }}>
                         {!isMobile && (
-                            <div style={tableHeaderStyle}>
+                            <div style={{ ...tableHeaderStyle, minWidth: windowWidth < 1024 ? '850px' : 'auto' }}>
                                 <span style={{ flex: 2 }}>Miembro</span>
                                 <span style={{ flex: 1.5 }}>Sede</span>
                                 <span style={{ flex: 1.5 }}>Plan</span>
@@ -343,7 +343,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                         )}
 
                         {/* Contenedor Scrollable para el Cuerpo de la Tabla */}
-                        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }} className="no-scrollbar">
+                        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, minWidth: windowWidth < 1024 ? '850px' : 'auto' }} className="no-scrollbar">
                             {loading ? (
                                 <div style={loadingStyle}>Cargando membresías...</div>
                             ) : (members || []).length === 0 ? (
@@ -614,6 +614,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName,
                                             transition={{ delay: idx * 0.05 }}
                                             style={{
                                                 ...tableRowStyle,
+                                                minWidth: windowWidth < 1024 ? '850px' : 'auto',
                                                 borderLeft: expandedMember === member.id ? '4px solid #3b82f6' : '4px solid transparent',
                                                 background: expandedMember === member.id ? '#f8fafc' : '#fff'
                                             }}

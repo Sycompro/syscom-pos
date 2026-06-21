@@ -290,7 +290,7 @@ export default function DashboardView() {
   }
 
   return (
-    <div style={containerStyle}>
+    <div style={{ ...containerStyle, padding: windowWidth < 1024 ? '16px' : '30px', gap: windowWidth < 1024 ? '16px' : '24px' }}>
       {/* Cabecera adaptada */}
       <div style={{
         display: 'flex',
@@ -626,8 +626,8 @@ export default function DashboardView() {
           {/* 1. SECCIÓN KPIs */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isMobileView ? '1fr' : 'repeat(4, 1fr)',
-            gap: '16px'
+            gridTemplateColumns: windowWidth < 1200 ? (windowWidth < 640 ? '1fr' : 'repeat(2, 1fr)') : 'repeat(4, 1fr)',
+            gap: windowWidth < 1024 ? '12px' : '16px'
           }}>
             {/* Card 1: Ingresos */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={kpiCardStyle}>
@@ -698,8 +698,8 @@ export default function DashboardView() {
           {/* 3. SECCIÓN INFERIOR: VENDEDORES Y COMPROBANTES */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isMobileView ? '1fr' : '3fr 2fr',
-            gap: '24px'
+            gridTemplateColumns: windowWidth < 1024 ? '1fr' : '3fr 2fr',
+            gap: windowWidth < 1024 ? '16px' : '24px'
           }}>
             {/* Top Vendedores */}
             <div style={dashboardCardStyle}>

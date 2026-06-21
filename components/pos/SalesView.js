@@ -317,6 +317,12 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
           }
         }
         @media (max-width: 1024px) {
+          .filter-grid-responsive {
+            grid-template-columns: repeat(3, 1fr) !important;
+          }
+          .search-col-responsive {
+            grid-column: span 3 !important;
+          }
           .kpi-grid-responsive {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 12px !important;
@@ -600,7 +606,7 @@ export default function SalesView({ onPrint, onQueueWhatsApp, useScreenKeyboards
             <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 700 }}>No se encontraron ventas para los filtros seleccionados.</span>
           </div>
         ) : (
-          <table style={tableStyle}>
+          <table style={{ ...tableStyle, minWidth: windowWidth < 1200 ? '900px' : '100%' }}>
             <thead>
               <tr style={thRowStyle}>
                 <th style={thStyle}>COMPROBANTE</th>
