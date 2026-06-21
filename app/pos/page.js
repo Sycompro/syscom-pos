@@ -1655,19 +1655,27 @@ export default function POSPage() {
                                              onClose={() => setShowSearchKeyboard(false)}
                                              onKeyPress={(key) => setSearchTerm(prev => prev + key)}
                                              onDelete={() => setSearchTerm(prev => prev.slice(0, -1))}
-                                             value={searchTerm}
+                                                 value={searchTerm}
                                          />
                                      </div>
 
                                      {/* En escritorio, el vendedor y botones de acción (Cerrar C. / Ventas) van al final */}
                                      {!isMobileDevice && (
                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                                             <div style={{ minWidth: '180px' }}>
+                                             <div style={{ minWidth: '140px', maxWidth: '170px' }}>
                                                  <CustomSelect
                                                      value={selectedSalesperson}
                                                      onChange={e => setSelectedSalesperson(e.target.value)}
-                                                     options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
-                                                     placeholder="Seleccionar Vendedor"
+                                                     options={salespeople.map(v => ({ value: v.id, label: v.name.trim() }))}
+                                                     placeholder="Vendedor"
+                                                     icon={<User size={12} style={{ color: '#64748b' }} />}
+                                                     style={{
+                                                         height: '30px',
+                                                         padding: '4px 8px',
+                                                         fontSize: '10px',
+                                                         borderRadius: '8px',
+                                                         border: '1px solid #cbd5e1',
+                                                     }}
                                                  />
                                              </div>
 
