@@ -218,22 +218,43 @@ export default function DashboardView() {
           {/* La Línea de la curva */}
           {pathD && <path d={pathD} fill="none" stroke="url(#lineGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
 
-          {/* Puntos interactivos con Tooltip simple */}
-          {points.map((pt, idx) => (
-            <g key={idx} className="group">
-              <circle 
-                cx={pt.x} 
-                cy={pt.y} 
-                r="4" 
-                fill="#fff" 
-                stroke="#2563eb" 
-                strokeWidth="2.5" 
-                style={{ cursor: 'pointer', transition: 'all 0.2s' }}
-              />
-              {/* Tooltip flotante en SVG */}
-              <title>{`${pt.label}: S/ ${pt.amount.toFixed(2)}`}</title>
-            </g>
-          ))}
+          {/* Puntos interactivos con Tooltip y Monto */}
+          {points.map((pt, idx) => {
+            const showAmountLabel = pt.amount > 0;
+            return (
+              <g key={idx} className="group">
+                <circle 
+                  cx={pt.x} 
+                  cy={pt.y} 
+                  r="4" 
+                  fill="#fff" 
+                  stroke="#2563eb" 
+                  strokeWidth="2.5" 
+                  style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                />
+                
+                {showAmountLabel && (
+                  <text 
+                    x={pt.x} 
+                    y={pt.y - 10} 
+                    textAnchor="middle" 
+                    fontSize="8" 
+                    fill="#1e293b" 
+                    fontWeight="850"
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    paintOrder="stroke"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    S/ {Math.round(pt.amount)}
+                  </text>
+                )}
+                
+                {/* Tooltip flotante en SVG */}
+                <title>{`${pt.label}: S/ ${pt.amount.toFixed(2)}`}</title>
+              </g>
+            );
+          })}
 
           {/* Etiquetas Eje X */}
           {points.map((pt, idx) => {
