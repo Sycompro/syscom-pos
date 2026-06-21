@@ -1439,26 +1439,7 @@ export default function POSPage() {
                                         )}
                                     </div>
                                     
-                                    {!isMobileDevice && (
-                                        <button
-                                            onClick={() => setShowHistoryModal(true)}
-                                            style={{ 
-                                                background: '#f1f5f9', 
-                                                color: '#0d1b3e', 
-                                                border: 'none', 
-                                                borderRadius: '6px', 
-                                                padding: '8px', 
-                                                cursor: 'pointer', 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
-                                                justifyContent: 'center', 
-                                                transition: 'all 0.2s'
-                                            }}
-                                            title="Historial de Ventas"
-                                        >
-                                            <History size={18} />
-                                        </button>
-                                    )}
+
 
                                     {!isMobileDevice && (
                                          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '1px solid #e2e8f0', paddingLeft: '16px', justifyContent: 'space-between' }}>
@@ -1678,15 +1659,82 @@ export default function POSPage() {
                                          />
                                      </div>
 
-                                     {/* En escritorio, el vendedor va al final */}
+                                     {/* En escritorio, el vendedor y botones de acción (Cerrar C. / Ventas) van al final */}
                                      {!isMobileDevice && (
-                                         <div style={{ minWidth: '180px' }}>
-                                             <CustomSelect
-                                                 value={selectedSalesperson}
-                                                 onChange={e => setSelectedSalesperson(e.target.value)}
-                                                 options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
-                                                 placeholder="Seleccionar Vendedor"
-                                             />
+                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                             <div style={{ minWidth: '180px' }}>
+                                                 <CustomSelect
+                                                     value={selectedSalesperson}
+                                                     onChange={e => setSelectedSalesperson(e.target.value)}
+                                                     options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
+                                                     placeholder="Seleccionar Vendedor"
+                                                 />
+                                             </div>
+
+                                             {/* Contenedor de Botones Rápidos (Cerrar C. y Ventas) */}
+                                             <div style={{ display: 'flex', background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '10px', padding: '3px', gap: '3px', alignItems: 'center' }}>
+                                                 {/* Botón Cerrar Caja */}
+                                                 <button
+                                                     onClick={() => setShowCloseModal(true)}
+                                                     style={{
+                                                         padding: '6px 12px',
+                                                         borderRadius: '7px',
+                                                         border: 'none',
+                                                         cursor: 'pointer',
+                                                         fontSize: '11px',
+                                                         fontWeight: 800,
+                                                         background: 'transparent',
+                                                         color: '#64748b',
+                                                         display: 'flex',
+                                                         alignItems: 'center',
+                                                         gap: '6px',
+                                                         transition: 'all 0.2s ease',
+                                                         whiteSpace: 'nowrap'
+                                                     }}
+                                                     onMouseEnter={e => {
+                                                         e.currentTarget.style.background = '#fef2f2';
+                                                         e.currentTarget.style.color = '#dc2626';
+                                                     }}
+                                                     onMouseLeave={e => {
+                                                         e.currentTarget.style.background = 'transparent';
+                                                         e.currentTarget.style.color = '#64748b';
+                                                     }}
+                                                 >
+                                                     <Lock size={12} />
+                                                     <span>Cerrar C.</span>
+                                                 </button>
+
+                                                 {/* Botón Historial de Ventas */}
+                                                 <button
+                                                     onClick={() => setShowHistoryModal(true)}
+                                                     style={{
+                                                         padding: '6px 12px',
+                                                         borderRadius: '7px',
+                                                         border: 'none',
+                                                         cursor: 'pointer',
+                                                         fontSize: '11px',
+                                                         fontWeight: 800,
+                                                         background: 'transparent',
+                                                         color: '#64748b',
+                                                         display: 'flex',
+                                                         alignItems: 'center',
+                                                         gap: '6px',
+                                                         transition: 'all 0.2s ease',
+                                                         whiteSpace: 'nowrap'
+                                                     }}
+                                                     onMouseEnter={e => {
+                                                         e.currentTarget.style.background = '#eff6ff';
+                                                         e.currentTarget.style.color = '#2563eb';
+                                                     }}
+                                                     onMouseLeave={e => {
+                                                         e.currentTarget.style.background = 'transparent';
+                                                         e.currentTarget.style.color = '#64748b';
+                                                     }}
+                                                 >
+                                                     <History size={12} />
+                                                     <span>Ventas</span>
+                                                 </button>
+                                             </div>
                                          </div>
                                      )}
                                 </div>
