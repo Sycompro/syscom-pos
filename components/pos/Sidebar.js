@@ -41,30 +41,60 @@ export default function Sidebar({
         }
     }, []);
 
+    const toggleProducts = () => {
+        setIsProductsExpanded(prev => {
+            const next = !prev;
+            if (next) {
+                setIsCustomersExpanded(false);
+                setIsPurchasesExpanded(false);
+                setIsFinanceExpanded(false);
+            }
+            return next;
+        });
+    };
+
+    const toggleCustomers = () => {
+        setIsCustomersExpanded(prev => {
+            const next = !prev;
+            if (next) {
+                setIsProductsExpanded(false);
+                setIsPurchasesExpanded(false);
+                setIsFinanceExpanded(false);
+            }
+            return next;
+        });
+    };
+
+    const togglePurchases = () => {
+        setIsPurchasesExpanded(prev => {
+            const next = !prev;
+            if (next) {
+                setIsProductsExpanded(false);
+                setIsCustomersExpanded(false);
+                setIsFinanceExpanded(false);
+            }
+            return next;
+        });
+    };
+
+    const toggleFinance = () => {
+        setIsFinanceExpanded(prev => {
+            const next = !prev;
+            if (next) {
+                setIsProductsExpanded(false);
+                setIsCustomersExpanded(false);
+                setIsPurchasesExpanded(false);
+            }
+            return next;
+        });
+    };
+
     useEffect(() => {
-        if (activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits') {
-            setIsCustomersExpanded(true);
-        } else {
-            setIsCustomersExpanded(false);
-        }
-
-        if (activeTab === 'expenses' || activeTab === 'general-cash') {
-            setIsFinanceExpanded(true);
-        } else {
-            setIsFinanceExpanded(false);
-        }
-
-        if (activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands') {
-            setIsProductsExpanded(true);
-        } else {
-            setIsProductsExpanded(false);
-        }
-
-        if (activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp') {
-            setIsPurchasesExpanded(true);
-        } else {
-            setIsPurchasesExpanded(false);
-        }
+        // Al cambiar de pestaña (seleccionar una opción), se contraen todos los acordeones para dejar el menú limpio
+        setIsCustomersExpanded(false);
+        setIsFinanceExpanded(false);
+        setIsProductsExpanded(false);
+        setIsPurchasesExpanded(false);
     }, [activeTab]);
 
     const asideStyle = {
@@ -235,7 +265,7 @@ export default function Sidebar({
 
                 {/* Productos (Expandible) */}
                 <div 
-                    onClick={() => setIsProductsExpanded(prev => !prev)}
+                    onClick={toggleProducts}
                     style={getNavBtnStyle(activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands')}
                 >
                     <Package size={22} style={{ flexShrink: 0 }} />
@@ -259,7 +289,7 @@ export default function Sidebar({
 
                 {/* Clientes (Expandible) */}
                 <div 
-                    onClick={() => setIsCustomersExpanded(prev => !prev)}
+                    onClick={toggleCustomers}
                     style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits')}
                 >
                     <Contact size={22} style={{ flexShrink: 0 }} />
@@ -283,7 +313,7 @@ export default function Sidebar({
 
                 {/* Compras (Expandible) */}
                 <div 
-                    onClick={() => setIsPurchasesExpanded(prev => !prev)}
+                    onClick={togglePurchases}
                     style={getNavBtnStyle(activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp')}
                 >
                     <ShoppingBag size={22} style={{ flexShrink: 0 }} />
@@ -316,7 +346,7 @@ export default function Sidebar({
 
                 {/* Finanzas (Expandible) */}
                 <div 
-                    onClick={() => setIsFinanceExpanded(prev => !prev)}
+                    onClick={toggleFinance}
                     style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash')}
                 >
                     <Banknote size={22} style={{ flexShrink: 0 }} />
@@ -442,6 +472,14 @@ export default function Sidebar({
                 </div>
             )}
 
+            {/* Marca Syscom.click en el Menú */}
+            <div style={{ padding: '16px 16px 8px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ color: '#3b82f6' }}>Syscom</span>
+                    <span style={{ color: '#0f172a' }}>.click</span>
+                </span>
+            </div>
+
             {/* Perfil de la Empresa (Escritorio) */}
             <div style={{
                 display: 'flex',
@@ -453,7 +491,7 @@ export default function Sidebar({
                 padding: isExpanded ? '10px' : '4px 0',
                 border: 'none',
                 boxShadow: isExpanded ? '0 2px 8px rgba(15, 23, 42, 0.02)' : 'none',
-                margin: isMobileMode ? '0px 12px 14px 12px' : '10px 12px 14px 12px',
+                margin: isMobileMode ? '0px 12px 14px 12px' : '2px 12px 14px 12px',
                 width: isExpanded ? 'calc(100% - 24px)' : 'auto',
                 boxSizing: 'border-box',
                 transition: 'all 0.3s ease',
@@ -528,7 +566,7 @@ export default function Sidebar({
                 </div>
 
                 <div 
-                    onClick={() => setIsProductsExpanded(prev => !prev)}
+                    onClick={toggleProducts}
                     style={getNavBtnStyle(activeTab === 'products' || activeTab === 'classifications' || activeTab === 'brands')}
                 >
                     <Package size={22} style={{ flexShrink: 0 }} />
@@ -625,7 +663,7 @@ export default function Sidebar({
                 )}
 
                 <div 
-                    onClick={() => setIsCustomersExpanded(prev => !prev)}
+                    onClick={toggleCustomers}
                     style={getNavBtnStyle(activeTab === 'customers' || activeTab === 'birthdays' || activeTab === 'credits')}
                 >
                     <Contact size={22} style={{ flexShrink: 0 }} />
@@ -723,7 +761,7 @@ export default function Sidebar({
                 )}
 
                 <div 
-                    onClick={() => setIsPurchasesExpanded(prev => !prev)}
+                    onClick={togglePurchases}
                     style={getNavBtnStyle(activeTab === 'purchases-ocm' || activeTab === 'purchases-gim' || activeTab === 'purchases-ccp')}
                 >
                     <ShoppingBag size={22} style={{ flexShrink: 0 }} />
@@ -829,7 +867,7 @@ export default function Sidebar({
                 </div>
 
                 <div 
-                    onClick={() => setIsFinanceExpanded(prev => !prev)}
+                    onClick={toggleFinance}
                     style={getNavBtnStyle(activeTab === 'expenses' || activeTab === 'general-cash')}
                 >
                     <Banknote size={22} style={{ flexShrink: 0 }} />
