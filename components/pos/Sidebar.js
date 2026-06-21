@@ -559,9 +559,9 @@ export default function Sidebar({
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        background: 'rgba(15, 23, 42, 0.18)',
-                        backdropFilter: 'blur(5px)',
-                        WebkitBackdropFilter: 'blur(5px)',
+                        background: 'rgba(255, 255, 255, 0.35)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
                         zIndex: 80,
                         transition: 'opacity 0.25s ease-in-out',
                         cursor: 'pointer'
