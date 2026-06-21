@@ -1373,7 +1373,7 @@ export default function POSPage() {
                                             style={{ 
                                                 width: '100%', 
                                                 paddingLeft: '14px', 
-                                                paddingRight: isMobileDevice ? (customerSearch ? '32px' : '10px') : '10px', 
+                                                paddingRight: customerSearch ? '32px' : '10px', 
                                                 paddingTop: isMobileDevice ? '10px' : '8px', 
                                                 paddingBottom: isMobileDevice ? '10px' : '8px', 
                                                 background: '#f1f5f9', 
@@ -1387,7 +1387,7 @@ export default function POSPage() {
                                         />
                                         {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '8px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={16} />}
                                         
-                                        {isMobileDevice && customerSearch && (
+                                        {customerSearch && (
                                             <button
                                                 onClick={() => {
                                                     setCustomerSearch('');
