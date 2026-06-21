@@ -977,15 +977,17 @@ export default function POSPage() {
         <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#f1f5f9', overflow: 'hidden' }}>
             {/* Sidebar para PC / Tablet */}
             {!isMobileDevice && (
-                <Sidebar
-                    onSignOut={() => signOut()}
-                    onOpenCloseCash={() => setShowCloseModal(true)}
-                    onOpenHistory={() => setShowHistoryModal(true)}
-                    onToggleFullscreen={toggleFullscreen}
-                    isFullscreen={isFullscreen}
-                    activeTab={activeTab} 
-                    setActiveTab={setActiveTab} 
-                />
+                <div style={{ width: '56px', height: '100%', flexShrink: 0, position: 'relative', zIndex: 9000 }}>
+                    <Sidebar
+                        onSignOut={() => signOut()}
+                        onOpenCloseCash={() => setShowCloseModal(true)}
+                        onOpenHistory={() => setShowHistoryModal(true)}
+                        onToggleFullscreen={toggleFullscreen}
+                        isFullscreen={isFullscreen}
+                        activeTab={activeTab} 
+                        setActiveTab={setActiveTab} 
+                    />
+                </div>
             )}
 
             {/* Sidebar flotante para celulares (Drawer) trasladado al final del layout */}

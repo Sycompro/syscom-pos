@@ -130,20 +130,26 @@ export default function Sidebar({
     };
 
     const asideStyle = {
+        position: !isMobileMode ? 'absolute' : 'relative',
+        top: 0,
+        left: 0,
+        bottom: 0,
         width: isExpanded ? '220px' : '56px',
         background: '#ffffff',
-        borderRight: 'none',
+        borderRight: '1px solid #e2e8f0',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         padding: '12px 0',
         gap: '4px',
         flexShrink: 0,
-        zIndex: 40,
-        transition: isMobileMode ? 'none' : 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: !isMobileMode ? (isExpanded ? '4px 0 25px rgba(15, 23, 42, 0.05)' : '2px 0 15px rgba(15, 23, 42, 0.02)') : 'none',
-        overflow: 'hidden',
-        height: isMobileMode ? '100%' : 'auto'
+        zIndex: 100,
+        transition: isMobileMode ? 'none' : 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: !isMobileMode ? (isExpanded ? '10px 0 30px rgba(15, 23, 42, 0.12)' : 'none') : 'none',
+        overflowX: 'hidden',
+        overflowY: 'auto',
+        height: '100%',
+        boxSizing: 'border-box'
     };
 
     // Estilo de logo eliminado según feedback del usuario
