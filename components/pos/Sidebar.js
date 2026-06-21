@@ -193,7 +193,7 @@ export default function Sidebar({
         left: !isMobileMode ? '12px' : '0',
         bottom: !isMobileMode ? '12px' : '0',
         height: !isMobileMode ? 'calc(100% - 24px)' : '100%',
-        width: isExpanded ? (isTablet ? '180px' : '220px') : (isMobileMode ? '100%' : '52px'),
+        width: isExpanded ? (isTablet ? '200px' : '260px') : (isMobileMode ? '100%' : '52px'),
         background: '#ffffff',
         border: 'none',
         borderRadius: !isMobileMode ? '20px' : '0px',
