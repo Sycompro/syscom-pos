@@ -1290,49 +1290,59 @@ export default function POSPage() {
                                 {/* LÍNEA 2: BARRA CLIENTE POS (PROFESIONAL) */}
                                 <div style={{ background: '#ffffff', padding: isMobileDevice ? '10px 12px' : '8px 16px', borderBottom: 'none', display: 'flex', alignItems: 'center', gap: isMobileDevice ? '8px' : '12px' }}>
 
-                                    {/* Selector de Tipo DNI/RUC/CE */}
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        background: '#f1f5f9', 
-                                        borderRadius: isMobileDevice ? '20px' : '8px', 
-                                        padding: '2px', 
-                                        gap: '2px', 
-                                        border: 'none' 
-                                    }}>
-                                        {['DNI', 'RUC', 'CE'].map(type => {
-                                            const isSelected = searchType === type;
-                                            let activeBg = isMobileDevice ? '#3b82f6' : '#eff6ff';
-                                            let activeColor = isMobileDevice ? '#ffffff' : '#3b82f6';
-                                            let activeBorder = 'none';
+                                     {/* Selector de Tipo DNI/RUC/CE */}
+                                     <div style={{ 
+                                         display: 'flex', 
+                                         background: isMobileDevice ? '#f1f5f9' : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+                                         borderRadius: isMobileDevice ? '20px' : '10px', 
+                                         padding: '3px', 
+                                         gap: '3px', 
+                                         border: isMobileDevice ? 'none' : '1px solid #e2e8f0',
+                                         boxShadow: isMobileDevice ? 'none' : 'inset 0 1px 2px rgba(0,0,0,0.02)',
+                                         height: isMobileDevice ? 'auto' : '36px',
+                                         alignItems: 'center'
+                                     }}>
+                                         {['DNI', 'RUC', 'CE'].map(type => {
+                                             const isSelected = searchType === type;
+                                             let activeBg = isMobileDevice 
+                                                 ? '#3b82f6' 
+                                                 : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+                                             let activeColor = '#ffffff';
 
-                                            return (
-                                                <button
-                                                    key={type}
-                                                    onClick={() => {
-                                                        setSearchType(type);
-                                                        setCustomerSearch('');
-                                                        setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
-                                                        setShowNumpad(false);
-                                                        setShowCEKeyboard(false);
-                                                    }}
-                                                    style={{
-                                                        padding: isMobileDevice ? '7px 12px' : '4px 8px',
-                                                        borderRadius: isMobileDevice ? '20px' : '6px',
-                                                        border: 'none',
-                                                        cursor: 'pointer',
-                                                        fontSize: isMobileDevice ? '12px' : '10px',
-                                                        fontWeight: isMobileDevice ? 900 : 800,
-                                                        background: isSelected ? activeBg : '#ffffff',
-                                                        color: isSelected ? activeColor : '#64748b',
-                                                        boxShadow: isSelected ? (isMobileDevice ? '0 4px 10px rgba(96, 165, 250, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)') : 'none',
-                                                        transition: 'all 0.25s ease'
-                                                    }}
-                                                >
-                                                    {type}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                                             return (
+                                                 <button
+                                                     key={type}
+                                                     onClick={() => {
+                                                         setSearchType(type);
+                                                         setCustomerSearch('');
+                                                         setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: 'C00000', phone: '', birthdate: '' });
+                                                         setShowNumpad(false);
+                                                         setShowCEKeyboard(false);
+                                                     }}
+                                                     style={{
+                                                         padding: isMobileDevice ? '7px 12px' : '6px 14px',
+                                                         borderRadius: isMobileDevice ? '20px' : '7px',
+                                                         border: 'none',
+                                                         cursor: 'pointer',
+                                                         fontSize: isMobileDevice ? '12px' : '11px',
+                                                         fontWeight: isMobileDevice ? 900 : 800,
+                                                         background: isSelected ? activeBg : 'transparent',
+                                                         color: isSelected ? activeColor : '#64748b',
+                                                         boxShadow: isSelected 
+                                                             ? (isMobileDevice ? '0 4px 10px rgba(96, 165, 250, 0.2)' : '0 4px 10px rgba(37, 99, 235, 0.15), 0 2px 4px rgba(37, 99, 235, 0.1)') 
+                                                             : 'none',
+                                                         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                         display: 'flex',
+                                                         alignItems: 'center',
+                                                         justifyContent: 'center',
+                                                         height: isMobileDevice ? 'auto' : '100%'
+                                                     }}
+                                                 >
+                                                     {type}
+                                                 </button>
+                                             );
+                                         })}
+                                     </div>
 
                                     <div style={{ flex: isMobileDevice ? 1 : 'none', width: isMobileDevice ? 'auto' : '160px', position: 'relative' }}>
                                         <input
@@ -1468,18 +1478,29 @@ export default function POSPage() {
                                              </div>
 
                                              {/* Selector de Boleta/Factura/Nota de Venta */}
-                                             <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', gap: '3px', border: 'none' }}>
+                                             <div style={{ 
+                                                 display: 'flex', 
+                                                 background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+                                                 borderRadius: '10px', 
+                                                 padding: '3px', 
+                                                 gap: '3px', 
+                                                 border: '1px solid #e2e8f0',
+                                                 boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
+                                                 height: '36px',
+                                                 alignItems: 'center'
+                                             }}>
                                                  {['03', '01', '65'].map(t => {
                                                      const isSelected = docType === t;
-                                                     let activeBg = '#dbeafe'; 
-                                                     let activeColor = '#1e40af';
+                                                     let activeBg = 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)'; 
+                                                     let activeColor = '#ffffff';
+                                                     let activeShadow = '0 4px 10px rgba(59, 130, 246, 0.2)';
                                                      
                                                      if (t === '01') { 
-                                                         activeBg = '#d1fae5';
-                                                         activeColor = '#065f46';
+                                                         activeBg = 'linear-gradient(135deg, #10b981 0%, #047857 100%)';
+                                                         activeShadow = '0 4px 10px rgba(16, 185, 129, 0.2)';
                                                      } else if (t === '65') { 
-                                                         activeBg = '#ffedd5';
-                                                         activeColor = '#9a3412';
+                                                         activeBg = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+                                                         activeShadow = '0 4px 10px rgba(245, 158, 11, 0.2)';
                                                      }
 
                                                      return (
@@ -1487,16 +1508,20 @@ export default function POSPage() {
                                                              key={t}
                                                              onClick={() => setDocType(t)}
                                                              style={{
-                                                                 padding: '6px 12px',
-                                                                 borderRadius: '6px',
+                                                                 padding: '6px 14px',
+                                                                 borderRadius: '7px',
                                                                  border: 'none',
                                                                  cursor: 'pointer',
                                                                  fontSize: '11px',
                                                                  fontWeight: 800,
-                                                                 background: isSelected ? activeBg : '#fff',
+                                                                 background: isSelected ? activeBg : 'transparent',
                                                                  color: isSelected ? activeColor : '#64748b',
-                                                                 boxShadow: isSelected ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
-                                                                 transition: 'all 0.2s ease'
+                                                                 boxShadow: isSelected ? activeShadow : 'none',
+                                                                 transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                                 display: 'flex',
+                                                                 alignItems: 'center',
+                                                                 justifyContent: 'center',
+                                                                 height: '100%'
                                                              }}
                                                          >
                                                              {t === '03' ? 'Boleta' : t === '01' ? 'Factura' : 'Nota'}
