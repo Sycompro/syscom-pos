@@ -1160,7 +1160,7 @@ export default function POSPage() {
                                 }}
                                 aria-label="Historial de Ventas"
                             >
-                                <History size={22} />
+                                <Receipt size={22} />
                             </button>
                             <button
                                 onClick={toggleFullscreen}
