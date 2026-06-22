@@ -2284,7 +2284,7 @@ export default function POSPage() {
                                     )}
                                 </AnimatePresence>
 
-                                {/* Drawer Deslizante */}
+                                {/* Ventana Flotante del Carrito (Modal) */}
                                 <AnimatePresence>
                                     {showMobileCart && (
                                         <div 
@@ -2297,25 +2297,29 @@ export default function POSPage() {
                                                 bottom: 0,
                                                 background: 'rgba(15, 23, 42, 0.5)',
                                                 backdropFilter: 'blur(4px)',
-                                                zIndex: 1000,
+                                                zIndex: 9500, // ZIndex alto para superponerse
                                                 display: 'flex',
-                                                justifyContent: 'flex-end'
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                padding: '16px'
                                             }}
                                         >
                                             <motion.div
-                                                initial={{ x: '100%' }}
-                                                animate={{ x: 0 }}
-                                                exit={{ x: '100%' }}
-                                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                                initial={{ scale: 0.95, y: 15, opacity: 0 }}
+                                                animate={{ scale: 1, y: 0, opacity: 1 }}
+                                                exit={{ scale: 0.95, y: 15, opacity: 0 }}
+                                                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
                                                 onClick={(e) => e.stopPropagation()}
                                                 style={{
-                                                    width: '90%',
-                                                    maxWidth: '450px',
-                                                    height: '100%',
+                                                    width: '100%',
+                                                    maxWidth: '440px',
+                                                    maxHeight: '85vh',
                                                     background: '#fff',
-                                                    boxShadow: '-10px 0 30px rgba(0,0,0,0.15)',
+                                                    boxShadow: '0 25px 60px rgba(0,0,0,0.2)',
+                                                    borderRadius: '24px',
                                                     display: 'flex',
-                                                    flexDirection: 'column'
+                                                    flexDirection: 'column',
+                                                    overflow: 'hidden'
                                                 }}
                                             >
                                                 {renderCartContent(true)}
