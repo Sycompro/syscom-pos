@@ -2626,12 +2626,12 @@ export default function POSPage() {
 
                         <div style={{ marginBottom: '8px' }}>
                             <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>FECHA</span>: {printData.date?.split(',')[0]}</div>
-                            {printData.docType === 'Nota' && <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>HORA</span>: {new Date().toLocaleTimeString('es-PE', { timeZone: 'America/Lima' })}</div>}
+                            {printData.docType === '65' && <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>HORA</span>: {new Date().toLocaleTimeString('es-PE', { timeZone: 'America/Lima' })}</div>}
                             <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>VENDEDOR</span>: {printData.salesperson || 'ADMINISTRADOR'}</div>
                             <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>COND.VTA</span>: EFECTIVO</div>
                             {printData.docType === '01' && <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>DOC. IDE.</span>: R.U.C. {printData.customer?.ruc}</div>}
-                            <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>{printData.docType === 'Nota' ? 'SEÑOR' : 'CLIENTE'}</span>: {printData.customer?.name || 'VENTA CONTADO'}</div>
-                            {printData.docType === 'Nota' && <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>DIREC.</span>: {printData.customer?.address || ''}</div>}
+                            <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>{printData.docType === '65' ? 'SEÑOR' : 'CLIENTE'}</span>: {printData.customer?.name || 'VENTA CONTADO'}</div>
+                            {printData.docType === '65' && <div style={{ display: 'flex' }}><span style={{ width: '80px' }}>DIREC.</span>: {printData.customer?.address || ''}</div>}
                         </div>
 
                         <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>
@@ -2653,7 +2653,7 @@ export default function POSPage() {
                             </tbody>
                         </table>
 
-                        {printData.docType !== 'Nota' ? (
+                        {printData.docType !== '65' ? (
                             <div style={{ marginTop: '8px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                     <div style={{ width: '120px' }}>Total Gravado</div>
