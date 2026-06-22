@@ -1106,18 +1106,18 @@ export default function POSPage() {
                         borderBottom: '1px solid #141414', 
                         display: 'flex', 
                         alignItems: 'center', 
-                        padding: '0 16px',
+                        padding: '0 12px',
                         justifyContent: 'space-between',
                         flexShrink: 0
                     }}>
                         {activeTab === 'pos' ? (
-                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '23px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '19px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                                 <span style={{ color: '#3b82f6' }}>Syscom</span>
                                 <span style={{ color: '#ffffff' }}>.click</span>
                             </span>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <span style={{ fontSize: '11px', fontWeight: 900, color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '48%' }}>
+                                <span style={{ fontSize: '10px', fontWeight: 900, color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.05em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {(activeTab === 'dashboard-general' || activeTab === 'dashboard-stats') ? 'Dashboard' : 
                                      activeTab === 'memberships' ? 'Membresías' : 
                                      activeTab === 'promotions' ? 'Promociones' : 
@@ -1137,12 +1137,12 @@ export default function POSPage() {
                                      activeTab === 'classifications' ? 'Clasificaciones' :
                                      activeTab === 'brands' ? 'Marcas ERP' : 'POS'}
                                 </span>
-                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase' }}>
+                                <span style={{ fontSize: '8px', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
                                 </span>
                             </div>
                         )}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <button
                                 onClick={() => setShowCloseModal(true)}
                                 style={{
@@ -1153,14 +1153,14 @@ export default function POSPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    padding: '6px',
+                                    padding: '5px',
                                     borderRadius: '50%',
                                     transition: 'background 0.2s, transform 0.2s',
                                     outline: 'none'
                                 }}
                                 aria-label="Cerrar Caja"
                             >
-                                <Lock size={22} />
+                                <Lock size={20} />
                             </button>
                             <button
                                 onClick={() => setShowHistoryModal(true)}
@@ -1172,14 +1172,14 @@ export default function POSPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    padding: '6px',
+                                    padding: '5px',
                                     borderRadius: '50%',
                                     transition: 'background 0.2s, transform 0.2s',
                                     outline: 'none'
                                 }}
                                 aria-label="Historial de Ventas"
                             >
-                                <Receipt size={22} />
+                                <Receipt size={20} />
                             </button>
                             <button
                                 onClick={toggleFullscreen}
@@ -1191,14 +1191,14 @@ export default function POSPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    padding: '6px',
+                                    padding: '5px',
                                     borderRadius: '50%',
                                     transition: 'background 0.2s, transform 0.2s',
                                     outline: 'none'
                                 }}
                                 aria-label="Pantalla completa"
                             >
-                                {isFullscreen ? <Minimize size={22} /> : <Maximize size={22} />}
+                                {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
                             </button>
                             <button 
                                 onClick={() => setShowMobileMenu(true)} 
@@ -1209,7 +1209,7 @@ export default function POSPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    padding: '6px',
+                                    padding: '5px',
                                     borderRadius: '50%',
                                     transition: 'transform 0.2s ease-in-out',
                                     outline: 'none'
@@ -1218,7 +1218,7 @@ export default function POSPage() {
                                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                                 aria-label="Abrir menú"
                             >
-                                <Menu size={22} style={{ color: '#f1f5f9' }} />
+                                <Menu size={20} style={{ color: '#f1f5f9' }} />
                             </button>
                         </div>
                     </div>
