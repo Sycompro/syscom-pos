@@ -996,7 +996,22 @@ export default function POSPage() {
                         >
                             <Trash2 size={20} />
                         </button>
-                        <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '8px', padding: '6px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={20} /></button>
+                        {!isMobileDevice && (
+                            <button 
+                                onClick={() => setShowCartModal(true)} 
+                                style={{ 
+                                    background: '#eff6ff', 
+                                    border: 'none', 
+                                    color: '#3b82f6', 
+                                    borderRadius: '8px', 
+                                    padding: '6px', 
+                                    cursor: 'pointer' 
+                                }} 
+                                title="Ver Categorías"
+                            >
+                                <LayoutGrid size={20} />
+                            </button>
+                        )}
                     </div>
                 </div>
 
