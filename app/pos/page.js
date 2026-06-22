@@ -1497,22 +1497,24 @@ export default function POSPage() {
                                                               onClick={(e) => e.stopPropagation()}
                                                               style={{
                                                                   width: '100%',
-                                                                  maxWidth: '520px',
-                                                                  maxHeight: '80vh',
-                                                                  background: '#ffffff',
-                                                                  borderRadius: '20px',
-                                                                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 20px -5px rgba(0, 0, 0, 0.15)',
-                                                                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                                                                  maxWidth: '540px',
+                                                                  maxHeight: '82vh',
+                                                                  background: 'rgba(255, 255, 255, 0.98)',
+                                                                  backdropFilter: 'blur(20px)',
+                                                                  WebkitBackdropFilter: 'blur(20px)',
+                                                                  borderRadius: '24px',
+                                                                  boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.05)',
+                                                                  border: 'none',
                                                                   display: 'flex',
                                                                   flexDirection: 'column',
                                                                   overflow: 'hidden'
                                                               }}
                                                           >
                                                               {/* Cabecera del Modal */}
-                                                              <div style={{ padding: '16px 20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                      <span style={{ fontSize: '13px', fontWeight: 900, color: '#0f172a', letterSpacing: '0.03em' }}>ALERTAS Y NOTIFICACIONES</span>
-                                                                      <span style={{ background: '#fef2f2', color: '#ef4444', fontSize: '10px', fontWeight: 900, padding: '2px 8px', borderRadius: '12px', border: '1px solid #fee2e2' }}>
+                                                              <div style={{ padding: '20px 24px', background: '#ffffff', borderBottom: '1px solid rgba(15, 23, 42, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', letterSpacing: '0.02em' }}>ALERTAS Y NOTIFICACIONES</span>
+                                                                      <span style={{ background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444', fontSize: '10px', fontWeight: 700, padding: '2px 10px', borderRadius: '20px', border: 'none' }}>
                                                                           {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length} PENDIENTES
                                                                       </span>
                                                                   </div>
@@ -1520,16 +1522,16 @@ export default function POSPage() {
                                                                       {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length > 0 && (
                                                                           <button
                                                                               onClick={markAllAlertsAsResolved}
-                                                                              style={{ background: '#eff6ff', border: 'none', color: '#2563eb', fontSize: '10px', fontWeight: 800, padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                                              onMouseEnter={e => e.currentTarget.style.background = '#dbeafe'}
-                                                                              onMouseLeave={e => e.currentTarget.style.background = '#eff6ff'}
+                                                                              style={{ background: 'rgba(59, 130, 246, 0.06)', border: 'none', color: '#2563eb', fontSize: '11px', fontWeight: 700, padding: '8px 16px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.12)'}
+                                                                              onMouseLeave={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.06)'}
                                                                           >
                                                                               Atender todo
                                                                           </button>
                                                                       )}
                                                                       <button 
                                                                           onClick={() => setShowAlertDropdown(false)}
-                                                                          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '50%', transition: 'all 0.2s' }}
+                                                                          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px', borderRadius: '50%', transition: 'all 0.2s' }}
                                                                           onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#475569'; }}
                                                                           onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#94a3b8'; }}
                                                                       >
@@ -1539,7 +1541,7 @@ export default function POSPage() {
                                                               </div>
 
                                                               {/* Lista de Alertas */}
-                                                              <div className="custom-select-list" style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                              <div className="custom-select-list" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                                                   {alerts.filter(a => !resolvedAlertIds.includes(a.id)).length === 0 ? (
                                                                       <div style={{ padding: '48px 24px', textAlign: 'center', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
                                                                           <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
@@ -1568,51 +1570,61 @@ export default function POSPage() {
                                                                               <div
                                                                                   key={a.id}
                                                                                   style={{
-                                                                                      padding: '14px',
-                                                                                      borderRadius: '12px',
-                                                                                      background: '#f8fafc',
-                                                                                      border: '1px solid #f1f5f9',
+                                                                                      padding: '16px',
+                                                                                      borderRadius: '16px',
+                                                                                      background: '#ffffff',
+                                                                                      border: '1px solid rgba(15, 23, 42, 0.06)',
+                                                                                      borderLeft: `4px solid ${iconColor}`,
                                                                                       display: 'flex',
                                                                                       flexDirection: 'column',
-                                                                                      gap: '10px',
-                                                                                      transition: 'all 0.2s',
-                                                                                      boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
+                                                                                      gap: '12px',
+                                                                                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                                                      boxShadow: '0 4px 6px -1px rgba(15, 23, 42, 0.02), 0 2px 4px -2px rgba(15, 23, 42, 0.02)'
                                                                                   }}
-                                                                                  onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
-                                                                                  onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#f1f5f9'; }}
+                                                                                  onMouseEnter={e => {
+                                                                                      e.currentTarget.style.transform = 'translateY(-1px)';
+                                                                                      e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.04)';
+                                                                                      e.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.12)';
+                                                                                  }}
+                                                                                  onMouseLeave={e => {
+                                                                                      e.currentTarget.style.transform = 'translateY(0)';
+                                                                                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(15, 23, 42, 0.02), 0 2px 4px -2px rgba(15, 23, 42, 0.02)';
+                                                                                      e.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.06)';
+                                                                                  }}
                                                                               >
-                                                                                  <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                                                                      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
-                                                                                          <Icon size={16} />
+                                                                                  <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                                                                                      <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
+                                                                                          <Icon size={18} />
                                                                                       </div>
                                                                                       <div style={{ flex: 1 }}>
-                                                                                          <p style={{ margin: 0, fontSize: '11px', fontWeight: 900, color: '#0f172a' }}>{a.title}</p>
-                                                                                          <p style={{ margin: '3px 0 0 0', fontSize: '10px', color: '#475569', lineHeight: '1.4', fontWeight: 650 }}>{a.message}</p>
-                                                                                          <span style={{ display: 'inline-block', margin: '4px 0 0 0', fontSize: '8px', color: '#94a3b8', fontWeight: 800, background: '#ffffff', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px' }}>
+                                                                                          <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>{a.title}</p>
+                                                                                          <p style={{ margin: '4px 0 0 0', fontSize: '11.5px', color: '#64748b', lineHeight: '1.5', fontWeight: 500 }}>{a.message}</p>
+                                                                                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', margin: '8px 0 0 0', fontSize: '9px', color: '#475569', fontWeight: 700, background: '#f1f5f9', padding: '3px 8px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                                                                                              <MapPin size={10} style={{ opacity: 0.8 }} />
                                                                                               {a.metadata?.sede || 'SEDE PRINCIPAL'}
                                                                                           </span>
                                                                                       </div>
                                                                                   </div>
-                                                                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                                                                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid rgba(15, 23, 42, 0.05)', paddingTop: '10px' }}>
                                                                                       {/* Botón Ir a Ver */}
                                                                                       <button
                                                                                           onClick={() => handleAlertRedirect(a)}
                                                                                           style={{
-                                                                                              background: '#eff6ff',
+                                                                                              background: 'rgba(59, 130, 246, 0.06)',
                                                                                               color: '#2563eb',
                                                                                               border: 'none',
-                                                                                              borderRadius: '6px',
-                                                                                              padding: '6px 12px',
-                                                                                              fontSize: '10px',
-                                                                                              fontWeight: 800,
+                                                                                              borderRadius: '8px',
+                                                                                              padding: '7px 14px',
+                                                                                              fontSize: '11px',
+                                                                                              fontWeight: 700,
                                                                                               cursor: 'pointer',
                                                                                               display: 'flex',
                                                                                               alignItems: 'center',
                                                                                               gap: '4px',
-                                                                                              transition: 'all 0.2s'
+                                                                                              transition: 'all 0.2s ease-in-out'
                                                                                           }}
-                                                                                          onMouseEnter={e => e.currentTarget.style.background = '#dbeafe'}
-                                                                                          onMouseLeave={e => e.currentTarget.style.background = '#eff6ff'}
+                                                                                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.12)'}
+                                                                                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.06)'}
                                                                                       >
                                                                                           Ir a ver
                                                                                       </button>
@@ -1620,18 +1632,18 @@ export default function POSPage() {
                                                                                       <button
                                                                                           onClick={() => markAlertAsResolved(a.id)}
                                                                                           style={{
-                                                                                              background: '#f1f5f9',
+                                                                                              background: 'rgba(148, 163, 184, 0.08)',
                                                                                               color: '#475569',
                                                                                               border: 'none',
-                                                                                              borderRadius: '6px',
-                                                                                              padding: '6px 12px',
-                                                                                              fontSize: '10px',
-                                                                                              fontWeight: 800,
+                                                                                              borderRadius: '8px',
+                                                                                              padding: '7px 14px',
+                                                                                              fontSize: '11px',
+                                                                                              fontWeight: 700,
                                                                                               cursor: 'pointer',
-                                                                                              transition: 'all 0.2s'
+                                                                                              transition: 'all 0.2s ease-in-out'
                                                                                           }}
-                                                                                          onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-                                                                                          onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+                                                                                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(148, 163, 184, 0.16)'}
+                                                                                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(148, 163, 184, 0.08)'}
                                                                                       >
                                                                                           Atendido
                                                                                       </button>
@@ -1646,22 +1658,28 @@ export default function POSPage() {
                                                                                                   markAlertAsResolved(a.id);
                                                                                               }}
                                                                                               style={{
-                                                                                                  background: '#f0fdf4',
-                                                                                                  color: '#166534',
+                                                                                                  background: 'rgba(34, 197, 94, 0.08)',
+                                                                                                  color: '#15803d',
                                                                                                   border: 'none',
-                                                                                                  borderRadius: '6px',
-                                                                                                  padding: '6px 8px',
+                                                                                                  borderRadius: '8px',
+                                                                                                  padding: '7px 10px',
                                                                                                   cursor: 'pointer',
                                                                                                   display: 'flex',
                                                                                                   alignItems: 'center',
                                                                                                   justifyContent: 'center',
-                                                                                                  transition: 'all 0.2s'
+                                                                                                  transition: 'all 0.2s ease-in-out'
                                                                                               }}
-                                                                                              onMouseEnter={e => e.currentTarget.style.background = '#dcfce7'}
-                                                                                              onMouseLeave={e => e.currentTarget.style.background = '#f0fdf4'}
+                                                                                              onMouseEnter={e => {
+                                                                                                  e.currentTarget.style.background = 'rgba(34, 197, 94, 0.16)';
+                                                                                                  e.currentTarget.style.transform = 'scale(1.05)';
+                                                                                              }}
+                                                                                              onMouseLeave={e => {
+                                                                                                  e.currentTarget.style.background = 'rgba(34, 197, 94, 0.08)';
+                                                                                                  e.currentTarget.style.transform = 'scale(1)';
+                                                                                              }}
                                                                                               title="Enviar recordatorio WhatsApp"
                                                                                           >
-                                                                                              <Phone size={12} />
+                                                                                              <Phone size={14} />
                                                                                           </button>
                                                                                       )}
                                                                                   </div>
