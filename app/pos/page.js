@@ -1570,42 +1570,44 @@ export default function POSPage() {
                                                                               <div
                                                                                   key={a.id}
                                                                                   style={{
-                                                                                      padding: '16px',
-                                                                                      borderRadius: '16px',
+                                                                                      padding: '10px 14px',
+                                                                                      borderRadius: '12px',
                                                                                       background: '#ffffff',
                                                                                       border: '1px solid rgba(15, 23, 42, 0.06)',
-                                                                                      borderLeft: `4px solid ${iconColor}`,
                                                                                       display: 'flex',
-                                                                                      flexDirection: 'column',
-                                                                                      gap: '12px',
-                                                                                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                                                      boxShadow: '0 4px 6px -1px rgba(15, 23, 42, 0.02), 0 2px 4px -2px rgba(15, 23, 42, 0.02)'
+                                                                                      alignItems: 'center',
+                                                                                      justifyContent: 'space-between',
+                                                                                      gap: '14px',
+                                                                                      transition: 'all 0.2s ease-in-out',
+                                                                                      boxShadow: '0 2px 4px rgba(15, 23, 42, 0.01)'
                                                                                   }}
                                                                                   onMouseEnter={e => {
-                                                                                      e.currentTarget.style.transform = 'translateY(-1px)';
-                                                                                      e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.04)';
                                                                                       e.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.12)';
+                                                                                      e.currentTarget.style.boxShadow = '0 4px 10px rgba(15, 23, 42, 0.04)';
+                                                                                      e.currentTarget.style.background = '#fafbfc';
                                                                                   }}
                                                                                   onMouseLeave={e => {
-                                                                                      e.currentTarget.style.transform = 'translateY(0)';
-                                                                                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(15, 23, 42, 0.02), 0 2px 4px -2px rgba(15, 23, 42, 0.02)';
                                                                                       e.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.06)';
+                                                                                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(15, 23, 42, 0.01)';
+                                                                                      e.currentTarget.style.background = '#ffffff';
                                                                                   }}
                                                                               >
-                                                                                  <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                                                                                      <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
-                                                                                          <Icon size={18} />
+                                                                                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                                                                      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>
+                                                                                          <Icon size={16} />
                                                                                       </div>
-                                                                                      <div style={{ flex: 1 }}>
-                                                                                          <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>{a.title}</p>
-                                                                                          <p style={{ margin: '4px 0 0 0', fontSize: '11.5px', color: '#64748b', lineHeight: '1.5', fontWeight: 500 }}>{a.message}</p>
-                                                                                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', margin: '8px 0 0 0', fontSize: '9px', color: '#475569', fontWeight: 700, background: '#f1f5f9', padding: '3px 8px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                                                                                              <MapPin size={10} style={{ opacity: 0.8 }} />
-                                                                                              {a.metadata?.sede || 'SEDE PRINCIPAL'}
-                                                                                          </span>
+                                                                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                                                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                                                                              <p style={{ margin: 0, fontSize: '12.5px', fontWeight: 700, color: '#1e293b' }}>{a.title}</p>
+                                                                                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '8px', color: '#475569', fontWeight: 700, background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                                                                                                  <MapPin size={8} style={{ opacity: 0.8 }} />
+                                                                                                  {a.metadata?.sede || 'SEDE PRINCIPAL'}
+                                                                                              </span>
+                                                                                          </div>
+                                                                                          <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#64748b', lineHeight: '1.4', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{a.message}</p>
                                                                                       </div>
                                                                                   </div>
-                                                                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid rgba(15, 23, 42, 0.05)', paddingTop: '10px' }}>
+                                                                                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
                                                                                       {/* Botón Ir a Ver */}
                                                                                       <button
                                                                                           onClick={() => handleAlertRedirect(a)}
@@ -1613,20 +1615,17 @@ export default function POSPage() {
                                                                                               background: 'rgba(59, 130, 246, 0.06)',
                                                                                               color: '#2563eb',
                                                                                               border: 'none',
-                                                                                              borderRadius: '8px',
-                                                                                              padding: '7px 14px',
-                                                                                              fontSize: '11px',
+                                                                                              borderRadius: '6px',
+                                                                                              padding: '6px 10px',
+                                                                                              fontSize: '10.5px',
                                                                                               fontWeight: 700,
                                                                                               cursor: 'pointer',
-                                                                                              display: 'flex',
-                                                                                              alignItems: 'center',
-                                                                                              gap: '4px',
-                                                                                              transition: 'all 0.2s ease-in-out'
+                                                                                              transition: 'all 0.15s ease-in-out'
                                                                                           }}
                                                                                           onMouseEnter={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.12)'}
                                                                                           onMouseLeave={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.06)'}
                                                                                       >
-                                                                                          Ir a ver
+                                                                                          Ver
                                                                                       </button>
                                                                                       {/* Botón Atendido */}
                                                                                       <button
@@ -1635,12 +1634,12 @@ export default function POSPage() {
                                                                                               background: 'rgba(148, 163, 184, 0.08)',
                                                                                               color: '#475569',
                                                                                               border: 'none',
-                                                                                              borderRadius: '8px',
-                                                                                              padding: '7px 14px',
-                                                                                              fontSize: '11px',
+                                                                                              borderRadius: '6px',
+                                                                                              padding: '6px 10px',
+                                                                                              fontSize: '10.5px',
                                                                                               fontWeight: 700,
                                                                                               cursor: 'pointer',
-                                                                                              transition: 'all 0.2s ease-in-out'
+                                                                                              transition: 'all 0.15s ease-in-out'
                                                                                           }}
                                                                                           onMouseEnter={e => e.currentTarget.style.background = 'rgba(148, 163, 184, 0.16)'}
                                                                                           onMouseLeave={e => e.currentTarget.style.background = 'rgba(148, 163, 184, 0.08)'}
@@ -1661,13 +1660,13 @@ export default function POSPage() {
                                                                                                   background: 'rgba(34, 197, 94, 0.08)',
                                                                                                   color: '#15803d',
                                                                                                   border: 'none',
-                                                                                                  borderRadius: '8px',
-                                                                                                  padding: '7px 10px',
+                                                                                                  borderRadius: '6px',
+                                                                                                  padding: '6px',
                                                                                                   cursor: 'pointer',
                                                                                                   display: 'flex',
                                                                                                   alignItems: 'center',
                                                                                                   justifyContent: 'center',
-                                                                                                  transition: 'all 0.2s ease-in-out'
+                                                                                                  transition: 'all 0.15s ease-in-out'
                                                                                               }}
                                                                                               onMouseEnter={e => {
                                                                                                   e.currentTarget.style.background = 'rgba(34, 197, 94, 0.16)';
@@ -1679,7 +1678,7 @@ export default function POSPage() {
                                                                                               }}
                                                                                               title="Enviar recordatorio WhatsApp"
                                                                                           >
-                                                                                              <Phone size={14} />
+                                                                                              <Phone size={12} />
                                                                                           </button>
                                                                                       )}
                                                                                   </div>
