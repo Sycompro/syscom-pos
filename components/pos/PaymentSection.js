@@ -195,7 +195,7 @@ export default function PaymentSection({
                         <div style={{ flex: 1, position: 'relative' }}>
                             <input
                                 type="text"
-                                inputMode="none"
+                                inputMode={useScreenKeyboards ? "none" : "decimal"}
                                 placeholder={`Monto (ej. ${total + 10})`}
                                 value={cashReceived}
                                 onChange={e => setCashReceived(e.target.value)}
@@ -227,7 +227,7 @@ export default function PaymentSection({
                         <div style={{ flex: 1, position: 'relative' }}>
                             <input
                                 type="text"
-                                inputMode="none"
+                                inputMode={useScreenKeyboards ? "none" : "decimal"}
                                 placeholder={`Monto (S/ ${remaining.toFixed(2)})`}
                                 value={tempAmount}
                                 onChange={e => setTempAmount(e.target.value)}

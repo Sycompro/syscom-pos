@@ -865,7 +865,7 @@ export default function POSPage() {
                         </div>
                         <input
                             type="text"
-                            inputMode="none"
+                            inputMode={useScreenKeyboards ? "none" : "decimal"}
                             value={openingAmount}
                             onChange={e => setOpeningAmount(e.target.value)}
                             onFocus={openOpeningNumpad}
@@ -1765,7 +1765,7 @@ export default function POSPage() {
                                     <div style={{ flex: isMobileDevice ? 1 : 'none', width: isMobileDevice ? 'auto' : '160px', position: 'relative' }}>
                                         <input
                                             type="text"
-                                            inputMode="none" // Evita el teclado nativo en tablets
+                                            inputMode={useScreenKeyboards ? "none" : (searchType === 'DNI' || searchType === 'RUC' ? "tel" : "text")}
                                             placeholder={searchType === 'DNI' ? "8 dígitos..." : searchType === 'RUC' ? "11 dígitos..." : "CE..."}
                                             value={customerSearch}
                                             onFocus={() => {
@@ -2027,7 +2027,7 @@ export default function POSPage() {
                                           <Search size={isMobileDevice ? 18 : 18} style={{ position: 'absolute', left: isMobileDevice ? '14px' : '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                           <input 
                                               type="text" 
-                                              inputMode="none"
+                                              inputMode={useScreenKeyboards ? "none" : "text"}
                                               placeholder="Busca productos..." 
                                               value={searchTerm} 
                                               onChange={e => setSearchTerm(e.target.value)} 

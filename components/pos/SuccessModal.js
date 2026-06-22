@@ -107,7 +107,7 @@ export default function SuccessModal({ orderNumber, onReset, onPrint, customerPh
                     <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
                         <input 
                             type="text" 
-                            inputMode="none"
+                            inputMode={useScreenKeyboards ? "none" : "tel"}
                             placeholder="999888777" 
                             value={phone}
                             onChange={e => setPhone(e.target.value)}

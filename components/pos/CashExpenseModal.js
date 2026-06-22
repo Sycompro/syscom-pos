@@ -195,7 +195,7 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
                         <div style={{ position: 'relative' }}>
                             <input 
                                 type="text" 
-                                inputMode="none"
+                                inputMode={useScreenKeyboards ? "none" : "decimal"}
                                 placeholder="0.00" 
                                 value={monto}
                                 onChange={e => setMonto(e.target.value)}

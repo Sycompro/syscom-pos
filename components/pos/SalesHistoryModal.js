@@ -148,7 +148,7 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                     <Search size={14} style={{ color: '#94a3b8' }} />
                     <input 
                         type="text" 
-                        inputMode="none"
+                        inputMode={useScreenKeyboards ? "none" : "text"}
                         placeholder="Buscar por documento o cliente..." 
                         value={filter}
                         onChange={e => setFilter(e.target.value)}
@@ -274,7 +274,7 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                             <div style={{ position: 'relative' }}>
                                 <input 
                                     type="text" 
-                                    inputMode="none"
+                                    inputMode={useScreenKeyboards ? "none" : "tel"}
                                     value={whatsappPhone}
                                     onChange={e => setWhatsappPhone(e.target.value)}
                                     onFocus={() => useScreenKeyboards && setShowWaNumpad(true)}

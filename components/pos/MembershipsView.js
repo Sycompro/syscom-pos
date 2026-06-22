@@ -1509,7 +1509,7 @@ export default function MembershipsView({
                                     <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>Nombre Completo</label>
                                     <input 
                                         type="text"
-                                        inputMode="none"
+                                        inputMode={useScreenKeyboards ? "none" : "text"}
                                         style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
                                         value={editingMember.nomcli}
                                         onChange={(e) => setEditingMember({...editingMember, nomcli: e.target.value})}
@@ -1529,7 +1529,7 @@ export default function MembershipsView({
                                         <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>WhatsApp / Teléfono</label>
                                         <input 
                                             type="text"
-                                            inputMode="none"
+                                            inputMode={useScreenKeyboards ? "none" : "tel"}
                                             style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
                                             value={editingMember.celcli}
                                             onChange={(e) => setEditingMember({...editingMember, celcli: e.target.value})}

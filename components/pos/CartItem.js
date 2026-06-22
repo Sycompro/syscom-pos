@@ -79,7 +79,7 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
                 <div style={{ position: 'relative' }}>
                     <input 
                         type="text"
-                        inputMode="none"
+                        inputMode={useScreenKeyboards ? "none" : "numeric"}
                         value={item.quantity}
                         onChange={(e) => onUpdateQty(item.id, (parseInt(e.target.value) || 1) - item.quantity)}
                         onFocus={() => {
@@ -120,7 +120,7 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, u
                     <div style={{ position: 'relative' }}>
                         <input 
                             type="text"
-                            inputMode="none"
+                            inputMode={useScreenKeyboards ? "none" : "decimal"}
                             value={item.price}
                             onChange={(e) => onUpdatePrice(item.id, parseFloat(e.target.value) || 0)}
                             onFocus={() => {

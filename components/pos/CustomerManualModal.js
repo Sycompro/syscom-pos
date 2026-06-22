@@ -66,7 +66,7 @@ export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSav
                             <ShieldCheck size={16} style={inputIconStyle} />
                             <input 
                                 type="text" 
-                                inputMode="none"
+                                inputMode={useScreenKeyboards ? "none" : "tel"}
                                 value={formData.doc} 
                                 onChange={e => setFormData({...formData, doc: e.target.value})} 
                                 onFocus={() => useScreenKeyboards && setShowDocNumpad(true)}
@@ -101,7 +101,7 @@ export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSav
                                 <Phone size={16} style={inputIconStyle} />
                                 <input 
                                     type="text" 
-                                    inputMode="none"
+                                    inputMode={useScreenKeyboards ? "none" : "tel"}
                                     value={formData.phone} 
                                     onChange={e => setFormData({...formData, phone: e.target.value})} 
                                     onFocus={() => useScreenKeyboards && setShowPhoneNumpad(true)}
