@@ -1112,7 +1112,7 @@ export default function POSPage() {
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 <span style={{ fontSize: '11px', fontWeight: 900, color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {activeTab === 'dashboard' ? 'Dashboard' : 
+                                    {(activeTab === 'dashboard-general' || activeTab === 'dashboard-stats') ? 'Dashboard' : 
                                      activeTab === 'memberships' ? 'Membresías' : 
                                      activeTab === 'promotions' ? 'Promociones' : 
                                      activeTab === 'customers' ? 'Clientes' : 
@@ -2459,12 +2459,12 @@ export default function POSPage() {
                         </motion.div>
                     )}
 
-                    {activeTab === 'dashboard' && (
+                    {(activeTab === 'dashboard-general' || activeTab === 'dashboard-stats') && (
                         <motion.div
                             key="dashboard" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                             style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}
                         >
-                            <DashboardView />
+                            <DashboardView currentTab={activeTab === 'dashboard-stats' ? 'stats' : 'general'} />
                         </motion.div>
                     )}
 

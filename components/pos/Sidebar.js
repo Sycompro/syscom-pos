@@ -47,6 +47,9 @@ export default function Sidebar({
     const [isSettingsExpanded, setIsSettingsExpanded] = useState(
         activeTab === 'settings' || activeTab === 'whatsapp'
     );
+    const [isDashboardExpanded, setIsDashboardExpanded] = useState(
+        activeTab === 'dashboard-general' || activeTab === 'dashboard-stats'
+    );
     const [supportsFullscreen, setSupportsFullscreen] = useState(false);
 
     useEffect(() => {
@@ -115,6 +118,7 @@ export default function Sidebar({
                 setIsPurchasesExpanded(false);
                 setIsFinanceExpanded(false);
                 setIsSettingsExpanded(false);
+                setIsDashboardExpanded(false);
             }
             return next;
         });
@@ -128,6 +132,7 @@ export default function Sidebar({
                 setIsPurchasesExpanded(false);
                 setIsFinanceExpanded(false);
                 setIsSettingsExpanded(false);
+                setIsDashboardExpanded(false);
             }
             return next;
         });
@@ -141,6 +146,7 @@ export default function Sidebar({
                 setIsCustomersExpanded(false);
                 setIsFinanceExpanded(false);
                 setIsSettingsExpanded(false);
+                setIsDashboardExpanded(false);
             }
             return next;
         });
@@ -154,6 +160,7 @@ export default function Sidebar({
                 setIsCustomersExpanded(false);
                 setIsPurchasesExpanded(false);
                 setIsSettingsExpanded(false);
+                setIsDashboardExpanded(false);
             }
             return next;
         });
@@ -167,6 +174,21 @@ export default function Sidebar({
                 setIsCustomersExpanded(false);
                 setIsPurchasesExpanded(false);
                 setIsFinanceExpanded(false);
+                setIsDashboardExpanded(false);
+            }
+            return next;
+        });
+    };
+
+    const toggleDashboard = () => {
+        setIsDashboardExpanded(prev => {
+            const next = !prev;
+            if (next) {
+                setIsProductsExpanded(false);
+                setIsCustomersExpanded(false);
+                setIsPurchasesExpanded(false);
+                setIsFinanceExpanded(false);
+                setIsSettingsExpanded(false);
             }
             return next;
         });
@@ -179,6 +201,7 @@ export default function Sidebar({
         setIsProductsExpanded(false);
         setIsPurchasesExpanded(false);
         setIsSettingsExpanded(false);
+        setIsDashboardExpanded(false);
         if (!isMobileMode) {
             setIsExpandedInternal(false);
         }
@@ -333,14 +356,26 @@ export default function Sidebar({
                     <span style={labelTextStyle}>Punto de Venta</span>
                 </div>
 
-                {/* Dashboard */}
+                {/* Dashboard (Expandible) */}
                 <div 
-                    onClick={() => handleTabSelect('dashboard')}
-                    style={getNavBtnStyle(activeTab === 'dashboard')}
+                    onClick={toggleDashboard}
+                    style={getNavBtnStyle(activeTab === 'dashboard-general' || activeTab === 'dashboard-stats')}
                 >
                     <TrendingUp size={22} style={{ flexShrink: 0 }} />
                     <span style={labelTextStyle}>Dashboard</span>
+                    {isDashboardExpanded ? <ChevronUp size={16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={16} style={{ marginLeft: 'auto', color: '#64748b' }} />}
                 </div>
+
+                {isDashboardExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: '26px', paddingLeft: '8px', boxSizing: 'border-box' }}>
+                        <div onClick={() => handleTabSelect('dashboard-general')} style={{ width: '100%', height: '34px', background: activeTab === 'dashboard-general' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'dashboard-general' ? 800 : 600, color: activeTab === 'dashboard-general' ? '#3b82f6' : '#64748b' }}>Métricas Generales</span>
+                        </div>
+                        <div onClick={() => handleTabSelect('dashboard-stats')} style={{ width: '100%', height: '34px', background: activeTab === 'dashboard-stats' ? 'rgba(59,130,246,0.06)' : 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <span style={{ fontSize: '11px', fontWeight: activeTab === 'dashboard-stats' ? 800 : 600, color: activeTab === 'dashboard-stats' ? '#3b82f6' : '#64748b' }}>Estadísticas</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Historial Ventas */}
                 <div 
@@ -684,14 +719,76 @@ export default function Sidebar({
                     {isExpanded && <span style={labelTextStyle}>Punto de Venta</span>}
                 </div>
                 
+                {/* Dashboard (Expandible) */}
                 <div 
-                    onClick={() => handleTabSelect('dashboard')}
-                    style={getNavBtnStyle(activeTab === 'dashboard')}
+                    onClick={toggleDashboard}
+                    style={getNavBtnStyle(activeTab === 'dashboard-general' || activeTab === 'dashboard-stats')}
                     title={isExpanded ? "" : "Dashboard"}
                 >
                     <TrendingUp size={iconSize} style={{ flexShrink: 0 }} />
                     {isExpanded && <span style={labelTextStyle}>Dashboard</span>}
+                    {isExpanded && (isDashboardExpanded ? <ChevronUp size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} /> : <ChevronDown size={isTablet ? 14 : 16} style={{ marginLeft: 'auto', color: '#64748b' }} />)}
                 </div>
+
+                {isExpanded && isDashboardExpanded && (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px', borderLeft: 'none', marginLeft: isTablet ? '12px' : '26px', paddingLeft: isTablet ? '4px' : '8px', paddingRight: isTablet ? '8px' : '16px', boxSizing: 'border-box' }}>
+                        {/* Subapartado 1: Métricas Generales */}
+                        <div 
+                            onClick={() => handleTabSelect('dashboard-general')}
+                            style={{
+                                width: '100%',
+                                height: '34px',
+                                background: activeTab === 'dashboard-general' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: isTablet ? '8px' : '12px',
+                                color: activeTab === 'dashboard-general' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: isTablet ? '10px' : '11px', 
+                                fontWeight: activeTab === 'dashboard-general' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Métricas Generales
+                            </span>
+                        </div>
+
+                        {/* Subapartado 2: Estadísticas */}
+                        <div 
+                            onClick={() => handleTabSelect('dashboard-stats')}
+                            style={{
+                                width: '100%',
+                                height: '34px',
+                                background: activeTab === 'dashboard-stats' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                paddingLeft: isTablet ? '8px' : '12px',
+                                color: activeTab === 'dashboard-stats' ? '#3b82f6' : '#64748b',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                marginTop: '-2px',
+                                marginBottom: '2px'
+                            }}
+                        >
+                            <span style={{ 
+                                fontSize: isTablet ? '10px' : '11px', 
+                                fontWeight: activeTab === 'dashboard-stats' ? 900 : 700, 
+                                whiteSpace: 'nowrap' 
+                            }}>
+                                Estadísticas
+                            </span>
+                        </div>
+                    </div>
+                )}
                 
                 <div 
                     onClick={() => handleTabSelect('sales')}

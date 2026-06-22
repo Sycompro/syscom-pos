@@ -10,12 +10,11 @@ import { useSession } from 'next-auth/react';
 import CustomSelect from './CustomSelect';
 import CustomDatePicker from './CustomDatePicker';
 
-export default function DashboardView() {
+export default function DashboardView({ currentTab = 'general' }) {
   const { data: session } = useSession();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentTab, setCurrentTab] = useState('general'); // 'general' | 'stats'
 
   const formatLocalDate = (date) => {
     const year = date.getFullYear();
@@ -736,72 +735,6 @@ export default function DashboardView() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* TAB SELECTOR PORCELAIN */}
-          <div style={{
-            display: 'flex',
-            background: '#fff',
-            padding: '4px',
-            borderRadius: '14px',
-            border: '1px solid #e2e8f0',
-            alignSelf: 'flex-start',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.015)',
-            marginBottom: '4px'
-          }}>
-            <button 
-              onClick={() => setCurrentTab('general')}
-              style={currentTab === 'general' ? {
-                padding: '8px 20px',
-                borderRadius: '10px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: '#fff',
-                fontSize: '12px',
-                fontWeight: 850,
-                cursor: 'pointer',
-                boxShadow: '0 4px 10px rgba(37, 99, 235, 0.15)',
-                transition: 'all 0.2s'
-              } : {
-                padding: '8px 20px',
-                borderRadius: '10px',
-                border: 'none',
-                background: 'transparent',
-                fontSize: '12px',
-                fontWeight: 750,
-                color: '#64748b',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              Métricas Generales
-            </button>
-            <button 
-              onClick={() => setCurrentTab('stats')}
-              style={currentTab === 'stats' ? {
-                padding: '8px 20px',
-                borderRadius: '10px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: '#fff',
-                fontSize: '12px',
-                fontWeight: 850,
-                cursor: 'pointer',
-                boxShadow: '0 4px 10px rgba(37, 99, 235, 0.15)',
-                transition: 'all 0.2s'
-              } : {
-                padding: '8px 20px',
-                borderRadius: '10px',
-                border: 'none',
-                background: 'transparent',
-                fontSize: '12px',
-                fontWeight: 750,
-                color: '#64748b',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              Rendimiento Estadístico
-            </button>
-          </div>
 
           {currentTab === 'general' && (
             <>
