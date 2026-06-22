@@ -1101,9 +1101,9 @@ export default function POSPage() {
                 {/* Cabecera Global Móvil para celulares */}
                 {isMobileDevice && (
                     <div style={{ 
-                        background: '#131722', 
+                        background: '#000000', 
                         height: '56px', 
-                        borderBottom: '1px solid #1e222d', 
+                        borderBottom: '1px solid #141414', 
                         display: 'flex', 
                         alignItems: 'center', 
                         padding: '0 16px',
@@ -1112,8 +1112,8 @@ export default function POSPage() {
                     }}>
                         {activeTab === 'pos' ? (
                             <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '23px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
-                                <span style={{ color: '#60a5fa' }}>Syscom</span>
-                                <span style={{ color: '#f1f5f9' }}>.click</span>
+                                <span style={{ color: '#3b82f6' }}>Syscom</span>
+                                <span style={{ color: '#ffffff' }}>.click</span>
                             </span>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -1137,7 +1137,7 @@ export default function POSPage() {
                                      activeTab === 'classifications' ? 'Clasificaciones' :
                                      activeTab === 'brands' ? 'Marcas ERP' : 'POS'}
                                 </span>
-                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase' }}>
+                                <span style={{ fontSize: '9px', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase' }}>
                                     {companySettings?.company?.commercialName || companySettings?.company?.name || 'Sede'}
                                 </span>
                             </div>
