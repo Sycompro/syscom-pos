@@ -449,6 +449,12 @@ export default function POSPage() {
 
     const executeCustomerSearch = async (val) => {
         if (!val || val.length < (searchType === 'CE' ? 5 : 8)) return;
+        
+        // Quitar el foco para ocultar el teclado nativo en tablets y celulares
+        if (typeof document !== 'undefined' && document.activeElement) {
+            document.activeElement.blur();
+        }
+
         setIsSearchingCustomer(true);
         try {
             const res = await fetch(`/api/customers/search?q=${val}&docType=${searchType}`);
