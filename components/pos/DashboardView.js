@@ -544,216 +544,183 @@ export default function DashboardView() {
             />
           </div>
 
-          {/* Presets de Fecha */}
-          <div style={{
-            ...presetsWrapperStyle,
-            flex: '1 1 280px',
-            minWidth: '240px',
-            justifyContent: 'space-around'
-          }}>
-            <button 
-              onClick={() => setDatePreset('day')}
-              style={datePreset === 'day' ? activePresetBtnStyle : presetBtnStyle}
-            >
-              Por Día
-            </button>
-            <button 
-              onClick={() => setDatePreset('month')}
-              style={datePreset === 'month' ? activePresetBtnStyle : presetBtnStyle}
-            >
-              Por Mes
-            </button>
-            <button 
-              onClick={() => setDatePreset('year')}
-              style={datePreset === 'year' ? activePresetBtnStyle : presetBtnStyle}
-            >
-              Por Año
-            </button>
-            <button 
-              onClick={() => setDatePreset('custom')}
-              style={datePreset === 'custom' ? activePresetBtnStyle : presetBtnStyle}
-            >
-              Rango Libre
-            </button>
+          {/* Selector de Período de Fecha */}
+          <div style={{ flex: '1 1 150px', minWidth: '120px' }}>
+            <CustomSelect
+              value={datePreset}
+              onChange={e => setDatePreset(e.target.value)}
+              options={[
+                { value: 'day', label: 'Por Día' },
+                { value: 'month', label: 'Por Mes' },
+                { value: 'year', label: 'Por Año' },
+                { value: 'custom', label: 'Rango Libre' }
+              ]}
+              icon={<Calendar size={14} color="#64748b" />}
+              placeholder="Período..."
+              style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                background: '#fff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                height: '35px',
+                fontSize: '12px',
+                color: '#334155',
+                fontWeight: 800,
+                width: '100%'
+              }}
+            />
           </div>
+
+          {/* Filtros de fecha al costado */}
+          {datePreset === 'day' && (
+            <div style={{ flex: '1 1 150px', minWidth: '120px' }}>
+              <CustomDatePicker
+                value={filterDay}
+                onChange={val => setFilterDay(val)}
+                style={{
+                  height: '35px',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '12px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                  width: '100%'
+                }}
+              />
+            </div>
+          )}
+
+          {datePreset === 'month' && (
+            <div style={{ display: 'flex', gap: '8px', flex: '1 1 220px', minWidth: '180px' }}>
+              <div style={{ flex: 1 }}>
+                <CustomSelect 
+                  value={String(filterMonth)} 
+                  onChange={e => setFilterMonth(parseInt(e.target.value))} 
+                  options={[
+                    { value: '1', label: 'Enero' },
+                    { value: '2', label: 'Febrero' },
+                    { value: '3', label: 'Marzo' },
+                    { value: '4', label: 'Abril' },
+                    { value: '5', label: 'Mayo' },
+                    { value: '6', label: 'Junio' },
+                    { value: '7', label: 'Julio' },
+                    { value: '8', label: 'Agosto' },
+                    { value: '9', label: 'Septiembre' },
+                    { value: '10', label: 'Octubre' },
+                    { value: '11', label: 'Noviembre' },
+                    { value: '12', label: 'Diciembre' }
+                  ]}
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    background: '#fff',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                    height: '35px',
+                    fontSize: '12px',
+                    color: '#334155',
+                    fontWeight: 800,
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <CustomSelect 
+                  value={String(filterYear)} 
+                  onChange={e => setFilterYear(parseInt(e.target.value))} 
+                  options={Array.from({ length: 5 }).map((_, i) => {
+                    const yr = new Date().getFullYear() - 3 + i;
+                    return { value: String(yr), label: String(yr) };
+                  })}
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    background: '#fff',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                    height: '35px',
+                    fontSize: '12px',
+                    color: '#334155',
+                    fontWeight: 800,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {datePreset === 'year' && (
+            <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
+              <CustomSelect 
+                value={String(filterYear)} 
+                onChange={e => setFilterYear(parseInt(e.target.value))} 
+                options={Array.from({ length: 5 }).map((_, i) => {
+                  const yr = new Date().getFullYear() - 3 + i;
+                  return { value: String(yr), label: String(yr) };
+                })}
+                style={{
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  background: '#fff',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                  height: '35px',
+                  fontSize: '12px',
+                  color: '#334155',
+                  fontWeight: 800,
+                }}
+              />
+            </div>
+          )}
+
+          {datePreset === 'custom' && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: '1 1 360px', minWidth: '280px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '100px' }}>
+                <CustomDatePicker
+                  value={startDate}
+                  onChange={val => setStartDate(val)}
+                  style={{
+                    height: '35px',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '12px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                    width: '100%'
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
+              <div style={{ flex: 1, minWidth: '100px' }}>
+                <CustomDatePicker
+                  value={endDate}
+                  onChange={val => setEndDate(val)}
+                  style={{
+                    height: '35px',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '12px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
+                    width: '100%'
+                  }}
+                />
+              </div>
+              <button 
+                onClick={fetchDashboardData} 
+                style={{ 
+                  background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  fontSize: '11px',
+                  fontWeight: 850,
+                  cursor: 'pointer',
+                  height: '35px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                Consultar
+              </button>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Selectores dinámicos según el tipo de período */}
-      {datePreset !== 'custom' && (
-        <div style={{ ...customRangeStyle, marginBottom: '8px' }}>
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '12px 16px',
-            boxSizing: 'border-box'
-          }}>
-            {datePreset === 'day' && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Calendar size={14} color="#3b82f6" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Día Específico:</span>
-                </div>
-                <div style={{ flex: '1 1 150px' }}>
-                  <CustomDatePicker
-                    value={filterDay}
-                    onChange={val => setFilterDay(val)}
-                    style={{
-                      height: '35px',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      fontSize: '12px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
-                    }}
-                  />
-                </div>
-              </>
-            )}
-
-            {datePreset === 'month' && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Calendar size={14} color="#3b82f6" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Mes y Año:</span>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', flex: '1 1 auto' }}>
-                  <div style={{ flex: '1 1 120px', minWidth: '100px' }}>
-                    <CustomSelect 
-                      value={String(filterMonth)} 
-                      onChange={e => setFilterMonth(parseInt(e.target.value))} 
-                      options={[
-                        { value: '1', label: 'Enero' },
-                        { value: '2', label: 'Febrero' },
-                        { value: '3', label: 'Marzo' },
-                        { value: '4', label: 'Abril' },
-                        { value: '5', label: 'Mayo' },
-                        { value: '6', label: 'Junio' },
-                        { value: '7', label: 'Julio' },
-                        { value: '8', label: 'Agosto' },
-                        { value: '9', label: 'Septiembre' },
-                        { value: '10', label: 'Octubre' },
-                        { value: '11', label: 'Noviembre' },
-                        { value: '12', label: 'Diciembre' }
-                      ]}
-                      style={{
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '12px',
-                        background: '#fff',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-                        height: '35px',
-                        fontSize: '12px',
-                        color: '#334155',
-                        fontWeight: 800,
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
-                    <CustomSelect 
-                      value={String(filterYear)} 
-                      onChange={e => setFilterYear(parseInt(e.target.value))} 
-                      options={Array.from({ length: 5 }).map((_, i) => {
-                        const yr = new Date().getFullYear() - 3 + i;
-                        return { value: String(yr), label: String(yr) };
-                      })}
-                      style={{
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '12px',
-                        background: '#fff',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-                        height: '35px',
-                        fontSize: '12px',
-                        color: '#334155',
-                        fontWeight: 800,
-                      }}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {datePreset === 'year' && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Calendar size={14} color="#3b82f6" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Seleccionar Año:</span>
-                </div>
-                <div style={{ flex: '1 1 120px', minWidth: '100px' }}>
-                  <CustomSelect 
-                    value={String(filterYear)} 
-                    onChange={e => setFilterYear(parseInt(e.target.value))} 
-                    options={Array.from({ length: 5 }).map((_, i) => {
-                      const yr = new Date().getFullYear() - 3 + i;
-                      return { value: String(yr), label: String(yr) };
-                    })}
-                    style={{
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      background: '#fff',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-                      height: '35px',
-                      fontSize: '12px',
-                      color: '#334155',
-                      fontWeight: 800,
-                    }}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {datePreset === 'custom' && (
-        <div style={{ ...customRangeStyle, marginBottom: '8px' }}>
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            alignItems: 'center', 
-            gap: '12px', 
-            padding: '12px 16px',
-            boxSizing: 'border-box'
-          }}>
-            <Calendar size={14} color="#64748b" style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>Rango:</span>
-            <div style={{ flex: '1 1 130px', minWidth: '120px' }}>
-              <CustomDatePicker
-                value={startDate}
-                onChange={val => setStartDate(val)}
-                style={{
-                  height: '35px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  fontSize: '12px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
-                }}
-              />
-            </div>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>hasta</span>
-            <div style={{ flex: '1 1 130px', minWidth: '120px' }}>
-              <CustomDatePicker
-                value={endDate}
-                onChange={val => setEndDate(val)}
-                style={{
-                  height: '35px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  fontSize: '12px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
-                }}
-              />
-            </div>
-            <button 
-              onClick={fetchDashboardData} 
-              style={{ ...queryBtnStyle, flex: '1 1 auto', minWidth: '100px', padding: '6px 16px' }}
-            >
-              Consultar
-            </button>
-          </div>
-        </div>
-      )}
 
       {loading && !data ? (
         <div style={loadingContainerStyle}>
