@@ -277,18 +277,17 @@ export default function Sidebar({
                 gap: '4px'
             }} className="no-scrollbar">
                 {/* Cabecera del Menú */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', borderBottom: 'none', marginBottom: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Isotipo />
-                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none' }}>
-                            <span style={{ color: '#3b82f6' }}>Syscom</span>
-                            <span style={{ color: '#0f172a' }}>.click</span>
-                        </span>
-                    </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', paddingBottom: '12px', borderBottom: 'none', marginBottom: '12px', position: 'relative' }}>
+                    <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none' }}>
+                        <span style={{ color: '#3b82f6' }}>Syscom</span>
+                        <span style={{ color: '#0f172a' }}>.click</span>
+                    </span>
                     {onCloseMobileMenu && (
                         <button 
                             onClick={onCloseMobileMenu}
                             style={{ 
+                                position: 'absolute',
+                                right: '0',
                                 border: 'none', 
                                 background: '#f1f5f9', 
                                 color: '#64748b', 
@@ -620,10 +619,8 @@ export default function Sidebar({
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
-                        width: '100%',
-                        gap: '10px'
+                        width: '100%'
                     }}>
-                        <Isotipo isTablet={isTablet} />
                         <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: isTablet ? '17px' : '20px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                             <span style={{ color: '#3b82f6' }}>Syscom</span>
                             <span style={{ color: '#0f172a' }}>.click</span>
