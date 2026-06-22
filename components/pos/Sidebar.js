@@ -1161,7 +1161,7 @@ export default function Sidebar({
             </div>
 
             {/* Botón de Cerrar Sesión Estilo Cápsula (Fijado al borde inferior del aside) */}
-            <div style={{ marginTop: '8px', marginBottom: !isMobileMode ? '14px' : '6px', padding: isExpanded ? (isTablet ? '0 12px' : '0 16px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
+            <div style={{ marginTop: '8px', marginBottom: !isMobileMode ? (isExpanded ? '14px' : '4px') : '6px', padding: isExpanded ? (isTablet ? '0 12px' : '0 16px') : '0', width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
                 <button 
                     onClick={onSignOut} 
                     title={isExpanded ? "" : "Cerrar Sesión"}
