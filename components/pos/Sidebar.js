@@ -533,22 +533,24 @@ export default function Sidebar({
                 )}
 
                 {/* Cerrar Caja */}
-                <button 
-                    onClick={onOpenCloseCash} 
-                    style={{
-                        ...getBottomBtnStyle(),
-                        width: '100%',
-                        height: '40px',
-                        borderRadius: '10px',
-                        padding: '0 12px',
-                        gap: '12px',
-                        fontSize: '11px',
-                        fontWeight: 800
-                    }}
-                >
-                    <Lock size={22} style={{ flexShrink: 0 }} />
-                    <span>Cerrar Caja</span>
-                </button>
+                {!isMobileMode && (
+                    <button 
+                        onClick={onOpenCloseCash} 
+                        style={{
+                            ...getBottomBtnStyle(),
+                            width: '100%',
+                            height: '40px',
+                            borderRadius: '10px',
+                            padding: '0 12px',
+                            gap: '12px',
+                            fontSize: '11px',
+                            fontWeight: 800
+                        }}
+                    >
+                        <Lock size={22} style={{ flexShrink: 0 }} />
+                        <span>Cerrar Caja</span>
+                    </button>
+                )}
 
                 {/* Botón de Cerrar Sesión Estilo Cápsula */}
                 <div style={{ marginTop: '24px', marginBottom: '16px', padding: '0 4px', width: '100%', boxSizing: 'border-box' }}>

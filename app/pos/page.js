@@ -1144,6 +1144,25 @@ export default function POSPage() {
                         )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <button
+                                onClick={() => setShowCloseModal(true)}
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: '#f1f5f9',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '6px',
+                                    borderRadius: '50%',
+                                    transition: 'background 0.2s, transform 0.2s',
+                                    outline: 'none'
+                                }}
+                                aria-label="Cerrar Caja"
+                            >
+                                <Lock size={22} />
+                            </button>
+                            <button
                                 onClick={() => setShowHistoryModal(true)}
                                 style={{
                                     border: 'none',
