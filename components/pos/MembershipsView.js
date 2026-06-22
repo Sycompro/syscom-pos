@@ -346,9 +346,9 @@ export default function MembershipsView({
                     </div>
 
                     {/* Tabla de Resultados */}
-                    <div style={{ ...tableContainerStyle, overflowX: windowWidth < 1024 ? 'auto' : 'hidden' }}>
+                    <div style={{ ...tableContainerStyle, overflowX: (windowWidth < 1024 && !isMobile) ? 'auto' : 'hidden' }}>
                         {!isMobile && (
-                            <div style={{ ...tableHeaderStyle, minWidth: windowWidth < 1024 ? '850px' : 'auto' }}>
+                            <div style={{ ...tableHeaderStyle, minWidth: (windowWidth < 1024 && !isMobile) ? '850px' : 'auto' }}>
                                 <span style={{ flex: 2 }}>Miembro</span>
                                 <span style={{ flex: 1.5 }}>Sede</span>
                                 <span style={{ flex: 1.5 }}>Plan</span>
@@ -361,7 +361,7 @@ export default function MembershipsView({
                         )}
 
                         {/* Contenedor Scrollable para el Cuerpo de la Tabla */}
-                        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, minWidth: windowWidth < 1024 ? '850px' : 'auto' }} className="no-scrollbar">
+                        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, minWidth: (windowWidth < 1024 && !isMobile) ? '850px' : 'auto' }} className="no-scrollbar">
                             {loading ? (
                                 <div style={loadingStyle}>Cargando membresías...</div>
                             ) : (members || []).length === 0 ? (
@@ -914,7 +914,7 @@ export default function MembershipsView({
                                                 exit={{ height: 0, opacity: 0 }}
                                                 style={{ overflow: 'hidden', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}
                                             >
-                                                <div style={{ padding: '20px 40px 24px 70px' }}>
+                                                <div style={{ padding: isMobile ? '16px 12px 20px 12px' : '20px 40px 24px 70px' }}>
                                                     
                                                     {/* Pestañas (Tabs) estilo Porcelain Glass */}
                                                     <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #e2e8f0', marginBottom: '16px' }}>
@@ -958,7 +958,7 @@ export default function MembershipsView({
                                                             Línea de Crédito
                                                         </button>
                                                     </div>
-
+ 
                                                     {activeExpandedTab === 'history' ? (
                                                         <>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -967,7 +967,7 @@ export default function MembershipsView({
                                                                     Historial de Operaciones
                                                                 </span>
                                                             </div>
-
+ 
                                                             {loadingHistory && !memberHistory[member.id] ? (
                                                                 <div style={{ padding: '10px', fontSize: '12px', color: '#94a3b8' }}>Consultando base de datos...</div>
                                                             ) : (memberHistory[member.id] || []).length === 0 ? (
@@ -978,12 +978,12 @@ export default function MembershipsView({
                                                                         <div key={hIdx} style={{ 
                                                                             display: 'flex', alignItems: 'center', justifycontent: 'space-between', 
                                                                             background: hIdx === 0 ? '#fff' : 'transparent',
-                                                                            padding: '10px 16px', borderRadius: '10px',
+                                                                            padding: isMobile ? '8px 10px' : '10px 16px', borderRadius: '10px',
                                                                             border: hIdx === 0 ? '1px solid #e2e8f0' : '1px solid transparent',
                                                                             boxShadow: hIdx === 0 ? '0 2px 4px rgba(0,0,0,0.02)' : 'none',
                                                                             display: 'flex', justifyContent: 'space-between'
                                                                         }}>
-                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
                                                                                 <div style={{ 
                                                                                     width: '32px', height: '32px', borderRadius: '8px', 
                                                                                     background: hIdx === 0 ? '#f5f3ff' : '#f1f5f9',
