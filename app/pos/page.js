@@ -1193,7 +1193,7 @@ export default function POSPage() {
                                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                                 aria-label="Abrir menú"
                             >
-                                <Isotipo />
+                                <Menu size={22} style={{ color: '#f1f5f9' }} />
                             </button>
                         </div>
                     </div>
