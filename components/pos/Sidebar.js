@@ -669,41 +669,13 @@ export default function Sidebar({
                     <div style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
-                        justifyContent: 'space-between',
-                        width: '100%',
-                        padding: isTablet ? '0 8px' : '0 12px',
-                        boxSizing: 'border-box'
+                        justifyContent: 'center',
+                        width: '100%'
                     }}>
                         <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: isTablet ? '17px' : '20px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                             <span style={{ color: '#3b82f6' }}>Syscom</span>
                             <span style={{ color: '#0f172a' }}>.click</span>
                         </span>
-                        
-                        {/* Botón de Hamburguesa para colapsar en pantallas táctiles / manual */}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsExpandedInternal(false);
-                            }}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#64748b',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '6px',
-                                borderRadius: '8px',
-                                transition: 'all 0.2s',
-                                outline: 'none'
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                            title="Colapsar menú"
-                        >
-                            <Menu size={18} />
-                        </button>
                     </div>
                 ) : (
                     <div 
