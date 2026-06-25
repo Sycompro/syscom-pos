@@ -64,6 +64,7 @@ export default function Sidebar({
     const isTablet = !isMobileMode && windowWidth < 1280;
     const iconSize = isTablet ? 18 : 22;
     const [hasHoverSupport, setHasHoverSupport] = useState(true);
+    const [isUsingTouch, setIsUsingTouch] = useState(false);
 
     const isExpanded = isMobileMode ? true : isExpandedInternal;
 
@@ -82,6 +83,18 @@ export default function Sidebar({
             const hoverSupport = window.matchMedia('(hover: hover)').matches;
             setHasHoverSupport(hoverSupport);
         }
+    }, []);
+
+    // Registrar globalmente si se realiza una interacción touch para desactivar hover errático
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const handleGlobalTouch = () => {
+            setIsUsingTouch(true);
+        };
+        window.addEventListener('touchstart', handleGlobalTouch, { passive: true });
+        return () => {
+            window.removeEventListener('touchstart', handleGlobalTouch);
+        };
     }, []);
 
     useEffect(() => {
@@ -610,17 +623,18 @@ export default function Sidebar({
             )}
             <aside 
                 id="sidebar-container"
-            onMouseEnter={() => {
-                if (hasHoverSupport) {
-                    setIsExpandedInternal(true);
-                }
-            }}
-            onMouseLeave={() => {
-                if (hasHoverSupport) {
-                    setIsExpandedInternal(false);
-                }
-            }}
-            onClick={handleAsideClick}
+                onMouseEnter={() => {
+                    if (hasHoverSupport && !isUsingTouch) {
+                        setIsExpandedInternal(true);
+                    }
+                }}
+                onMouseLeave={() => {
+                    if (hasHoverSupport && !isUsingTouch) {
+                        setIsExpandedInternal(false);
+                    }
+                }}
+                onTouchStart={() => setIsUsingTouch(true)}
+                onClick={handleAsideClick}
             style={{
                 ...asideStyle,
                 overflowY: 'hidden'
@@ -655,17 +669,48 @@ export default function Sidebar({
                     <div style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
-                        justifyContent: 'center',
-                        width: '100%'
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        padding: isTablet ? '0 8px' : '0 12px',
+                        boxSizing: 'border-box'
                     }}>
                         <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: isTablet ? '17px' : '20px', fontWeight: 900, letterSpacing: '-0.03em', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
                             <span style={{ color: '#3b82f6' }}>Syscom</span>
                             <span style={{ color: '#0f172a' }}>.click</span>
                         </span>
+                        
+                        {/* Botón de Hamburguesa para colapsar en pantallas táctiles / manual */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsExpandedInternal(false);
+                            }}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#64748b',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '6px',
+                                borderRadius: '8px',
+                                transition: 'all 0.2s',
+                                outline: 'none'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                            title="Colapsar menú"
+                        >
+                            <Menu size={18} />
+                        </button>
                     </div>
                 ) : (
                     <div 
-                        onClick={() => setIsExpandedInternal(true)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsExpandedInternal(true);
+                        }}
                         style={{
                             cursor: 'pointer',
                             display: 'flex',
