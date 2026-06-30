@@ -104,7 +104,18 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   const [ocmCodalmGlobal, setOcmCodalmGlobal] = useState('');
   const [ocmNextNdocu, setOcmNextNdocu] = useState('');
 
-  // Estado para bloquear OCM en edición
+  // Estados para Modal de Registro Rápido de Proveedor
+  const [showQuickSupplierModal, setShowQuickSupplierModal] = useState(false);
+  const [quickSupplierNompro, setQuickSupplierNompro] = useState('');
+  const [quickSupplierRucpro, setQuickSupplierRucpro] = useState('');
+  const [quickSupplierDirpro, setQuickSupplierDirpro] = useState('');
+  const [quickSupplierTelpro, setQuickSupplierTelpro] = useState('');
+  const [quickSupplierEmail, setQuickSupplierEmail] = useState('');
+  const [quickSupplierDocType, setQuickSupplierDocType] = useState('06');
+  const [searchingQuickRuc, setSearchingQuickRuc] = useState(false);
+  const [quickSupplierModalError, setQuickSupplierModalError] = useState(null);
+  const [isSubmittingQuickSupplier, setIsSubmittingQuickSupplier] = useState(false);
+
   const [isOcmBlocked, setIsOcmBlocked] = useState(false);
   const [ocmBlockReason, setOcmBlockReason] = useState(null); // 'has_gim' o 'approved'
   const [editingOcmNumber, setEditingOcmNumber] = useState(null);
@@ -423,71 +434,90 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     return () => clearTimeout(delayDebounceFn);
   }, [supplierSearchQuery, isGenericSupplier]);
 
-  // Consulta rápida de RUC/DNI en SUNAT/RENIEC
-  const handleQuickLookup = async (query) => {
-    setSearchingQuickLookup(true);
-    setQuickLookupResult(null);
-    setErrorMsg(null);
+  const handleQuickLookupDocument = async (val = quickSupplierRucpro, docType = quickSupplierDocType) => {
+    const cleanDoc = val.trim();
+    if (!cleanDoc) return;
+    
+    if (docType === '06' && cleanDoc.length !== 11) return;
+    if (docType === '01' && cleanDoc.length !== 8) return;
+    
+    setSearchingQuickRuc(true);
+    setQuickSupplierModalError(null);
     try {
-      const docType = query.length === 11 ? '06' : '01';
-      const res = await fetch(`/api/suppliers/lookup?q=${encodeURIComponent(query)}&docType=${docType}`);
+      const res = await fetch(`/api/suppliers/lookup?q=${encodeURIComponent(cleanDoc)}&docType=${docType}`);
       const data = await res.json();
       if (data.success) {
         if (data.exists) {
-          handleSelectSupplier(data.supplier);
+          setQuickSupplierModalError(`El proveedor ya está registrado (${data.supplier.codpro} - ${data.supplier.nompro})`);
+          setQuickSupplierNompro(data.supplier.nompro);
+          setQuickSupplierDirpro(data.supplier.dirpro || '');
+          setQuickSupplierTelpro(data.supplier.telpro || '');
+          setQuickSupplierEmail(data.supplier.email || '');
         } else if (data.data) {
-          setQuickLookupResult({
-            nompro: data.data.nompro,
-            rucpro: query,
-            dirpro: data.data.dirpro || ''
-          });
-        } else {
-          setErrorMsg('No se encontraron datos en la consulta pública.');
+          setQuickSupplierNompro(data.data.nompro || '');
+          setQuickSupplierDirpro(data.data.dirpro || '');
         }
-      } else {
-        setErrorMsg(data.error || 'Error al consultar documento.');
       }
     } catch (err) {
-      console.error(err);
-      setErrorMsg('Error al conectar con el servicio de consulta.');
+      console.error('[PurchasesView] Error querying RUC/DNI:', err);
     } finally {
-      setSearchingQuickLookup(false);
+      setSearchingQuickRuc(false);
     }
   };
 
-  // Registrar proveedor rápido y seleccionarlo automáticamente
-  const handleRegisterQuickSupplier = async () => {
-    if (!quickLookupResult) return;
-    setLoading(true);
-    setErrorMsg(null);
+  const handleSubmitQuickSupplier = async (e) => {
+    if (e) e.preventDefault();
+    setQuickSupplierModalError(null);
+    
+    if (!quickSupplierNompro.trim()) {
+      setQuickSupplierModalError("La Razón Social / Nombre es requerido.");
+      return;
+    }
+    if (!quickSupplierRucpro.trim()) {
+      setQuickSupplierModalError("El Documento de Identidad es requerido.");
+      return;
+    }
+    if (quickSupplierDocType === '06' && quickSupplierRucpro.trim().length !== 11) {
+      setQuickSupplierModalError("El RUC debe tener exactamente 11 dígitos.");
+      return;
+    }
+    if (quickSupplierDocType === '01' && quickSupplierRucpro.trim().length !== 8) {
+      setQuickSupplierModalError("El DNI debe tener exactamente 8 dígitos.");
+      return;
+    }
+
+    setIsSubmittingQuickSupplier(true);
     try {
-      const docType = quickLookupResult.rucpro.length === 11 ? '06' : '01';
+      const payload = {
+        nompro: quickSupplierNompro.trim(),
+        rucpro: quickSupplierRucpro.trim(),
+        dirpro: quickSupplierDirpro.trim(),
+        telpro: quickSupplierTelpro.trim(),
+        email: quickSupplierEmail.trim(),
+        docType: quickSupplierDocType
+      };
+
       const res = await fetch('/api/suppliers/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nompro: quickLookupResult.nompro,
-          rucpro: quickLookupResult.rucpro,
-          dirpro: quickLookupResult.dirpro,
-          docType: docType
-        })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.success) {
         handleSelectSupplier({
           codpro: data.codpro,
-          nompro: quickLookupResult.nompro,
-          rucpro: quickLookupResult.rucpro
+          nompro: quickSupplierNompro.trim(),
+          rucpro: quickSupplierRucpro.trim()
         });
-        setQuickLookupResult(null);
+        setShowQuickSupplierModal(false);
       } else {
-        throw new Error(data.error || 'Error al registrar proveedor');
+        throw new Error(data.error || 'Fallo al registrar proveedor');
       }
     } catch (err) {
       console.error(err);
-      setErrorMsg(err.message);
+      setQuickSupplierModalError(err.message);
     } finally {
-      setLoading(false);
+      setIsSubmittingQuickSupplier(false);
     }
   };
 
@@ -1345,9 +1375,42 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     alignItems: 'end'
                   }}>
                     {/* Proveedor */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Proveedor</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Proveedor</span>
+                          {!isGenericSupplier && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setQuickSupplierNompro('');
+                                setQuickSupplierRucpro('');
+                                setQuickSupplierDirpro('');
+                                setQuickSupplierTelpro('');
+                                setQuickSupplierEmail('');
+                                setQuickSupplierDocType('06');
+                                setQuickSupplierModalError(null);
+                                setShowQuickSupplierModal(true);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                background: '#eff6ff',
+                                border: '1px solid #bfdbfe',
+                                color: '#2563eb',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                fontSize: '8px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                height: '14px',
+                                transition: 'all 0.1s'
+                              }}
+                            >
+                              <Plus size={8} /> NUEVO
+                            </button>
+                          )}
+                        </div>
                         <label style={{ ...checkboxLabelStyle, margin: 0, padding: 0, display: 'flex', alignItems: 'center' }}>
                           <input 
                             type="checkbox" 
@@ -2748,10 +2811,185 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* MODAL REGISTRO RÁPIDO PROVEEDOR */}
+      <AnimatePresence>
+        {showQuickSupplierModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.4)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 100,
+              padding: '16px'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              style={{
+                background: '#fff',
+                borderRadius: '16px',
+                width: '100%',
+                maxWidth: '460px',
+                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Header */}
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+                <span style={{ fontSize: '13px', fontWeight: 950, color: '#0f172a' }}>Nuevo Proveedor</span>
+                <button 
+                  type="button"
+                  onClick={() => setShowQuickSupplierModal(false)}
+                  style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Form Body */}
+              <form onSubmit={handleSubmitQuickSupplier} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {quickSupplierModalError && (
+                  <div style={{ padding: '8px 12px', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', color: '#b91c1c', fontSize: '10px', fontWeight: 800 }}>
+                    {quickSupplierModalError}
+                  </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                  {/* Tipo de Documento */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '9px', fontWeight: 900, color: '#475569', textTransform: 'uppercase' }}>Tipo Doc</label>
+                    <select
+                      value={quickSupplierDocType}
+                      onChange={(e) => {
+                        setQuickSupplierDocType(e.target.value);
+                        setQuickSupplierRucpro('');
+                        setQuickSupplierNompro('');
+                        setQuickSupplierDirpro('');
+                        setQuickSupplierModalError(null);
+                      }}
+                      style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
+                    >
+                      <option value="06">RUC</option>
+                      <option value="01">DNI</option>
+                    </select>
+                  </div>
+
+                  {/* Número de Documento */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '9px', fontWeight: 900, color: '#475569', textTransform: 'uppercase' }}>Doc. Identidad</label>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        placeholder={quickSupplierDocType === '06' ? 'Ingresa RUC' : 'Ingresa DNI'}
+                        value={quickSupplierRucpro}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          setQuickSupplierRucpro(val);
+                          // Auto consulta
+                          if ((quickSupplierDocType === '06' && val.length === 11) || (quickSupplierDocType === '01' && val.length === 8)) {
+                            handleQuickLookupDocument(val, quickSupplierDocType);
+                          }
+                        }}
+                        maxLength={quickSupplierDocType === '06' ? 11 : 8}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
+                      />
+                      {searchingQuickRuc && (
+                        <Loader2 className="animate-spin" size={12} color="#3b82f6" style={{ position: 'absolute', right: '8px' }} />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Razón Social / Nombre */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '9px', fontWeight: 900, color: '#475569', textTransform: 'uppercase' }}>Razón Social / Nombre</label>
+                  <input
+                    type="text"
+                    placeholder="Nombre o Razón Social del proveedor"
+                    value={quickSupplierNompro}
+                    onChange={(e) => setQuickSupplierNompro(e.target.value)}
+                    style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
+                  />
+                </div>
+
+                {/* Dirección */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '9px', fontWeight: 900, color: '#475569', textTransform: 'uppercase' }}>Dirección</label>
+                  <input
+                    type="text"
+                    placeholder="Dirección fiscal"
+                    value={quickSupplierDirpro}
+                    onChange={(e) => setQuickSupplierDirpro(e.target.value)}
+                    style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '8px' }}>
+                  {/* Teléfono */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '9px', fontWeight: 900, color: '#475569', textTransform: 'uppercase' }}>Teléfono</label>
+                    <input
+                      type="text"
+                      placeholder="Teléfono"
+                      value={quickSupplierTelpro}
+                      onChange={(e) => setQuickSupplierTelpro(e.target.value)}
+                      style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
+                    />
+                  </div>
+
+                  {/* Correo */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '9px', fontWeight: 900, color: '#475569', textTransform: 'uppercase' }}>Correo Electrónico</label>
+                    <input
+                      type="email"
+                      placeholder="correo@proveedor.com"
+                      value={quickSupplierEmail}
+                      onChange={(e) => setQuickSupplierEmail(e.target.value)}
+                      style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickSupplierModal(false)}
+                    style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', fontWeight: 800, color: '#475569', background: 'transparent', cursor: 'pointer' }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingQuickSupplier}
+                    style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #a855f7 100%)', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 16px', fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(168, 85, 247, 0.2)', opacity: isSubmittingQuickSupplier ? 0.7 : 1 }}
+                  >
+                    {isSubmittingQuickSupplier ? 'Guardando...' : 'Guardar Proveedor'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-
 // ESTILOS GLASSMORPHIC / PORCELAIN
 const containerStyle = {
   padding: '24px',
