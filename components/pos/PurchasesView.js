@@ -205,9 +205,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
           if (data.transportists && data.transportists.length > 0) {
             setOcmCodtra(data.transportists[0].codtra);
           }
-          if (data.subCentersOfCost && data.subCentersOfCost.length > 0) {
-            setOcmCodscc(data.subCentersOfCost[0].codscc);
-          }
+          setOcmCodscc('');
         }
       } catch (err) {
         console.error('Error fetching OCM metadata:', err);
@@ -1243,7 +1241,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Documento</span>
                       <input 
                         type="text" 
-                        value={editingOcmNumber || 'Correlativo'} 
+                        value={editingOcmNumber || ''} 
                         disabled 
                         style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px', background: '#f1f5f9', color: '#64748b', fontWeight: 700 }}
                       />
@@ -1433,7 +1431,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                         onChange={e => setOcmCodscc(e.target.value)}
                         style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
                       >
-                        <option value="">-- SELECCIONE --</option>
+                        <option value=""></option>
                         {subCentersOfCostList.map((scc, idx) => (
                           <option key={idx} value={scc.codscc}>{scc.nomscc}</option>
                         ))}
