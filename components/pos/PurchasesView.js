@@ -4,10 +4,328 @@ import { useSession } from 'next-auth/react';
 import { 
   Search, Trash2, Calendar, Loader2, Save, ShoppingCart, 
   User, Receipt, ArrowRight, Check, AlertCircle, RefreshCw,
-  FileText, Clipboard, Link as LinkIcon, Plus, X
+  FileText, Clipboard, Link as LinkIcon, Plus, X, ChevronDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCreateModal from './ProductCreateModal';
+
+// --- COMPONENTE SELECT PERSONALIZADO ---
+function CustomSelect({ value, onChange, options, placeholder, style, height = '28px' }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(opt => opt.value === value);
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          borderRadius: '10px',
+          padding: '2px 8px',
+          fontSize: '11px',
+          color: '#334155',
+          fontWeight: 650,
+          outline: 'none',
+          width: '100%',
+          height: height,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          borderColor: isOpen ? '#3b82f6' : '#e2e8f0',
+          boxShadow: isOpen ? '0 0 0 2px rgba(59, 130, 246, 0.15)' : 'none',
+          transition: 'all 0.15s ease',
+          ...style
+        }}
+      >
+        <span style={{ color: selectedOption ? '#1e293b' : '#64748b', fontWeight: selectedOption ? 750 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%' }}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDown size={11} color="#64748b" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }} />
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              marginTop: '4px',
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              zIndex: 150,
+              maxHeight: '180px',
+              overflowY: 'auto',
+              padding: '4px'
+            }}
+          >
+            {options.map((opt, idx) => (
+              <div
+                key={idx}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 750,
+                  background: value === opt.value ? '#eff6ff' : 'transparent',
+                  color: value === opt.value ? '#2563eb' : '#475569',
+                  transition: 'background-color 0.15s',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  if (value !== opt.value) e.currentTarget.style.background = '#f1f5f9';
+                }}
+                onMouseLeave={(e) => {
+                  if (value !== opt.value) e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                {opt.label}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// --- COMPONENTE DATEPICKER PERSONALIZADO ---
+function CustomDatePicker({ value, onChange, height = '28px' }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (value) {
+      const parts = value.split('-');
+      if (parts.length === 3) {
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+    }
+    return new Date();
+  });
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (value) {
+      const parts = value.split('-');
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        if (!isNaN(d.getTime())) {
+          setCurrentDate(d);
+        }
+      }
+    }
+  }, [value]);
+
+  const months = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+
+  const getDaysInMonth = (year, month) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (year, month) => {
+    return new Date(year, month, 1).getDay();
+  };
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const daysInMonth = getDaysInMonth(year, month);
+  const firstDay = getFirstDayOfMonth(year, month);
+
+  const prevMonthDays = getDaysInMonth(year, month - 1);
+
+  const daysGrid = [];
+  for (let i = firstDay - 1; i >= 0; i--) {
+    daysGrid.push({ day: prevMonthDays - i, isCurrentMonth: false, monthOffset: -1 });
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    daysGrid.push({ day: i, isCurrentMonth: true, monthOffset: 0 });
+  }
+  const remaining = 42 - daysGrid.length;
+  for (let i = 1; i <= remaining; i++) {
+    daysGrid.push({ day: i, isCurrentMonth: false, monthOffset: 1 });
+  }
+
+  const handleSelectDay = (cell) => {
+    const selDate = new Date(year, month + cell.monthOffset, cell.day);
+    const y = selDate.getFullYear();
+    const m = (selDate.getMonth() + 1).toString().padStart(2, '0');
+    const d = selDate.getDate().toString().padStart(2, '0');
+    const formatted = `${y}-${m}-${d}`;
+    onChange(formatted);
+    setIsOpen(false);
+  };
+
+  const handlePrevMonth = (e) => {
+    e.stopPropagation();
+    setCurrentDate(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = (e) => {
+    e.stopPropagation();
+    setCurrentDate(new Date(year, month + 1, 1));
+  };
+
+  const formatVisualDate = (val) => {
+    if (!val) return '';
+    const parts = val.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return val;
+  };
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          borderRadius: '10px',
+          padding: '2px 8px',
+          width: '100%',
+          height: height,
+          borderColor: isOpen ? '#3b82f6' : '#e2e8f0',
+          cursor: 'pointer',
+          boxShadow: isOpen ? '0 0 0 2px rgba(59, 130, 246, 0.15)' : 'none',
+          transition: 'all 0.15s ease'
+        }}
+      >
+        <Calendar size={11} color="#64748b" style={{ marginRight: '6px', flexShrink: 0 }} />
+        <span style={{ fontSize: '11px', color: '#1e293b', fontWeight: 700 }}>
+          {formatVisualDate(value)}
+        </span>
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              marginTop: '4px',
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              zIndex: 200,
+              padding: '12px',
+              width: '240px'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <button 
+                type="button" 
+                onClick={handlePrevMonth} 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <span style={{ fontSize: '11px', fontWeight: 900, color: '#1e293b' }}>
+                {months[month]} {year}
+              </span>
+              <button 
+                type="button" 
+                onClick={handleNextMonth} 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', textAlign: 'center', marginBottom: '4px' }}>
+              {["DO", "LU", "MA", "MI", "JU", "VI", "SA"].map(d => (
+                <span key={d} style={{ fontSize: '8px', fontWeight: 900, color: '#94a3b8' }}>{d}</span>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
+              {daysGrid.map((cell, idx) => {
+                const cellDate = new Date(year, month + cell.monthOffset, cell.day);
+                const cy = cellDate.getFullYear();
+                const cm = (cellDate.getMonth() + 1).toString().padStart(2, '0');
+                const cd = cellDate.getDate().toString().padStart(2, '0');
+                const cellVal = `${cy}-${cm}-${cd}`;
+                const isSelected = value && cellVal === value;
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleSelectDay(cell)}
+                    style={{
+                      padding: '4px 0',
+                      borderRadius: '4px',
+                      textAlign: 'center',
+                      fontSize: '10px',
+                      fontWeight: 750,
+                      cursor: 'pointer',
+                      background: isSelected ? '#2563eb' : 'transparent',
+                      color: isSelected ? '#ffffff' : cell.isCurrentMonth ? '#1e293b' : '#94a3b8',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = '#f1f5f9';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    {cell.day}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab }) {
   const { data: session } = useSession();
@@ -1313,32 +1631,27 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                         style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px', background: '#f1f5f9', color: '#64748b', fontWeight: 700 }}
                       />
                     </div>
-
                     {/* Fecha Emisión */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Fecha</span>
-                      <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
-                        <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
-                        <input 
-                          type="date" 
-                          value={fechaOCMEmision}
-                          onChange={e => setFechaOCMEmision(e.target.value)}
-                          style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
-                        />
-                      </div>
+                      <CustomDatePicker 
+                        value={fechaOCMEmision} 
+                        onChange={setFechaOCMEmision} 
+                        height="28px" 
+                      />
                     </div>
-
                     {/* Moneda */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Moneda</span>
-                      <select 
-                        value={ocmMone}
-                        onChange={e => setOcmMone(e.target.value)}
-                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                      >
-                        <option value="S">SOLES (S/)</option>
-                        <option value="D">DÓLARES ($)</option>
-                      </select>
+                      <CustomSelect 
+                        value={ocmMone} 
+                        onChange={setOcmMone} 
+                        options={[
+                          { value: 'S', label: 'SOLES (S/)' },
+                          { value: 'D', label: 'DÓLARES ($)' }
+                        ]} 
+                        height="28px" 
+                      />
                     </div>
 
                     {/* Tipo de Cambio */}
@@ -1512,61 +1825,51 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     {/* Condición de Pago */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Condición Pago</span>
-                      <select 
-                        value={ocmCond}
-                        onChange={e => setOcmCond(e.target.value)}
-                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                      >
-                        {conditionsList.map((condObj, idx) => (
-                          <option key={idx} value={condObj.nomcdv}>{condObj.nomcdv}</option>
-                        ))}
-                      </select>
+                      <CustomSelect 
+                        value={ocmCond} 
+                        onChange={setOcmCond} 
+                        options={conditionsList.map(c => ({ value: c.nomcdv, label: c.nomcdv }))} 
+                        height="28px" 
+                      />
                     </div>
 
                     {/* Sub Centro de Costo */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Sub.C.Costo</span>
-                      <select 
-                        value={ocmCodscc}
-                        onChange={e => setOcmCodscc(e.target.value)}
-                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                      >
-                        <option value=""></option>
-                        {subCentersOfCostList.map((scc, idx) => (
-                          <option key={idx} value={scc.codscc}>{scc.nomscc}</option>
-                        ))}
-                      </select>
+                      <CustomSelect 
+                        value={ocmCodscc} 
+                        onChange={setOcmCodscc} 
+                        options={[
+                          { value: '', label: 'Ninguno' },
+                          ...subCentersOfCostList.map(s => ({ value: s.codscc, label: s.nomscc }))
+                        ]} 
+                        height="28px" 
+                      />
                     </div>
 
                     {/* Clasificación */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Clasificación</span>
-                      <select 
-                        value={ocmCodcoc}
-                        onChange={e => setOcmCodcoc(e.target.value)}
-                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                      >
-                        {classificationsList.map((cocObj, idx) => (
-                          <option key={idx} value={cocObj.codcoc}>{cocObj.nomcoc}</option>
-                        ))}
-                      </select>
+                      <CustomSelect 
+                        value={ocmCodcoc} 
+                        onChange={setOcmCodcoc} 
+                        options={classificationsList.map(c => ({ value: c.codcoc, label: c.nomcoc }))} 
+                        height="28px" 
+                      />
                     </div>
 
                     {/* Destino (Almacén Global) */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Destino</span>
-                      <select 
-                        value={ocmCodalmGlobal}
-                        onChange={e => {
-                          setOcmCodalmGlobal(e.target.value);
-                          setCartItems(prev => prev.map(item => ({ ...item, codalm: e.target.value, nomalm: warehousesList.find(w => w.codalm === e.target.value)?.nomalm || item.nomalm })));
-                        }}
-                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                      >
-                        {warehousesList.map((w, idx) => (
-                          <option key={idx} value={w.codalm}>{w.nomalm}</option>
-                        ))}
-                      </select>
+                      <CustomSelect 
+                        value={ocmCodalmGlobal} 
+                        onChange={(val) => {
+                          setOcmCodalmGlobal(val);
+                          setCartItems(prev => prev.map(item => ({ ...item, codalm: val, nomalm: warehousesList.find(w => w.codalm === val)?.nomalm || item.nomalm })));
+                        }} 
+                        options={warehousesList.map(w => ({ value: w.codalm, label: w.nomalm }))} 
+                        height="28px" 
+                      />
                     </div>
 
                     {/* Checkbox Compra Inafecta */}
@@ -1856,33 +2159,25 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>
                         {subTab === 'gim' ? 'Fec. Ingreso' : 'Fec. Emisión'}
                       </span>
-                      <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
-                        <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
-                        <input 
-                          type="date" 
-                          value={subTab === 'gim' ? fechaGIMEmision : fechaCCPEmision}
-                          onChange={e => {
-                            if (subTab === 'gim') setFechaGIMEmision(e.target.value);
-                            else setFechaCCPEmision(e.target.value);
-                          }}
-                          style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
-                        />
-                      </div>
+                      <CustomDatePicker 
+                        value={subTab === 'gim' ? fechaGIMEmision : fechaCCPEmision} 
+                        onChange={val => {
+                          if (subTab === 'gim') setFechaGIMEmision(val);
+                          else setFechaCCPEmision(val);
+                        }} 
+                        height="28px" 
+                      />
                     </div>
 
                     {/* Fecha Vencimiento (Solo CCP) */}
                     {subTab === 'ccp' && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Fec. Venc.</span>
-                        <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
-                          <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
-                          <input 
-                            type="date" 
-                            value={fechaCCPVencimiento}
-                            onChange={e => setFechaCCPVencimiento(e.target.value)}
-                            style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
-                          />
-                        </div>
+                        <CustomDatePicker 
+                          value={fechaCCPVencimiento} 
+                          onChange={setFechaCCPVencimiento} 
+                          height="28px" 
+                        />
                       </div>
                     )}
 
@@ -1891,28 +2186,22 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                       <>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                           <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Condición Pago</span>
-                          <select 
-                            value={ocmCond}
-                            onChange={e => setOcmCond(e.target.value)}
-                            style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                          >
-                            {conditionsList.map((condObj, idx) => (
-                              <option key={idx} value={condObj.nomcdv}>{condObj.nomcdv}</option>
-                            ))}
-                          </select>
+                          <CustomSelect 
+                            value={ocmCond} 
+                            onChange={setOcmCond} 
+                            options={conditionsList.map(c => ({ value: c.nomcdv, label: c.nomcdv }))} 
+                            height="28px" 
+                          />
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                           <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Clasificación</span>
-                          <select 
-                            value={ocmCodcoc}
-                            onChange={e => setOcmCodcoc(e.target.value)}
-                            style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                          >
-                            {classificationsList.map((cocObj, idx) => (
-                              <option key={idx} value={cocObj.codcoc}>{cocObj.nomcoc}</option>
-                            ))}
-                          </select>
+                          <CustomSelect 
+                            value={ocmCodcoc} 
+                            onChange={setOcmCodcoc} 
+                            options={classificationsList.map(c => ({ value: c.codcoc, label: c.nomcoc }))} 
+                            height="28px" 
+                          />
                         </div>
                       </>
                     )}
@@ -1920,14 +2209,15 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     {/* Moneda */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Moneda</span>
-                      <select 
-                        value={ocmMone}
-                        onChange={e => setOcmMone(e.target.value)}
-                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                      >
-                        <option value="S">SOLES (S/)</option>
-                        <option value="D">DÓLARES ($)</option>
-                      </select>
+                      <CustomSelect 
+                        value={ocmMone} 
+                        onChange={setOcmMone} 
+                        options={[
+                          { value: 'S', label: 'SOLES (S/)' },
+                          { value: 'D', label: 'DÓLARES ($)' }
+                        ]} 
+                        height="28px" 
+                      />
                     </div>
 
                     {/* Tipo de Cambio */}
@@ -2430,26 +2720,12 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                 <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
                   Almacén Destino
                 </label>
-                <select
-                  value={selectedItemWarehouse}
-                  onChange={(e) => setSelectedItemWarehouse(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#334155',
-                    background: '#fff'
-                  }}
-                >
-                  {warehousesList.map((alm) => (
-                    <option key={alm.codalm} value={alm.codalm}>
-                      {alm.codalm} - {alm.nomalm}
-                    </option>
-                  ))}
-                </select>
+                <CustomSelect 
+                  value={selectedItemWarehouse} 
+                  onChange={setSelectedItemWarehouse} 
+                  options={warehousesList.map(alm => ({ value: alm.codalm, label: `${alm.codalm} - ${alm.nomalm}` }))} 
+                  height="36px" 
+                />
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', textAlign: 'left' }}>
@@ -2538,16 +2814,14 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
                       Fecha de Entrega
                     </label>
-                    <input 
-                      type="date"
-                      value={fechaOCMEntrega}
-                      onChange={(e) => {
-                        const val = e.target.value;
+                    <CustomDatePicker 
+                      value={fechaOCMEntrega} 
+                      onChange={(val) => {
                         setFechaOCMEntrega(val);
                         const days = Math.round((new Date(val) - new Date(fechaOCMEmision)) / (24 * 60 * 60 * 1000));
                         setOcmPlazoDias(isNaN(days) ? 0 : days);
-                      }}
-                      style={{ ...tableInputStyle, height: '36px' }}
+                      }} 
+                      height="36px" 
                     />
                   </div>
                   <div>
@@ -2614,16 +2888,14 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
                       Fecha de Caducidad
                     </label>
-                    <input 
-                      type="date"
-                      value={fechaOCMCaducidad}
-                      onChange={(e) => {
-                        const val = e.target.value;
+                    <CustomDatePicker 
+                      value={fechaOCMCaducidad} 
+                      onChange={(val) => {
                         setFechaOCMCaducidad(val);
                         const days = Math.round((new Date(val) - new Date(fechaOCMEmision)) / (24 * 60 * 60 * 1000));
                         setOcmPlazoCaducidad(isNaN(days) ? 0 : days);
-                      }}
-                      style={{ ...tableInputStyle, height: '36px' }}
+                      }} 
+                      height="36px" 
                     />
                   </div>
                 </div>
@@ -2639,26 +2911,12 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                   <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
                     Sírvase a enviar por (Transportista)
                   </label>
-                  <select
-                    value={ocmCodtra}
-                    onChange={(e) => setOcmCodtra(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      color: '#334155',
-                      background: '#fff'
-                    }}
-                  >
-                    {transportistsList.map((tra) => (
-                      <option key={tra.codtra} value={tra.codtra}>
-                        {tra.nomtra}
-                      </option>
-                    ))}
-                  </select>
+                  <CustomSelect 
+                    value={ocmCodtra} 
+                    onChange={setOcmCodtra} 
+                    options={transportistsList.map(tra => ({ value: tra.codtra, label: tra.nomtra }))} 
+                    height="36px" 
+                  />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -2898,20 +3156,21 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                   {/* Tipo de Documento */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <label style={{ fontSize: '9px', fontWeight: 900, color: '#475569', textTransform: 'uppercase' }}>Tipo Doc</label>
-                    <select
-                      value={quickSupplierDocType}
-                      onChange={(e) => {
-                        setQuickSupplierDocType(e.target.value);
+                    <CustomSelect 
+                      value={quickSupplierDocType} 
+                      onChange={(val) => {
+                        setQuickSupplierDocType(val);
                         setQuickSupplierRucpro('');
                         setQuickSupplierNompro('');
                         setQuickSupplierDirpro('');
                         setQuickSupplierModalError(null);
-                      }}
-                      style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
-                    >
-                      <option value="06">RUC</option>
-                      <option value="01">DNI</option>
-                    </select>
+                      }} 
+                      options={[
+                        { value: '06', label: 'RUC' },
+                        { value: '01', label: 'DNI' }
+                      ]} 
+                      height="28px" 
+                    />
                   </div>
 
                   {/* Número de Documento */}
