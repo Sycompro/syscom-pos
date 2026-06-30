@@ -1185,388 +1185,548 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
       {/* RENDERIZADO MODO: CREACIÓN (FORMULARIO) */}
       {viewMode === 'create' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-          
-          {/* Tarjeta Única de Datos de Cabecera (Compacta y Horizontal) */}
-          <div style={{ ...cardStyle, padding: '14px' }}>
-            <div style={{ ...cardHeaderStyle, borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
-              <Receipt size={16} color="#3b82f6" />
-              <h3 style={cardTitleStyle}>
+          <div style={{ ...cardStyle, padding: '8px 12px' }}>
+            <div style={{ ...cardHeaderStyle, borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '6px', minHeight: 'auto' }}>
+              <Receipt size={14} color="#3b82f6" />
+              <h3 style={{ ...cardTitleStyle, fontSize: '11px', fontWeight: 900 }}>
                 {subTab === 'ocm' ? 'Datos Generales de la Orden' :
                  subTab === 'gim' ? 'Datos de la Nota de Ingreso' : 'Datos Generales del Comprobante'}
               </h3>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               
-              {/* FILA 1: Vinculación (si no es OCM) y Proveedor */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : (subTab !== 'ocm' ? '1fr 1.5fr' : '1fr'),
-                gap: '12px',
-                alignItems: 'end'
-              }}>
-                {/* Opciones de Importación y Referencias (Solo para GIM y CCP) */}
-                {subTab !== 'ocm' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Vincular Documento</span>
-                    
-                    {subTab === 'gim' && (
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button 
-                          onClick={() => {
-                            setGimImportMode('direct');
-                            setSelectedOcmNumber('');
-                            setCartItems([]);
+              {subTab === 'ocm' ? (
+                /* Caso ORDEN DE COMPRA (OCM): Fila Única de 7 Columnas */
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : '2fr 0.9fr 0.9fr 1.1fr 1.1fr 0.8fr 0.7fr',
+                  gap: '8px',
+                  alignItems: 'end'
+                }}>
+                  {/* 1. Proveedor */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Proveedor</span>
+                      <label style={{ ...checkboxLabelStyle, margin: 0, padding: 0, display: 'flex', alignItems: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={isGenericSupplier} 
+                          onChange={(e) => {
+                            setIsGenericSupplier(e.target.checked);
                             setSelectedSupplier(null);
                             setSupplierSearchQuery('');
+                            setErrorMsg(null);
                           }}
-                          style={gimImportMode === 'direct' ? { ...activeTabBtnStyle, padding: '6px 12px', fontSize: '11px' } : { ...inactiveTabBtnStyle, padding: '6px 12px', fontSize: '11px' }}
-                        >
-                          Directo
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setGimImportMode('import');
-                            setCartItems([]);
-                            setSelectedSupplier(null);
-                            setSupplierSearchQuery('');
-                          }}
-                          style={gimImportMode === 'import' ? { ...activeTabBtnStyle, padding: '6px 12px', fontSize: '11px' } : { ...inactiveTabBtnStyle, padding: '6px 12px', fontSize: '11px' }}
-                        >
-                          Importar OCM
-                        </button>
-                      </div>
-                    )}
+                          style={{ ...checkboxInputStyle, width: '12px', height: '12px' }}
+                        />
+                        <span style={{ fontWeight: 800, color: '#475569', fontSize: '9px', marginLeft: '3px' }}>Manual</span>
+                      </label>
+                    </div>
 
-                    {subTab === 'ccp' && (
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button 
-                          onClick={() => {
-                            setCcpImportMode('direct');
-                            setSelectedGimNumber('');
-                            setCartItems([]);
-                            setSelectedSupplier(null);
-                            setSupplierSearchQuery('');
-                          }}
-                          style={ccpImportMode === 'direct' ? { ...activeTabBtnStyle, padding: '6px 12px', fontSize: '11px' } : { ...inactiveTabBtnStyle, padding: '6px 12px', fontSize: '11px' }}
-                        >
-                          Compra Directa
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setCcpImportMode('import');
-                            setCartItems([]);
-                            setSelectedSupplier(null);
-                            setSupplierSearchQuery('');
-                          }}
-                          style={ccpImportMode === 'import' ? { ...activeTabBtnStyle, padding: '6px 12px', fontSize: '11px' } : { ...inactiveTabBtnStyle, padding: '6px 12px', fontSize: '11px' }}
-                        >
-                          Importar GIM
-                        </button>
-                      </div>
-                    )}
+                    {!isGenericSupplier ? (
+                      <div ref={supplierRef} style={{ position: 'relative' }}>
+                        <div style={{ ...inputWrapperStyle, height: '28px', padding: '2px 8px' }}>
+                          <Search size={12} color="#94a3b8" />
+                          <input 
+                            type="text" 
+                            placeholder="Buscar por RUC o Razón..."
+                            value={supplierSearchQuery}
+                            onChange={(e) => {
+                              setSupplierSearchQuery(e.target.value);
+                              setSelectedSupplier(null);
+                              setShowSupplierDropdown(true);
+                            }}
+                            onFocus={() => setShowSupplierDropdown(true)}
+                            style={{ ...inputStyle, fontSize: '11px', height: '24px' }}
+                          />
+                        </div>
 
-                    {/* Selector de OCM / GIM a importar */}
-                    {subTab === 'gim' && gimImportMode === 'import' && (
-                      <div ref={ocmRef} style={{ position: 'relative', marginTop: '4px' }}>
-                        {!selectedOcmNumber ? (
-                          <div style={inputWrapperStyle}>
-                            <Search size={14} color="#94a3b8" />
-                            <input 
-                              type="text" 
-                              placeholder="Buscar OCM..."
-                              value={ocmSearchQuery}
-                              onChange={(e) => {
-                                setOcmSearchQuery(e.target.value);
-                                setShowOcmDropdown(true);
-                              }}
-                              onFocus={() => setShowOcmDropdown(true)}
-                              style={{ ...inputStyle, fontSize: '11px', height: '30px' }}
-                            />
-                          </div>
-                        ) : (
-                          <div style={{ ...selectedSupplierBadgeStyle, padding: '4px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '11px' }}><strong>OCM:</strong> {selectedOcmNumber}</span>
-                            <button onClick={() => { setSelectedOcmNumber(''); setCartItems([]); setSelectedSupplier(null); }} style={{ color: '#ef4444', border: 'none', background: 'transparent', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>X</button>
-                          </div>
-                        )}
-                        {showOcmDropdown && !selectedOcmNumber && (
-                          <div style={dropdownListStyle}>
-                            {pendingOcms.filter(o => o.ndocu.toLowerCase().includes(ocmSearchQuery.toLowerCase()) || o.nompro.toLowerCase().includes(ocmSearchQuery.toLowerCase())).map((o, idx) => (
-                              <div key={idx} onClick={() => { setSelectedOcmNumber(o.ndocu); handleImportOcm(o.ndocu); setShowOcmDropdown(false); }} className="search-dropdown-item" style={{ padding: '6px 10px', fontSize: '11px' }}>
-                                <strong>{o.ndocu}</strong> - {o.nompro}
+                        {showSupplierDropdown && (supplierResults.length > 0 || (/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11))) && (
+                          <div style={{ ...dropdownListStyle, zIndex: 100, top: '30px' }}>
+                            {supplierResults.map((s, idx) => (
+                              <div key={idx} onClick={() => handleSelectSupplier(s)} className="search-dropdown-item" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                                <strong>{s.nompro}</strong>
+                                <div style={{ fontSize: '9px', color: '#64748b' }}>RUC: {s.rucpro} | Código: {s.codpro}</div>
                               </div>
                             ))}
                           </div>
                         )}
-                      </div>
-                    )}
 
-                    {subTab === 'ccp' && ccpImportMode === 'import' && (
-                      <div ref={gimRef} style={{ position: 'relative', marginTop: '4px' }}>
-                        {!selectedGimNumber ? (
-                          <div style={inputWrapperStyle}>
-                            <Search size={14} color="#94a3b8" />
-                            <input 
-                              type="text" 
-                              placeholder="Buscar GIM..."
-                              value={gimSearchQuery}
-                              onChange={(e) => {
-                                setGimSearchQuery(e.target.value);
-                                setShowGimDropdown(true);
-                              }}
-                              onFocus={() => setShowGimDropdown(true)}
-                              style={{ ...inputStyle, fontSize: '11px', height: '30px' }}
-                            />
-                          </div>
-                        ) : (
-                          <div style={{ ...selectedSupplierBadgeStyle, padding: '4px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '11px' }}><strong>GIM:</strong> {selectedGimNumber}</span>
-                            <button onClick={() => { setSelectedGimNumber(''); setCartItems([]); setSelectedSupplier(null); }} style={{ color: '#ef4444', border: 'none', background: 'transparent', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>X</button>
-                          </div>
-                        )}
-                        {showGimDropdown && !selectedGimNumber && (
-                          <div style={dropdownListStyle}>
-                            {pendingGims.filter(g => g.ndocu.toLowerCase().includes(gimSearchQuery.toLowerCase()) || g.nompro.toLowerCase().includes(gimSearchQuery.toLowerCase())).map((g, idx) => (
-                              <div key={idx} onClick={() => { setSelectedGimNumber(g.ndocu); handleImportGim(g.ndocu); setShowGimDropdown(false); }} className="search-dropdown-item" style={{ padding: '6px 10px', fontSize: '11px' }}>
-                                <strong>{g.ndocu}</strong> - {g.nompro}
-                              </div>
-                            ))}
+                        {selectedSupplier && (
+                          <div style={{ ...selectedSupplierBadgeStyle, marginTop: '2px', padding: '2px 6px', fontSize: '10px', height: '20px', display: 'flex', alignItems: 'center' }}>
+                            <Check size={10} color="#10b981" style={{ marginRight: '3px' }} />
+                            <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '170px' }}>{selectedSupplier.nompro}</strong>
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Proveedor */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Proveedor</span>
-                    <label style={{ ...checkboxLabelStyle, opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.5 : 1 }}>
-                      <input 
-                        type="checkbox" 
-                        checked={isGenericSupplier} 
-                        onChange={(e) => {
-                          setIsGenericSupplier(e.target.checked);
-                          setSelectedSupplier(null);
-                          setSupplierSearchQuery('');
-                          setErrorMsg(null);
-                        }}
-                        style={checkboxInputStyle}
-                      />
-                      <span style={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>Varios (Manual)</span>
-                    </label>
-                  </div>
-
-                  {!isGenericSupplier ? (
-                    <div ref={supplierRef} style={{ position: 'relative' }}>
-                      <div style={{
-                        ...inputWrapperStyle,
-                        opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.6 : 1,
-                        pointerEvents: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 'none' : 'auto'
-                      }}>
-                        <Search size={14} color="#94a3b8" />
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '4px' }}>
                         <input 
                           type="text" 
-                          placeholder="Buscar por RUC o Razón Social..."
-                          value={supplierSearchQuery}
-                          onChange={(e) => {
-                            setSupplierSearchQuery(e.target.value);
-                            setSelectedSupplier(null);
-                            setShowSupplierDropdown(true);
-                          }}
-                          onFocus={() => setShowSupplierDropdown(true)}
-                          style={{ ...inputStyle, fontSize: '12px', height: '32px' }}
+                          placeholder="RUC" 
+                          value={manualSupplierRuc}
+                          onChange={e => setManualSupplierRuc(e.target.value.replace(/[^0-9]/g, ''))}
+                          maxLength={11}
+                          style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Razón Social" 
+                          value={manualSupplierName}
+                          onChange={e => setManualSupplierName(e.target.value)}
+                          style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
                         />
                       </div>
-
-                      {showSupplierDropdown && (supplierResults.length > 0 || (/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11))) && (
-                        <div style={dropdownListStyle}>
-                          {supplierResults.map((s, idx) => (
-                            <div key={idx} onClick={() => handleSelectSupplier(s)} className="search-dropdown-item" style={{ padding: '6px 10px', fontSize: '11px' }}>
-                              <strong>{s.nompro}</strong>
-                              <div style={{ fontSize: '9px', color: '#64748b' }}>RUC: {s.rucpro} | Código: {s.codpro}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {selectedSupplier && (
-                        <div style={{ ...selectedSupplierBadgeStyle, marginTop: '4px', padding: '4px 8px', fontSize: '11px' }}>
-                          <Check size={12} color="#10b981" style={{ marginRight: '4px' }} />
-                          <strong>{selectedSupplier.nompro}</strong> ({selectedSupplier.rucpro})
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                      <input 
-                        type="text" 
-                        placeholder="RUC del Proveedor" 
-                        value={manualSupplierRuc}
-                        onChange={e => setManualSupplierRuc(e.target.value.replace(/[^0-9]/g, ''))}
-                        maxLength={11}
-                        style={{ ...textInputStyle, height: '32px', fontSize: '12px' }}
-                      />
-                      <input 
-                        type="text" 
-                        placeholder="Nombre / Razón Social" 
-                        value={manualSupplierName}
-                        onChange={e => setManualSupplierName(e.target.value)}
-                        style={{ ...textInputStyle, height: '32px', fontSize: '12px' }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* FILA 2: Fechas y Datos del Documento (Compacta y Grid responsivo) */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : (
-                  subTab === 'ocm' ? '1fr 1fr' : 
-                  subTab === 'gim' ? '1.5fr 1fr 1fr' : '1fr 1.5fr 1fr 1fr'
-                ),
-                gap: '12px',
-                alignItems: 'end'
-              }}>
-                {/* Campos para GIM: Nro Guía */}
-                {subTab === 'gim' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Guía Remisión Proveedor</span>
-                    <input 
-                      type="text" 
-                      placeholder="G001-0001234" 
-                      value={gimDocNumber}
-                      onChange={e => setGimDocNumber(e.target.value.toUpperCase())}
-                      style={{ ...textInputStyle, height: '32px', fontSize: '12px' }}
-                    />
+                    )}
                   </div>
-                )}
 
-                {/* Campos para CCP: Comprobante, Serie y Nro */}
-                {subTab === 'ccp' && (
-                  <>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Comprobante</span>
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        <button onClick={() => setDocType('01')} style={docType === '01' ? { ...activeTabBtnStyle, padding: '4px 8px', fontSize: '10px' } : { ...inactiveTabBtnStyle, padding: '4px 8px', fontSize: '10px' }}>FACT (01)</button>
-                        <button onClick={() => setDocType('03')} style={docType === '03' ? { ...activeTabBtnStyle, padding: '4px 8px', fontSize: '10px' } : { ...inactiveTabBtnStyle, padding: '4px 8px', fontSize: '10px' }}>BOL (03)</button>
-                      </div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '6px' }}>
-                      <input type="text" placeholder="Serie" value={docSerie} onChange={e => setDocSerie(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} maxLength={4} style={{ ...textInputStyle, height: '32px', fontSize: '12px' }} />
-                      <input type="text" placeholder="Número" value={docCorrelativo} onChange={e => setDocCorrelativo(e.target.value.replace(/[^0-9]/g, ''))} maxLength={8} style={{ ...textInputStyle, height: '32px', fontSize: '12px' }} />
-                    </div>
-                  </>
-                )}
-
-                {/* Fechas */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Fecha Emisión</span>
-                  <div style={{ ...dateInputWrapperStyle, height: '32px' }}>
-                    <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
-                    <input 
-                      type="date" 
-                      value={subTab === 'ocm' ? fechaOCMEmision : subTab === 'gim' ? fechaGIMEmision : fechaCCPEmision}
-                      onChange={e => {
-                        const val = e.target.value;
-                        if (subTab === 'ocm') setFechaOCMEmision(val);
-                        else if (subTab === 'gim') setFechaGIMEmision(val);
-                        else setFechaCCPEmision(val);
-                      }}
-                      style={{ ...dateStyle, fontSize: '12px' }}
-                    />
-                  </div>
-                </div>
-
-                {subTab !== 'gim' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Fecha Vencimiento</span>
-                    <div style={{ ...dateInputWrapperStyle, height: '32px' }}>
-                      <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
+                  {/* 2. Fecha Emisión */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Emisión</span>
+                    <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
+                      <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
                       <input 
                         type="date" 
-                        value={subTab === 'ocm' ? fechaOCMVencimiento : fechaCCPVencimiento}
-                        onChange={e => {
-                          const val = e.target.value;
-                          if (subTab === 'ocm') setFechaOCMVencimiento(val);
-                          else setFechaCCPVencimiento(val);
-                        }}
-                        style={{ ...dateStyle, fontSize: '12px' }}
+                        value={fechaOCMEmision}
+                        onChange={e => setFechaOCMEmision(e.target.value)}
+                        style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
                       />
                     </div>
                   </div>
-                )}
-              </div>
 
-              {/* FILA 3: Pago, Clasificación, Moneda, Tipo Cambio */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : (
-                  subTab === 'gim' ? '1fr 1fr' : '1.5fr 1.5fr 1fr 1fr'
-                ),
-                gap: '12px',
-                alignItems: 'end'
-              }}>
-                {subTab !== 'gim' && (
-                  <>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Condición de Pago</span>
+                  {/* 3. Fecha Vencimiento */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Venc.</span>
+                    <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
+                      <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
+                      <input 
+                        type="date" 
+                        value={fechaOCMVencimiento}
+                        onChange={e => setFechaOCMVencimiento(e.target.value)}
+                        style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Condición de Pago */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Condición Pago</span>
+                    <select 
+                      value={ocmCond}
+                      onChange={e => setOcmCond(e.target.value)}
+                      style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                    >
+                      {conditionsList.map((condObj, idx) => (
+                        <option key={idx} value={condObj.nomcdv}>{condObj.nomcdv}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 5. Clasificación */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Clasificación</span>
+                    <select 
+                      value={ocmCodcoc}
+                      onChange={e => setOcmCodcoc(e.target.value)}
+                      style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                    >
+                      {classificationsList.map((cocObj, idx) => (
+                        <option key={idx} value={cocObj.codcoc}>{cocObj.nomcoc}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 6. Moneda */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Moneda</span>
+                    <select 
+                      value={ocmMone}
+                      onChange={e => setOcmMone(e.target.value)}
+                      style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                    >
+                      <option value="S">SOLES (S/)</option>
+                      <option value="D">DÓLARES ($)</option>
+                    </select>
+                  </div>
+
+                  {/* 7. Tipo de Cambio */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>T. Cambio</span>
+                    <input 
+                      type="number"
+                      step="0.001"
+                      value={ocmTcam}
+                      onChange={e => setOcmTcam(parseFloat(e.target.value) || 0)}
+                      onFocus={e => e.target.select()}
+                      style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                      disabled={ocmMone === 'S'}
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* Casos GIM y CCP: 2 Filas Compactas */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {/* Fila 1 */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : (
+                      subTab === 'gim' ? '1fr 1.5fr 1fr' : '1fr 1.5fr 1fr 1.2fr'
+                    ),
+                    gap: '10px',
+                    alignItems: 'end'
+                  }}>
+                    {/* Vincular Documento */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Vincular Documento</span>
+                      
+                      {subTab === 'gim' && (
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button 
+                            onClick={() => {
+                              setGimImportMode('direct');
+                              setSelectedOcmNumber('');
+                              setCartItems([]);
+                              setSelectedSupplier(null);
+                              setSupplierSearchQuery('');
+                            }}
+                            style={gimImportMode === 'direct' ? { ...activeTabBtnStyle, padding: '4px 8px', fontSize: '10px' } : { ...inactiveTabBtnStyle, padding: '4px 8px', fontSize: '10px' }}
+                          >
+                            Directo
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setGimImportMode('import');
+                              setCartItems([]);
+                              setSelectedSupplier(null);
+                              setSupplierSearchQuery('');
+                            }}
+                            style={gimImportMode === 'import' ? { ...activeTabBtnStyle, padding: '4px 8px', fontSize: '10px' } : { ...inactiveTabBtnStyle, padding: '4px 8px', fontSize: '10px' }}
+                          >
+                            Importar OCM
+                          </button>
+                        </div>
+                      )}
+
+                      {subTab === 'ccp' && (
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button 
+                            onClick={() => {
+                              setCcpImportMode('direct');
+                              setSelectedGimNumber('');
+                              setCartItems([]);
+                              setSelectedSupplier(null);
+                              setSupplierSearchQuery('');
+                            }}
+                            style={ccpImportMode === 'direct' ? { ...activeTabBtnStyle, padding: '4px 8px', fontSize: '10px' } : { ...inactiveTabBtnStyle, padding: '4px 8px', fontSize: '10px' }}
+                          >
+                            Directa
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setCcpImportMode('import');
+                              setCartItems([]);
+                              setSelectedSupplier(null);
+                              setSupplierSearchQuery('');
+                            }}
+                            style={ccpImportMode === 'import' ? { ...activeTabBtnStyle, padding: '4px 8px', fontSize: '10px' } : { ...inactiveTabBtnStyle, padding: '4px 8px', fontSize: '10px' }}
+                          >
+                            Importar GIM
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Selectores de importación flotantes */}
+                      {subTab === 'gim' && gimImportMode === 'import' && (
+                        <div ref={ocmRef} style={{ position: 'relative', marginTop: '2px' }}>
+                          {!selectedOcmNumber ? (
+                            <div style={{ ...inputWrapperStyle, height: '28px', padding: '2px 6px' }}>
+                              <Search size={12} color="#94a3b8" />
+                              <input 
+                                type="text" 
+                                placeholder="Buscar OCM..."
+                                value={ocmSearchQuery}
+                                onChange={(e) => {
+                                  setOcmSearchQuery(e.target.value);
+                                  setShowOcmDropdown(true);
+                                }}
+                                onFocus={() => setShowOcmDropdown(true)}
+                                style={{ ...inputStyle, fontSize: '10px', height: '24px' }}
+                              />
+                            </div>
+                          ) : (
+                            <div style={{ ...selectedSupplierBadgeStyle, padding: '2px 6px', fontSize: '10px', height: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span><strong>OCM:</strong> {selectedOcmNumber}</span>
+                              <button onClick={() => { setSelectedOcmNumber(''); setCartItems([]); setSelectedSupplier(null); }} style={{ color: '#ef4444', border: 'none', background: 'transparent', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>X</button>
+                            </div>
+                          )}
+                          {showOcmDropdown && !selectedOcmNumber && (
+                            <div style={{ ...dropdownListStyle, zIndex: 100, top: '30px' }}>
+                              {pendingOcms.filter(o => o.ndocu.toLowerCase().includes(ocmSearchQuery.toLowerCase()) || o.nompro.toLowerCase().includes(ocmSearchQuery.toLowerCase())).map((o, idx) => (
+                                <div key={idx} onClick={() => { setSelectedOcmNumber(o.ndocu); handleImportOcm(o.ndocu); setShowOcmDropdown(false); }} className="search-dropdown-item" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                                  <strong>{o.ndocu}</strong> - {o.nompro}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {subTab === 'ccp' && ccpImportMode === 'import' && (
+                        <div ref={gimRef} style={{ position: 'relative', marginTop: '2px' }}>
+                          {!selectedGimNumber ? (
+                            <div style={{ ...inputWrapperStyle, height: '28px', padding: '2px 6px' }}>
+                              <Search size={12} color="#94a3b8" />
+                              <input 
+                                type="text" 
+                                placeholder="Buscar GIM..."
+                                value={gimSearchQuery}
+                                onChange={(e) => {
+                                  setGimSearchQuery(e.target.value);
+                                  setShowGimDropdown(true);
+                                }}
+                                onFocus={() => setShowGimDropdown(true)}
+                                style={{ ...inputStyle, fontSize: '10px', height: '24px' }}
+                              />
+                            </div>
+                          ) : (
+                            <div style={{ ...selectedSupplierBadgeStyle, padding: '2px 6px', fontSize: '10px', height: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span><strong>GIM:</strong> {selectedGimNumber}</span>
+                              <button onClick={() => { setSelectedGimNumber(''); setCartItems([]); setSelectedSupplier(null); }} style={{ color: '#ef4444', border: 'none', background: 'transparent', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>X</button>
+                            </div>
+                          )}
+                          {showGimDropdown && !selectedGimNumber && (
+                            <div style={{ ...dropdownListStyle, zIndex: 100, top: '30px' }}>
+                              {pendingGims.filter(g => g.ndocu.toLowerCase().includes(gimSearchQuery.toLowerCase()) || g.nompro.toLowerCase().includes(gimSearchQuery.toLowerCase())).map((g, idx) => (
+                                <div key={idx} onClick={() => { setSelectedGimNumber(g.ndocu); handleImportGim(g.ndocu); setShowGimDropdown(false); }} className="search-dropdown-item" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                                  <strong>{g.ndocu}</strong> - {g.nompro}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Proveedor */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Proveedor</span>
+                        <label style={{ ...checkboxLabelStyle, opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.5 : 1 }}>
+                          <input 
+                            type="checkbox" 
+                            checked={isGenericSupplier} 
+                            onChange={(e) => {
+                              setIsGenericSupplier(e.target.checked);
+                              setSelectedSupplier(null);
+                              setSupplierSearchQuery('');
+                              setErrorMsg(null);
+                            }}
+                            style={{ ...checkboxInputStyle, width: '12px', height: '12px' }}
+                          />
+                          <span style={{ fontWeight: 800, color: '#475569', fontSize: '9px', marginLeft: '3px' }}>Manual</span>
+                        </label>
+                      </div>
+
+                      {!isGenericSupplier ? (
+                        <div ref={supplierRef} style={{ position: 'relative' }}>
+                          <div style={{
+                            ...inputWrapperStyle,
+                            height: '28px',
+                            padding: '2px 8px',
+                            opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.6 : 1,
+                            pointerEvents: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 'none' : 'auto'
+                          }}>
+                            <Search size={12} color="#94a3b8" />
+                            <input 
+                              type="text" 
+                              placeholder="Buscar por RUC o Razón..."
+                              value={supplierSearchQuery}
+                              onChange={(e) => {
+                                setSupplierSearchQuery(e.target.value);
+                                setSelectedSupplier(null);
+                                setShowSupplierDropdown(true);
+                              }}
+                              onFocus={() => setShowSupplierDropdown(true)}
+                              style={{ ...inputStyle, fontSize: '11px', height: '24px' }}
+                            />
+                          </div>
+
+                          {showSupplierDropdown && (supplierResults.length > 0 || (/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11))) && (
+                            <div style={{ ...dropdownListStyle, zIndex: 100, top: '30px' }}>
+                              {supplierResults.map((s, idx) => (
+                                <div key={idx} onClick={() => handleSelectSupplier(s)} className="search-dropdown-item" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                                  <strong>{s.nompro}</strong>
+                                  <div style={{ fontSize: '9px', color: '#64748b' }}>RUC: {s.rucpro}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {selectedSupplier && (
+                            <div style={{ ...selectedSupplierBadgeStyle, marginTop: '2px', padding: '2px 6px', fontSize: '10px', height: '20px', display: 'flex', alignItems: 'center' }}>
+                              <Check size={10} color="#10b981" style={{ marginRight: '3px' }} />
+                              <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '170px' }}>{selectedSupplier.nompro}</strong>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '4px' }}>
+                          <input 
+                            type="text" 
+                            placeholder="RUC" 
+                            value={manualSupplierRuc}
+                            onChange={e => setManualSupplierRuc(e.target.value.replace(/[^0-9]/g, ''))}
+                            maxLength={11}
+                            style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                          />
+                          <input 
+                            type="text" 
+                            placeholder="Razón Social" 
+                            value={manualSupplierName}
+                            onChange={e => setManualSupplierName(e.target.value)}
+                            style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* GIM: Guía de remisión */}
+                    {subTab === 'gim' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Guía Proveedor</span>
+                        <input 
+                          type="text" 
+                          placeholder="G001-0001234" 
+                          value={gimDocNumber}
+                          onChange={e => setGimDocNumber(e.target.value.toUpperCase())}
+                          style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                        />
+                      </div>
+                    )}
+
+                    {/* CCP: Comprobante y Nro */}
+                    {subTab === 'ccp' && (
+                      <>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Comp.</span>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button onClick={() => setDocType('01')} style={docType === '01' ? { ...activeTabBtnStyle, padding: '4px 6px', fontSize: '9px' } : { ...inactiveTabBtnStyle, padding: '4px 6px', fontSize: '9px' }}>FACT (01)</button>
+                            <button onClick={() => setDocType('03')} style={docType === '03' ? { ...activeTabBtnStyle, padding: '4px 6px', fontSize: '9px' } : { ...inactiveTabBtnStyle, padding: '4px 6px', fontSize: '9px' }}>BOL (03)</button>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4px' }}>
+                          <input type="text" placeholder="Serie" value={docSerie} onChange={e => setDocSerie(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} maxLength={4} style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }} />
+                          <input type="text" placeholder="Número" value={docCorrelativo} onChange={e => setDocCorrelativo(e.target.value.replace(/[^0-9]/g, ''))} maxLength={8} style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }} />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Fila 2 */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : (
+                      subTab === 'gim' ? '1fr 1fr 1fr' : '1fr 1fr 1.2fr 1.2fr 1fr 0.8fr'
+                    ),
+                    gap: '10px',
+                    alignItems: 'end'
+                  }}>
+                    {/* Fecha Emisión/Ingreso */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>
+                        {subTab === 'gim' ? 'Fec. Ingreso' : 'Fec. Emisión'}
+                      </span>
+                      <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
+                        <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
+                        <input 
+                          type="date" 
+                          value={subTab === 'gim' ? fechaGIMEmision : fechaCCPEmision}
+                          onChange={e => {
+                            if (subTab === 'gim') setFechaGIMEmision(e.target.value);
+                            else setFechaCCPEmision(e.target.value);
+                          }}
+                          style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Fecha Vencimiento (Solo CCP) */}
+                    {subTab === 'ccp' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Fec. Venc.</span>
+                        <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
+                          <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
+                          <input 
+                            type="date" 
+                            value={fechaCCPVencimiento}
+                            onChange={e => setFechaCCPVencimiento(e.target.value)}
+                            style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Condición de Pago y Clasificación (Solo CCP) */}
+                    {subTab === 'ccp' && (
+                      <>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Condición Pago</span>
+                          <select 
+                            value={ocmCond}
+                            onChange={e => setOcmCond(e.target.value)}
+                            style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                          >
+                            {conditionsList.map((condObj, idx) => (
+                              <option key={idx} value={condObj.nomcdv}>{condObj.nomcdv}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Clasificación</span>
+                          <select 
+                            value={ocmCodcoc}
+                            onChange={e => setOcmCodcoc(e.target.value)}
+                            style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                          >
+                            {classificationsList.map((cocObj, idx) => (
+                              <option key={idx} value={cocObj.codcoc}>{cocObj.nomcoc}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Moneda */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Moneda</span>
                       <select 
-                        value={ocmCond}
-                        onChange={e => setOcmCond(e.target.value)}
-                        style={{ ...selectStyle, height: '32px', fontSize: '12px', padding: '4px 8px' }}
+                        value={ocmMone}
+                        onChange={e => setOcmMone(e.target.value)}
+                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
                       >
-                        {conditionsList.map((condObj, idx) => (
-                          <option key={idx} value={condObj.nomcdv}>{condObj.nomcdv}</option>
-                        ))}
+                        <option value="S">SOLES (S/)</option>
+                        <option value="D">DÓLARES ($)</option>
                       </select>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Clasificación</span>
-                      <select 
-                        value={ocmCodcoc}
-                        onChange={e => setOcmCodcoc(e.target.value)}
-                        style={{ ...selectStyle, height: '32px', fontSize: '12px', padding: '4px 8px' }}
-                      >
-                        {classificationsList.map((cocObj, idx) => (
-                          <option key={idx} value={cocObj.codcoc}>{cocObj.nomcoc}</option>
-                        ))}
-                      </select>
+                    {/* Tipo de Cambio */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>T. Cambio</span>
+                      <input 
+                        type="number"
+                        step="0.001"
+                        value={ocmTcam}
+                        onChange={e => setOcmTcam(parseFloat(e.target.value) || 0)}
+                        onFocus={e => e.target.select()}
+                        style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                        disabled={ocmMone === 'S'}
+                      />
                     </div>
-                  </>
-                )}
-
-                {/* Moneda */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Moneda</span>
-                  <select 
-                    value={ocmMone}
-                    onChange={e => setOcmMone(e.target.value)}
-                    style={{ ...selectStyle, height: '32px', fontSize: '12px', padding: '4px 8px' }}
-                  >
-                    <option value="S">SOLES (S/)</option>
-                    <option value="D">DÓLARES ($)</option>
-                  </select>
+                  </div>
                 </div>
-
-                {/* Tipo de Cambio */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Tipo de Cambio</span>
-                  <input 
-                    type="number"
-                    step="0.001"
-                    value={ocmTcam}
-                    onChange={e => setOcmTcam(parseFloat(e.target.value) || 0)}
-                    onFocus={e => e.target.select()}
-                    style={{ ...textInputStyle, height: '32px', fontSize: '12px', padding: '4px 8px' }}
-                    disabled={ocmMone === 'S'}
-                  />
-                </div>
-              </div>
+              )}
 
             </div>
           </div>
