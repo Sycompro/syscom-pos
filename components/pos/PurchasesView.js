@@ -1734,17 +1734,17 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
           {/* Bloque Inferior: Detalle de Artículos (Ocupa todo el ancho abajo) */}
           <div style={{ width: '100%' }}>
             
-            <div style={cardStyle}>
-              <div style={cardHeaderStyle}>
-                <ShoppingCart size={16} color="#3b82f6" />
-                <h3 style={cardTitleStyle}>Detalle de Artículos</h3>
+            <div style={{ ...cardStyle, padding: '8px 12px' }}>
+              <div style={{ ...cardHeaderStyle, borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '6px', minHeight: 'auto' }}>
+                <ShoppingCart size={14} color="#3b82f6" />
+                <h3 style={{ ...cardTitleStyle, fontSize: '11px', fontWeight: 900 }}>Detalle de Artículos</h3>
               </div>
 
               {/* Buscador de Productos (Oculto si importamos para evitar desajustes, a menos que sea directo) */}
               {((subTab === 'gim' && gimImportMode === 'direct') || (subTab === 'ccp' && ccpImportMode === 'direct') || subTab === 'ocm') && (
-                <div ref={productRef} style={{ position: 'relative', marginBottom: '14px' }}>
-                  <div style={inputWrapperStyle}>
-                    <Search size={16} color="#94a3b8" />
+                <div ref={productRef} style={{ position: 'relative', marginBottom: '6px' }}>
+                  <div style={{ ...inputWrapperStyle, height: '28px', padding: '2px 8px' }}>
+                    <Search size={12} color="#94a3b8" />
                     <input 
                       type="text" 
                       placeholder="Buscar producto por nombre o código ERP..."
@@ -1759,9 +1759,9 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                           fetchProducts('');
                         }
                       }}
-                      style={inputStyle}
+                      style={{ ...inputStyle, fontSize: '11px', height: '24px' }}
                     />
-                    {searchingProduct && <Loader2 className="animate-spin" size={14} color="#3b82f6" />}
+                    {searchingProduct && <Loader2 className="animate-spin" size={12} color="#3b82f6" />}
                   </div>
 
                   {showProductDropdown && (
@@ -1815,31 +1815,32 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     <thead>
                       <tr>
                         <th style={thStyle}>Producto</th>
-                        <th style={{ ...thStyle, width: '90px' }}>Cant</th>
-                        {subTab !== 'gim' && <th style={{ ...thStyle, width: '120px' }}>Costo c/IGV</th>}
-                        {subTab !== 'gim' && <th style={{ ...thStyle, width: '80px' }}>Dscto %</th>}
-                        <th style={{ ...thStyle, width: '100px', textAlign: 'right' }}>Total</th>
-                        <th style={{ ...thStyle, width: '40px' }}></th>
+                        <th style={{ ...thStyle, width: '60px' }}>Cant</th>
+                        {subTab !== 'gim' && <th style={{ ...thStyle, width: '80px' }}>Costo c/IGV</th>}
+                        {subTab !== 'gim' && <th style={{ ...thStyle, width: '65px' }}>Dscto %</th>}
+                        <th style={{ ...thStyle, width: '80px', textAlign: 'right' }}>Total</th>
+                        <th style={{ ...thStyle, width: '30px' }}></th>
                       </tr>
                     </thead>
                     <tbody>
                       {cartItems.map((item, idx) => (
                         <tr key={idx} style={trStyle}>
                           <td style={tdStyle}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                              <span style={{ fontWeight: 800, color: '#1e293b' }}>{item.name}</span>
-                              <span style={{ fontSize: '10px', color: '#64748b' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                              <span style={{ fontWeight: 800, color: '#1e293b', fontSize: '11px' }}>{item.name}</span>
+                              <span style={{ fontSize: '9px', color: '#64748b' }}>
                                 Cód: {item.id} | {item.brand} | {item.unit}
                               </span>
                               {subTab === 'ocm' && item.nomalm && (
                                 <span style={{
                                   alignSelf: 'flex-start',
-                                  fontSize: '10px',
+                                  fontSize: '8px',
                                   fontWeight: 800,
                                   color: '#0369a1',
                                   backgroundColor: '#e0f2fe',
-                                  padding: '2px 6px',
-                                  borderRadius: '4px'
+                                  padding: '1px 4px',
+                                  borderRadius: '3px',
+                                  marginTop: '1px'
                                 }}>
                                   Destino: {item.nomalm}
                                 </span>
@@ -1853,7 +1854,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                               onChange={(e) => handleUpdateQuantity(item.id, e.target.value)}
                               onFocus={(e) => e.target.select()}
                               disabled={(subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import')}
-                              style={tableInputStyle}
+                              style={{ ...tableInputStyle, height: '22px', padding: '1px 2px' }}
                               min="0.0001"
                               step="any"
                             />
@@ -1865,7 +1866,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                                 value={item.cost}
                                 onChange={(e) => handleUpdateCost(item.id, e.target.value)}
                                 onFocus={(e) => e.target.select()}
-                                style={tableInputStyle}
+                                style={{ ...tableInputStyle, height: '22px', padding: '1px 2px', textAlign: 'right' }}
                                 min="0.01"
                                 step="any"
                               />
@@ -1878,14 +1879,14 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                                 value={item.discount || 0}
                                 onChange={(e) => handleUpdateDiscount(item.id, e.target.value)}
                                 onFocus={(e) => e.target.select()}
-                                style={tableInputStyle}
+                                style={{ ...tableInputStyle, height: '22px', padding: '1px 2px' }}
                                 min="0"
                                 max="100"
                                 step="any"
                               />
                             </td>
                           )}
-                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>
+                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#0f172a', fontSize: '11px' }}>
                             {formatCurrency(item.cost * item.quantity * (1 - (item.discount || 0) / 100))}
                           </td>
                           <td style={tdStyle}>
@@ -1898,7 +1899,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                               }}
                               title="Quitar ítem"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={12} />
                             </button>
                           </td>
                         </tr>
@@ -1911,42 +1912,42 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
               {/* Totales y Registro */}
               <div style={totalsWrapperStyle}>
                 <div style={totalRowStyle}>
-                  <span style={{ color: '#64748b', fontWeight: 700 }}>Subtotal (Sin IGV)</span>
-                  <span style={{ color: '#334155', fontWeight: 800 }}>{formatCurrency(totals.subtotal)}</span>
+                  <span style={{ color: '#64748b', fontWeight: 700, fontSize: '11px' }}>Subtotal (Sin IGV)</span>
+                  <span style={{ color: '#334155', fontWeight: 800, fontSize: '11px' }}>{formatCurrency(totals.subtotal)}</span>
                 </div>
                 <div style={totalRowStyle}>
-                  <span style={{ color: '#64748b', fontWeight: 700 }}>IGV (18%)</span>
-                  <span style={{ color: '#334155', fontWeight: 800 }}>{formatCurrency(totals.igv)}</span>
+                  <span style={{ color: '#64748b', fontWeight: 700, fontSize: '11px' }}>IGV (18%)</span>
+                  <span style={{ color: '#334155', fontWeight: 800, fontSize: '11px' }}>{formatCurrency(totals.igv)}</span>
                 </div>
-                <div style={{ ...totalRowStyle, borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                  <span style={{ color: '#0f172a', fontSize: '15px', fontWeight: 900 }}>Total Neto</span>
-                  <span style={{ color: '#10b981', fontSize: '18px', fontWeight: 950 }}>{formatCurrency(totals.total)}</span>
+                <div style={{ ...totalRowStyle, borderTop: '1px solid #e2e8f0', paddingTop: '4px' }}>
+                  <span style={{ color: '#0f172a', fontSize: '12px', fontWeight: 900 }}>Total Neto</span>
+                  <span style={{ color: '#10b981', fontSize: '13px', fontWeight: 950 }}>{formatCurrency(totals.total)}</span>
                 </div>
 
                 {errorMsg && (
                   <div style={errorBannerStyle}>
-                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <AlertCircle size={12} style={{ flexShrink: 0 }} />
                     <span>{errorMsg}</span>
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                   <button 
                     onClick={() => setViewMode('list')}
                     style={{
                       flex: 1,
-                      padding: '10px 16px',
-                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
                       border: '1px solid #cbd5e1',
                       background: '#f8fafc',
                       color: '#64748b',
-                      fontSize: '12px',
+                      fontSize: '11px',
                       fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '6px'
+                      gap: '4px'
                     }}
                   >
                     Cancelar
@@ -1958,16 +1959,16 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                       subTab === 'gim' ? handleSaveGIM : handleSaveCCP
                     }
                     disabled={loading}
-                    style={loading ? { ...disabledRegisterBtnStyle, flex: 2, margin: 0 } : { ...registerBtnStyle, flex: 2, margin: 0 }}
+                    style={loading ? { ...disabledRegisterBtnStyle, flex: 2, margin: 0, padding: '6px 12px', borderRadius: '6px', fontSize: '11px' } : { ...registerBtnStyle, flex: 2, margin: 0, padding: '6px 12px', borderRadius: '6px', fontSize: '11px' }}
                   >
                     {loading ? (
                       <>
-                        <Loader2 className="animate-spin" size={16} />
+                        <Loader2 className="animate-spin" size={12} />
                         <span>Procesando...</span>
                       </>
                     ) : (
                       <>
-                        <Save size={16} />
+                        <Save size={12} />
                         <span>
                           {subTab === 'ocm' ? 'Guardar OCM' :
                            subTab === 'gim' ? 'Registrar GIM' : 'Guardar Comprobante'}
@@ -2898,11 +2899,11 @@ const tableStyle = {
 };
 
 const thStyle = {
-  padding: '10px 14px',
+  padding: '4px 6px',
   background: '#f1f5f9',
   borderBottom: '1px solid #e2e8f0',
   color: '#475569',
-  fontSize: '10px',
+  fontSize: '9px',
   fontWeight: 900,
   textTransform: 'uppercase',
   letterSpacing: '0.05em'
@@ -2914,19 +2915,19 @@ const trStyle = {
 };
 
 const tdStyle = {
-  padding: '10px 14px',
-  fontSize: '12px',
+  padding: '3px 6px',
+  fontSize: '11px',
   color: '#334155',
   verticalAlign: 'middle'
 };
 
 const tableInputStyle = {
   width: '100%',
-  padding: '6px',
+  padding: '2px 4px',
   background: '#f8fafc',
   border: '1px solid #e2e8f0',
-  borderRadius: '6px',
-  fontSize: '12px',
+  borderRadius: '4px',
+  fontSize: '11px',
   fontWeight: 700,
   textAlign: 'center',
   color: '#1e293b',
@@ -2938,7 +2939,7 @@ const deleteBtnStyle = {
   background: 'transparent',
   color: '#ef4444',
   cursor: 'pointer',
-  padding: '4px',
+  padding: '2px',
   borderRadius: '4px',
   display: 'flex',
   alignItems: 'center',
@@ -2948,36 +2949,36 @@ const deleteBtnStyle = {
 
 const totalsWrapperStyle = {
   borderTop: '2px dashed #e2e8f0',
-  paddingTop: '16px',
+  paddingTop: '6px',
   display: 'flex',
   flexDirection: 'column',
-  gap: '10px',
-  marginTop: '10px'
+  gap: '4px',
+  marginTop: '6px'
 };
 
 const totalRowStyle = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  fontSize: '13px'
+  fontSize: '11px'
 };
 
 const registerBtnStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '8px',
-  padding: '12px',
+  gap: '6px',
+  padding: '6px 12px',
   background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
   color: '#fff',
   border: 'none',
-  borderRadius: '12px',
-  fontSize: '13px',
+  borderRadius: '6px',
+  fontSize: '11px',
   fontWeight: 900,
   cursor: 'pointer',
-  boxShadow: '0 4px 14px rgba(16,185,129,0.2)',
+  boxShadow: '0 2px 8px rgba(16,185,129,0.15)',
   transition: 'transform 0.2s, box-shadow 0.2s',
-  marginTop: '10px',
+  marginTop: '4px',
   width: '100%'
 };
 
@@ -2990,17 +2991,17 @@ const disabledRegisterBtnStyle = {
 
 const backToListBtnStyle = {
   width: '100%',
-  padding: '10px',
+  padding: '6px 12px',
   background: 'transparent',
   border: '1px solid #cbd5e1',
-  borderRadius: '12px',
+  borderRadius: '6px',
   color: '#64748b',
-  fontSize: '12px',
+  fontSize: '11px',
   fontWeight: 800,
   cursor: 'pointer',
   transition: 'all 0.2s ease',
   textAlign: 'center',
-  marginTop: '10px'
+  marginTop: '4px'
 };
 
 const errorBannerStyle = {
