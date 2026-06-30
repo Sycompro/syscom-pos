@@ -591,99 +591,94 @@ class NavaPurchaseService {
       const finalCond = cond ? cond.trim().toUpperCase() : 'CONTADO';
       const finalCodcoc = codcoc ? codcoc.trim() : '01';
 
-      // 7. Insertar en mst01ocm
+      // 7. Invocar a GrabaMstOcmInv_Web para persistir la cabecera con la lógica del ERP
       const reqMstOcm = new sql.Request(transaction);
-      await reqMstOcm
-        .input('fecha', sql.Date, fechaStr)
+      reqMstOcm.input('cdocu', sql.Char(2), '28');
+      reqMstOcm.input('ndocu', sql.Char(12), nextNdocu.substring(0, 12));
+      reqMstOcm.input('codpro', sql.Char(6), finalCodpro);
+      reqMstOcm.input('nompro', sql.Char(60), finalNompro.substring(0, 60).padEnd(60, ' '));
+      reqMstOcm.input('rucpro', sql.Char(11), finalRucpro.substring(0, 11).padEnd(11, ' '));
+      reqMstOcm.input('atte', sql.Char(40), (atte || '').substring(0, 40).padEnd(40, ' '));
+      reqMstOcm.input('refe', sql.Char(12), (refe || '').substring(0, 12).padEnd(12, ' '));
+      reqMstOcm.input('mone', sql.Char(1), (mone || 'S').substring(0, 1));
+      reqMstOcm.input('tcam', sql.Float, parseFloat(exchangeRateVal));
+      reqMstOcm.input('totb', sql.Float, parseFloat(subtotalAmount));
+      reqMstOcm.input('tota', sql.Float, parseFloat(subtotalAmount));
+      reqMstOcm.input('toti', sql.Float, parseFloat(taxAmount));
+      reqMstOcm.input('totn', sql.Float, parseFloat(totalAmount));
+      reqMstOcm.input('entr', sql.Char(60), (lugarEntrega || 'LUIS GONZALES').substring(0, 60).padEnd(60, ' '));
+      reqMstOcm.input('obse', sql.VarChar(100), (observacion || '').substring(0, 100));
+      reqMstOcm.input('codcdc', sql.VarChar(80), erpPto || '01');
+      reqMstOcm.input('cond', sql.Char(80), finalCond.substring(0, 80).padEnd(80, ' '));
+      reqMstOcm.input('codalm', sql.Char(2), (processedItems[0]?.codalm || resolvedWarehouse || '01').substring(0, 2));
+      reqMstOcm.input('codscc', sql.Char(10), (codscc || '').substring(0, 10).padEnd(10, ' '));
+      reqMstOcm.input('dest', sql.Char(40), ' '.repeat(40));
+      reqMstOcm.input('flag', sql.Char(1), '0');
+      reqMstOcm.input('cOperacion', sql.Char(15), 'Nuevo'.padEnd(15, ' '));
+      reqMstOcm.input('impor', sql.Int, 0);
+      reqMstOcm.input('genn', sql.Int, 0);
+      reqMstOcm.input('codtra', sql.Char(5), (codtra || 'T0000').substring(0, 5));
+      reqMstOcm.input('nombco', sql.Char(15), (nombco || '').substring(0, 15).padEnd(15, ' '));
+      reqMstOcm.input('nrocta', sql.Char(20), (nrocta || '').substring(0, 20).padEnd(20, ' '));
+      reqMstOcm.input('codcoc', sql.Char(2), finalCodcoc);
+      reqMstOcm.input('flagnc', sql.Int, 1);
+      reqMstOcm.input('origen', sql.Int, 1);
+      reqMstOcm.input('codtie', sql.Char(3), '   ');
+      reqMstOcm.input('fven', sql.DateTime, new Date(fechaEntregaStr));
+      reqMstOcm.input('fcad', sql.DateTime, new Date(fechaCaducidadStr));
+
+      await reqMstOcm.execute('GrabaMstOcmInv_Web');
+
+      // 7.1. Actualizar los campos específicos inafec y nroped que no maneja el SP por defecto
+      const reqUpdateExtra = new sql.Request(transaction);
+      await reqUpdateExtra
         .input('ndocu', sql.Char(12), nextNdocu.substring(0, 12))
-        .input('codpro', sql.Char(6), finalCodpro)
-        .input('nompro', sql.Char(60), finalNompro.padEnd(60, ' '))
-        .input('rucpro', sql.Char(11), finalRucpro.padEnd(11, ' '))
-        .input('tcam', sql.Decimal(18, 4), exchangeRateVal)
-        .input('totb', sql.Decimal(18, 2), subtotalAmount)
-        .input('tota', sql.Decimal(18, 2), subtotalAmount)
-        .input('toti', sql.Decimal(18, 2), taxAmount)
-        .input('totn', sql.Decimal(18, 2), totalAmount)
-        .input('fven', sql.Date, fechaEntregaStr)
-        .input('codalm', sql.Char(2), processedItems[0]?.codalm || resolvedWarehouse) // Almacén de cabecera por defecto
-        .input('codusu', sql.Char(3), erpUsu.substring(0, 3))
-        .input('cond', sql.VarChar(80), finalCond.padEnd(80, ' '))
-        .input('codcoc', sql.Char(2), finalCodcoc)
-        .input('feccad', sql.Date, fechaCaducidadStr)
-        .input('entr', sql.Char(60), (lugarEntrega || 'LUIS GONZALES').substring(0, 60).padEnd(60, ' '))
-        .input('obse', sql.VarChar(100), (observacion || '').substring(0, 100))
-        .input('codtra', sql.Char(5), (codtra || 'T0000').substring(0, 5))
-        .input('nombco', sql.Char(15), (nombco || '').substring(0, 15))
-        .input('nrocta', sql.Char(20), (nrocta || '').substring(0, 20))
-        .input('mone', sql.Char(1), (mone || 'S').substring(0, 1))
-        .input('atte', sql.VarChar(30), (atte || '').substring(0, 30).padEnd(30, ' '))
-        .input('refe', sql.Char(12), (refe || '').substring(0, 12).padEnd(12, ' '))
-        .input('codscc', sql.Char(10), (codscc || '').substring(0, 10).padEnd(10, ' '))
         .input('inafec', sql.Int, Number(inafec) === 1 ? 1 : 0)
         .input('nroped', sql.VarChar(200), (nroped || '').substring(0, 200).padEnd(200, ' '))
+        .input('codusu', sql.Char(3), erpUsu.substring(0, 3))
         .query(`
-          INSERT INTO mst01ocm (
-            fecha, cdocu, ndocu, codpro, nompro, rucpro, atte, refe, mone, tcam,
-            totb, dsct, tota, toti, totn, fven, flag, entr, obse, cond,
-            nota, codalm, ccos, dest, impor, chkimp, selchk, marchk, genn,
-            CodTra, NomBco, NroCta, alta, codcoc, flagnc, codscc, nrope,
-            reffab, paymen, delive, insura, bankex, freigh, obser, dconfi,
-            fconfi, preu, freffa, tiptra, NumEst, NumCot, shipto, tipocm,
-            refefac, FlagCc, cdge, ndge, nroped, nropro, codcom, fecreg,
-            inafec, feccad, apro, aprofec, aprousu, aproobs, checkok, genop,
-            CodCdc, confirm, attach, codtie, origen, codpai, agecar, codusu,
-            idarea, comesp, atte_item1, atte_item2, agecar_item, flaenv, codenv, fecenv
-          ) VALUES (
-            @fecha, '28', @ndocu, @codpro, @nompro, @rucpro, @atte, @refe, @mone, @tcam,
-            @totb, 0, @tota, @toti, @totn, @fven, '0', @entr, @obse, @cond,
-            '            ', @codalm, '', '                                        ', 0, 0, 0, ' ', 0,
-            @codtra, @nombco, @nrocta, 0, @codcoc, 1, @codscc, '            ',
-            '', '', '', '', '', '', '', '               ',
-            NULL, 0, NULL, ' ', '            ', '            ', '', '0',
-            '                    ', '0 ', '  ', '            ', @nroped, '', 'V0000', GETDATE(),
-            @inafec, @feccad, 1, GETDATE(), @codusu, '                                                                                                    ', 0, 0,
-            '01', 0, 0, '   ', 0, '  ', '', @codusu,
-            1, 0, 0, 0, 0, 0, '      ', NULL
-          )
+          UPDATE mst01ocm 
+          SET inafec = @inafec, 
+              nroped = @nroped,
+              codusu = @codusu
+          WHERE cdocu = '28' AND ndocu = @ndocu
         `);
 
-      // 8. Insertar detalles en dtl01ocm
+      // 8. Insertar detalles invocando a GrabaDtlOcmInv_Web
       for (const [idx, item] of processedItems.entries()) {
         const reqDtlOcm = new sql.Request(transaction);
-        await reqDtlOcm
-          .input('fecha', sql.Date, fechaStr)
-          .input('ndocu', sql.Char(12), nextNdocu.substring(0, 12))
-          .input('codpro', sql.Char(6), finalCodpro)
-          .input('item', sql.Int, idx + 1)
-          .input('codi', sql.Char(11), item.id.substring(0, 11))
-          .input('codf', sql.Char(20), item.userCode.substring(0, 20).padEnd(20, ' '))
-          .input('marc', sql.Char(5), item.brand.substring(0, 5).padEnd(5, ' '))
-          .input('descr', sql.VarChar(80), item.name.substring(0, 80))
-          .input('cant', sql.Decimal(18, 4), item.quantity)
-          .input('preu', sql.Decimal(18, 4), item.netUnitPrice)
-          .input('totb', sql.Decimal(18, 2), item.itemSubtotal)
-          .input('tota', sql.Decimal(18, 2), item.itemSubtotal)
-          .input('totn', sql.Decimal(18, 2), item.itemTotal)
-          .input('tcam', sql.Decimal(18, 4), exchangeRateVal)
-          .input('codalm', sql.Char(2), item.codalm)
-          .input('aigv', sql.Char(1), item.aigv)
-          .input('dsct', sql.Decimal(18, 4), item.discount)
-          .input('mone', sql.Char(1), (mone || 'S').substring(0, 1))
-          .query(`
-            INSERT INTO dtl01ocm (
-              fecha, cdocu, ndocu, codpro, item, codi, codf, marc, descr, umed,
-              cant, preu, totb, dsct, dsct2, dsct3, tota, totn, tcam, mone,
-              flag, recib, codalm, aigv, flad, coduc, ucom, uvta, ucon, uckd,
-              msto, dsctnc, cancon, desrem, tipocm, alta, dsct4, dsct5, dsctnc2,
-              dsctnc3, preucon, confirm, codmotalt
-            ) VALUES (
-              @fecha, '28', @ndocu, @codpro, @item, @codi, @codf, @marc, @descr, @umed,
-              @cant, @preu, @totb, @dsct, 0, 0, @tota, @totn, @tcam, @mone,
-              '0', 0, @codalm, @aigv, ' ', ' ', @umed, '   ', 1, 0,
-              'S', 0, 0, '', ' ', 0, 0, 0, 0,
-              0, 0, 0, '01'
-            )
-          `);
+        reqDtlOcm.input('cdocu', sql.Char(2), '28');
+        reqDtlOcm.input('ndocu', sql.Char(12), nextNdocu.substring(0, 12));
+        reqDtlOcm.input('tcam', sql.Float, parseFloat(exchangeRateVal));
+        reqDtlOcm.input('item', sql.Float, idx + 1);
+        reqDtlOcm.input('codi', sql.Char(11), item.id.substring(0, 11));
+        reqDtlOcm.input('codf', sql.Char(15), item.userCode.substring(0, 15).padEnd(15, ' '));
+        reqDtlOcm.input('descr', sql.Char(80), item.name.substring(0, 80).padEnd(80, ' '));
+        reqDtlOcm.input('cant', sql.Float, parseFloat(item.quantity));
+        reqDtlOcm.input('preu', sql.Float, parseFloat(item.netUnitPrice));
+        reqDtlOcm.input('totb', sql.Float, parseFloat(item.itemSubtotal));
+        reqDtlOcm.input('tota', sql.Float, parseFloat(item.itemSubtotal));
+        reqDtlOcm.input('dsct', sql.Float, parseFloat(item.discount));
+        reqDtlOcm.input('totn', sql.Float, parseFloat(item.itemTotal));
+        reqDtlOcm.input('umed', sql.Char(3), (item.unit || 'UND').substring(0, 3));
+        reqDtlOcm.input('mone', sql.Char(1), (mone || 'S').substring(0, 1));
+        reqDtlOcm.input('aigv', sql.Char(1), item.aigv);
+        reqDtlOcm.input('flag', sql.Char(1), '0');
+        reqDtlOcm.input('AnulaDetalle', sql.Char(1), idx === 0 ? 'S' : 'N');
+        reqDtlOcm.input('codpro', sql.Char(6), finalCodpro);
+        reqDtlOcm.input('dsct2', sql.Float, 0);
+        reqDtlOcm.input('dsct3', sql.Float, 0);
+        reqDtlOcm.input('marc', sql.Char(5), (item.brand || '').substring(0, 5).padEnd(5, ' '));
+        reqDtlOcm.input('codalm', sql.Char(2), item.codalm.substring(0, 2));
+        reqDtlOcm.input('coduc', sql.Char(1), ' ');
+        reqDtlOcm.input('ucom', sql.Char(3), (item.unit || 'UND').substring(0, 3));
+        reqDtlOcm.input('uvta', sql.Char(3), '   ');
+        reqDtlOcm.input('ucon', sql.Float, 1);
+        reqDtlOcm.input('uckd', sql.Float, 0);
+        reqDtlOcm.input('msto', sql.Char(1), 'S');
+        reqDtlOcm.input('dsctnc', sql.Float, 0);
+
+        await reqDtlOcm.execute('GrabaDtlOcmInv_Web');
       }
 
       await transaction.commit();

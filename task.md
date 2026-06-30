@@ -9,5 +9,9 @@
   - [x] Egresos de Caja (`components/pos/ExpensesView.js`)
   - [x] Ajustes POS (`components/pos/SettingsView.js`)
   - [x] Configuración WhatsApp (`components/pos/WhatsappView.js`)
+- [x] **Fase 1: Ajustes en Backend (API y Servicio de Base de Datos)**
+  - [x] Implementar la persistencia de cabecera de OCM invocando al Stored Procedure `GrabaMstOcmInv_Web` en `nava-purchase-service.js`.
+  - [x] Implementar la persistencia del detalle de OCM invocando al Stored Procedure `GrabaDtlOcmInv_Web` en `nava-purchase-service.js`.
+  - [x] Habilitar recepción de campos `inafec` y `nroped` (Nº Requerim) en el endpoint de la API `/api/purchases/ocm/create`.
 - [x] Validar la compilación de Next.js mediante `npm run build` sin errores.
 - [x] Enviar cambios a la rama principal de Git para actualizar el servidor de producción en Railway. y validar
