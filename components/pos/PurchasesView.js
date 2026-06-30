@@ -99,6 +99,9 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   const [ocmRefe, setOcmRefe] = useState('');
   const [ocmCodscc, setOcmCodscc] = useState('');
   const [ocmObservacion, setOcmObservacion] = useState('');
+  const [ocmNroped, setOcmNroped] = useState('');
+  const [ocmInafec, setOcmInafec] = useState(false);
+  const [ocmCodalmGlobal, setOcmCodalmGlobal] = useState('');
 
   // Estado para bloquear OCM en edición
   const [isOcmBlocked, setIsOcmBlocked] = useState(false);
@@ -170,7 +173,11 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         if (data.success) {
           setConditionsList(data.conditions || []);
           setClassificationsList(data.classifications || []);
-          setWarehousesList(data.warehouses || []);
+          if (data.warehouses && data.warehouses.length > 0) {
+            setWarehousesList(data.warehouses);
+            setOcmCodalmGlobal(data.warehouses[0].codalm);
+            setSelectedItemWarehouse(data.warehouses[0].codalm);
+          }
           setTransportistsList(data.transportists || []);
           setSubCentersOfCostList(data.subCentersOfCost || []);
           
@@ -641,18 +648,40 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   };
 
   const calculateCartTotals = () => {
-    const total = cartItems.reduce((acc, item) => {
-      const beforeDiscount = item.cost * item.quantity;
-      const desc = item.discount || 0;
-      return acc + (beforeDiscount * (1 - desc / 100));
-    }, 0);
-    const subtotal = total / 1.18;
-    const igv = total - subtotal;
-    return {
-      subtotal: Number(subtotal.toFixed(2)),
-      igv: Number(igv.toFixed(2)),
-      total: Number(total.toFixed(2))
-    };
+    if (subTab === 'ocm') {
+      let subtotal = 0;
+      let igv = 0;
+      cartItems.forEach(item => {
+        const cant = Number(item.quantity) || 0;
+        const preu = Number(item.cost) || 0;
+        const desc = Number(item.discount) || 0;
+        
+        const itemSubtotal = Number((cant * preu * (1 - desc / 100)).toFixed(2));
+        const isAigv = item.aigv === 'S' && !ocmInafec;
+        const itemTax = isAigv ? Number((itemSubtotal * 0.18).toFixed(2)) : 0;
+        
+        subtotal += itemSubtotal;
+        igv += itemTax;
+      });
+      return {
+        subtotal: Number(subtotal.toFixed(2)),
+        igv: Number(igv.toFixed(2)),
+        total: Number((subtotal + igv).toFixed(2))
+      };
+    } else {
+      const total = cartItems.reduce((acc, item) => {
+        const beforeDiscount = item.cost * item.quantity;
+        const desc = item.discount || 0;
+        return acc + (beforeDiscount * (1 - desc / 100));
+      }, 0);
+      const subtotal = total / 1.18;
+      const igv = total - subtotal;
+      return {
+        subtotal: Number(subtotal.toFixed(2)),
+        igv: Number(igv.toFixed(2)),
+        total: Number(total.toFixed(2))
+      };
+    }
   };
 
   const totals = calculateCartTotals();
@@ -664,12 +693,11 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     setErrorMsg(null);
     if (!validateBasicForm()) return;
     
-    // Antes de guardar, abrimos el modal de Datos Adicionales
-    setIsAdditionalDataModalOpen(true);
+    // Ejecutar guardado directo ya que todos los datos se ingresan en cabecera
+    await executeSaveOCM();
   };
 
   const executeSaveOCM = async () => {
-    setIsAdditionalDataModalOpen(false);
     setLoading(true);
     try {
       const payload = {
@@ -691,6 +719,8 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         atte: ocmAtte,
         refe: ocmRefe,
         codscc: ocmCodscc,
+        inafec: ocmInafec ? 1 : 0,
+        nroped: ocmNroped,
         items: cartItems.map(item => ({
           id: item.id,
           quantity: item.quantity,
@@ -724,10 +754,12 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         setSupplierSearchQuery('');
         setGlobalWarehouseSelected('');
         
-        // Limpiar datos adicionales
+        // Limpiar datos adicionales e inputs locales
         setOcmNombco('');
         setOcmNrocta('');
         setOcmObservacion('');
+        setOcmNroped('');
+        setOcmInafec(false);
 
         setViewMode('list');
         fetchHistory();
@@ -1197,171 +1229,260 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               
               {subTab === 'ocm' ? (
-                /* Caso ORDEN DE COMPRA (OCM): Fila Única de 7 Columnas */
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: isMobile ? '1fr' : '2fr 0.9fr 0.9fr 1.1fr 1.1fr 0.8fr 0.7fr',
-                  gap: '8px',
-                  alignItems: 'end'
-                }}>
-                  {/* 1. Proveedor */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Proveedor</span>
-                      <label style={{ ...checkboxLabelStyle, margin: 0, padding: 0, display: 'flex', alignItems: 'center' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={isGenericSupplier} 
-                          onChange={(e) => {
-                            setIsGenericSupplier(e.target.checked);
-                            setSelectedSupplier(null);
-                            setSupplierSearchQuery('');
-                            setErrorMsg(null);
-                          }}
-                          style={{ ...checkboxInputStyle, width: '12px', height: '12px' }}
-                        />
-                        <span style={{ fontWeight: 800, color: '#475569', fontSize: '9px', marginLeft: '3px' }}>Manual</span>
-                      </label>
+                /* Caso ORDEN DE COMPRA (OCM): 2 Filas Ultra Compactas */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {/* Fila 1 */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : '0.8fr 1fr 1fr 0.8fr 1.2fr 1.2fr 1fr',
+                    gap: '8px',
+                    alignItems: 'end'
+                  }}>
+                    {/* Documento */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Documento</span>
+                      <input 
+                        type="text" 
+                        value={editingOcmNumber || 'Correlativo'} 
+                        disabled 
+                        style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px', background: '#f1f5f9', color: '#64748b', fontWeight: 700 }}
+                      />
                     </div>
 
-                    {!isGenericSupplier ? (
-                      <div ref={supplierRef} style={{ position: 'relative' }}>
-                        <div style={{ ...inputWrapperStyle, height: '28px', padding: '2px 8px' }}>
-                          <Search size={12} color="#94a3b8" />
+                    {/* Fecha Emisión */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Fecha</span>
+                      <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
+                        <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
+                        <input 
+                          type="date" 
+                          value={fechaOCMEmision}
+                          onChange={e => setFechaOCMEmision(e.target.value)}
+                          style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Moneda */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Moneda</span>
+                      <select 
+                        value={ocmMone}
+                        onChange={e => setOcmMone(e.target.value)}
+                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                      >
+                        <option value="S">SOLES (S/)</option>
+                        <option value="D">DÓLARES ($)</option>
+                      </select>
+                    </div>
+
+                    {/* Tipo de Cambio */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>T. Cambio</span>
+                      <input 
+                        type="number"
+                        step="0.001"
+                        value={ocmTcam}
+                        onChange={e => setOcmTcam(parseFloat(e.target.value) || 0)}
+                        onFocus={e => e.target.select()}
+                        style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                        disabled={ocmMone === 'S'}
+                      />
+                    </div>
+
+                    {/* Atención */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Atención</span>
+                      <input 
+                        type="text"
+                        placeholder="Contacto"
+                        value={ocmAtte}
+                        onChange={e => setOcmAtte(e.target.value)}
+                        style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                      />
+                    </div>
+
+                    {/* Referencia */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Referencia</span>
+                      <input 
+                        type="text"
+                        placeholder="Nº Cotización/Ref"
+                        value={ocmRefe}
+                        onChange={e => setOcmRefe(e.target.value)}
+                        style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                      />
+                    </div>
+
+                    {/* Nº Requerimiento */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Nº Requerim.</span>
+                      <input 
+                        type="text"
+                        placeholder="Req. Compra"
+                        value={ocmNroped}
+                        onChange={e => setOcmNroped(e.target.value)}
+                        style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fila 2 */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : '2fr 1.2fr 1.2fr 1.2fr 1.2fr 0.8fr',
+                    gap: '8px',
+                    alignItems: 'end'
+                  }}>
+                    {/* Proveedor */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Proveedor</span>
+                        <label style={{ ...checkboxLabelStyle, margin: 0, padding: 0, display: 'flex', alignItems: 'center' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={isGenericSupplier} 
+                            onChange={(e) => {
+                              setIsGenericSupplier(e.target.checked);
+                              setSelectedSupplier(null);
+                              setSupplierSearchQuery('');
+                              setErrorMsg(null);
+                            }}
+                            style={{ ...checkboxInputStyle, width: '12px', height: '12px' }}
+                          />
+                          <span style={{ fontWeight: 800, color: '#475569', fontSize: '9px', marginLeft: '3px' }}>Manual</span>
+                        </label>
+                      </div>
+
+                      {!isGenericSupplier ? (
+                        <div ref={supplierRef} style={{ position: 'relative' }}>
+                          <div style={{ ...inputWrapperStyle, height: '28px', padding: '2px 8px' }}>
+                            <Search size={12} color="#94a3b8" />
+                            <input 
+                              type="text" 
+                              placeholder="Buscar por RUC o Razón..."
+                              value={supplierSearchQuery}
+                              onChange={(e) => {
+                                setSupplierSearchQuery(e.target.value);
+                                setSelectedSupplier(null);
+                                setShowSupplierDropdown(true);
+                              }}
+                              onFocus={() => setShowSupplierDropdown(true)}
+                              style={{ ...inputStyle, fontSize: '11px', height: '24px' }}
+                            />
+                          </div>
+
+                          {showSupplierDropdown && (supplierResults.length > 0 || (/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11))) && (
+                            <div style={{ ...dropdownListStyle, zIndex: 100, top: '30px' }}>
+                              {supplierResults.map((s, idx) => (
+                                <div key={idx} onClick={() => handleSelectSupplier(s)} className="search-dropdown-item" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                                  <strong>{s.nompro}</strong>
+                                  <div style={{ fontSize: '9px', color: '#64748b' }}>RUC: {s.rucpro} | Código: {s.codpro}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {selectedSupplier && (
+                            <div style={{ ...selectedSupplierBadgeStyle, marginTop: '2px', padding: '2px 6px', fontSize: '10px', height: '20px', display: 'flex', alignItems: 'center' }}>
+                              <Check size={10} color="#10b981" style={{ marginRight: '3px' }} />
+                              <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '170px' }}>{selectedSupplier.nompro}</strong>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '4px' }}>
                           <input 
                             type="text" 
-                            placeholder="Buscar por RUC o Razón..."
-                            value={supplierSearchQuery}
-                            onChange={(e) => {
-                              setSupplierSearchQuery(e.target.value);
-                              setSelectedSupplier(null);
-                              setShowSupplierDropdown(true);
-                            }}
-                            onFocus={() => setShowSupplierDropdown(true)}
-                            style={{ ...inputStyle, fontSize: '11px', height: '24px' }}
+                            placeholder="RUC" 
+                            value={manualSupplierRuc}
+                            onChange={e => setManualSupplierRuc(e.target.value.replace(/[^0-9]/g, ''))}
+                            maxLength={11}
+                            style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
+                          />
+                          <input 
+                            type="text" 
+                            placeholder="Razón Social" 
+                            value={manualSupplierName}
+                            onChange={e => setManualSupplierName(e.target.value)}
+                            style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
                           />
                         </div>
-
-                        {showSupplierDropdown && (supplierResults.length > 0 || (/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11))) && (
-                          <div style={{ ...dropdownListStyle, zIndex: 100, top: '30px' }}>
-                            {supplierResults.map((s, idx) => (
-                              <div key={idx} onClick={() => handleSelectSupplier(s)} className="search-dropdown-item" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                                <strong>{s.nompro}</strong>
-                                <div style={{ fontSize: '9px', color: '#64748b' }}>RUC: {s.rucpro} | Código: {s.codpro}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {selectedSupplier && (
-                          <div style={{ ...selectedSupplierBadgeStyle, marginTop: '2px', padding: '2px 6px', fontSize: '10px', height: '20px', display: 'flex', alignItems: 'center' }}>
-                            <Check size={10} color="#10b981" style={{ marginRight: '3px' }} />
-                            <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '170px' }}>{selectedSupplier.nompro}</strong>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '4px' }}>
-                        <input 
-                          type="text" 
-                          placeholder="RUC" 
-                          value={manualSupplierRuc}
-                          onChange={e => setManualSupplierRuc(e.target.value.replace(/[^0-9]/g, ''))}
-                          maxLength={11}
-                          style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="Razón Social" 
-                          value={manualSupplierName}
-                          onChange={e => setManualSupplierName(e.target.value)}
-                          style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 2. Fecha Emisión */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Emisión</span>
-                    <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
-                      <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
-                      <input 
-                        type="date" 
-                        value={fechaOCMEmision}
-                        onChange={e => setFechaOCMEmision(e.target.value)}
-                        style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
-                      />
+                      )}
                     </div>
-                  </div>
 
-                  {/* 3. Fecha Vencimiento */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Venc.</span>
-                    <div style={{ ...dateInputWrapperStyle, height: '28px', padding: '2px 6px' }}>
-                      <Calendar size={12} color="#64748b" style={{ marginRight: '4px' }} />
-                      <input 
-                        type="date" 
-                        value={fechaOCMVencimiento}
-                        onChange={e => setFechaOCMVencimiento(e.target.value)}
-                        style={{ ...dateStyle, fontSize: '11px', height: '24px' }}
-                      />
+                    {/* Condición de Pago */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Condición Pago</span>
+                      <select 
+                        value={ocmCond}
+                        onChange={e => setOcmCond(e.target.value)}
+                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                      >
+                        {conditionsList.map((condObj, idx) => (
+                          <option key={idx} value={condObj.nomcdv}>{condObj.nomcdv}</option>
+                        ))}
+                      </select>
                     </div>
-                  </div>
 
-                  {/* 4. Condición de Pago */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Condición Pago</span>
-                    <select 
-                      value={ocmCond}
-                      onChange={e => setOcmCond(e.target.value)}
-                      style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                    >
-                      {conditionsList.map((condObj, idx) => (
-                        <option key={idx} value={condObj.nomcdv}>{condObj.nomcdv}</option>
-                      ))}
-                    </select>
-                  </div>
+                    {/* Sub Centro de Costo */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Sub.C.Costo</span>
+                      <select 
+                        value={ocmCodscc}
+                        onChange={e => setOcmCodscc(e.target.value)}
+                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                      >
+                        <option value="">-- SELECCIONE --</option>
+                        {subCentersOfCostList.map((scc, idx) => (
+                          <option key={idx} value={scc.codscc}>{scc.nomscc}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  {/* 5. Clasificación */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Clasificación</span>
-                    <select 
-                      value={ocmCodcoc}
-                      onChange={e => setOcmCodcoc(e.target.value)}
-                      style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                    >
-                      {classificationsList.map((cocObj, idx) => (
-                        <option key={idx} value={cocObj.codcoc}>{cocObj.nomcoc}</option>
-                      ))}
-                    </select>
-                  </div>
+                    {/* Clasificación */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Clasificación</span>
+                      <select 
+                        value={ocmCodcoc}
+                        onChange={e => setOcmCodcoc(e.target.value)}
+                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                      >
+                        {classificationsList.map((cocObj, idx) => (
+                          <option key={idx} value={cocObj.codcoc}>{cocObj.nomcoc}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  {/* 6. Moneda */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Moneda</span>
-                    <select 
-                      value={ocmMone}
-                      onChange={e => setOcmMone(e.target.value)}
-                      style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
-                    >
-                      <option value="S">SOLES (S/)</option>
-                      <option value="D">DÓLARES ($)</option>
-                    </select>
-                  </div>
+                    {/* Destino (Almacén Global) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Destino</span>
+                      <select 
+                        value={ocmCodalmGlobal}
+                        onChange={e => {
+                          setOcmCodalmGlobal(e.target.value);
+                          setCartItems(prev => prev.map(item => ({ ...item, codalm: e.target.value, nomalm: warehousesList.find(w => w.codalm === e.target.value)?.nomalm || item.nomalm })));
+                        }}
+                        style={{ ...selectStyle, height: '28px', fontSize: '11px', padding: '2px 4px' }}
+                      >
+                        {warehousesList.map((w, idx) => (
+                          <option key={idx} value={w.codalm}>{w.nomalm}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  {/* 7. Tipo de Cambio */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>T. Cambio</span>
-                    <input 
-                      type="number"
-                      step="0.001"
-                      value={ocmTcam}
-                      onChange={e => setOcmTcam(parseFloat(e.target.value) || 0)}
-                      onFocus={e => e.target.select()}
-                      style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px' }}
-                      disabled={ocmMone === 'S'}
-                    />
+                    {/* Checkbox Compra Inafecta */}
+                    <div style={{ display: 'flex', alignItems: 'center', height: '28px', paddingBottom: '4px' }}>
+                      <label style={{ ...checkboxLabelStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={ocmInafec} 
+                          onChange={(e) => setOcmInafec(e.target.checked)}
+                          style={{ ...checkboxInputStyle, width: '14px', height: '14px' }}
+                        />
+                        <span style={{ fontWeight: 800, color: '#334155', fontSize: '10px', marginLeft: '4px' }}>Inafecta</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -1814,96 +1935,189 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                   <table style={tableStyle}>
                     <thead>
                       <tr>
-                        <th style={thStyle}>Producto</th>
-                        <th style={{ ...thStyle, width: '60px' }}>Cant</th>
-                        {subTab !== 'gim' && <th style={{ ...thStyle, width: '80px' }}>Costo c/IGV</th>}
-                        {subTab !== 'gim' && <th style={{ ...thStyle, width: '65px' }}>Dscto %</th>}
-                        <th style={{ ...thStyle, width: '80px', textAlign: 'right' }}>Total</th>
-                        <th style={{ ...thStyle, width: '30px' }}></th>
+                        {subTab === 'ocm' ? (
+                          <>
+                            <th style={{ ...thStyle, width: '20px' }}>#</th>
+                            <th style={{ ...thStyle, width: '70px' }}>Código</th>
+                            <th style={{ ...thStyle, width: '50px' }}>Marca</th>
+                            <th style={thStyle}>Descripción</th>
+                            <th style={{ ...thStyle, width: '50px' }}>Cant</th>
+                            <th style={{ ...thStyle, width: '30px', textAlign: 'center' }}>U.M.</th>
+                            <th style={{ ...thStyle, width: '70px', textAlign: 'right' }}>P.Unitario</th>
+                            <th style={{ ...thStyle, width: '50px' }}>Dscto %</th>
+                            <th style={{ ...thStyle, width: '70px', textAlign: 'right' }}>V.Venta</th>
+                            <th style={{ ...thStyle, width: '70px', textAlign: 'right' }}>T.Venta</th>
+                            <th style={{ ...thStyle, width: '24px' }}></th>
+                          </>
+                        ) : (
+                          <>
+                            <th style={thStyle}>Producto</th>
+                            <th style={{ ...thStyle, width: '60px' }}>Cant</th>
+                            {subTab !== 'gim' && <th style={{ ...thStyle, width: '80px' }}>Costo c/IGV</th>}
+                            {subTab !== 'gim' && <th style={{ ...thStyle, width: '65px' }}>Dscto %</th>}
+                            <th style={{ ...thStyle, width: '80px', textAlign: 'right' }}>Total</th>
+                            <th style={{ ...thStyle, width: '30px' }}></th>
+                          </>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
-                      {cartItems.map((item, idx) => (
-                        <tr key={idx} style={trStyle}>
-                          <td style={tdStyle}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                              <span style={{ fontWeight: 800, color: '#1e293b', fontSize: '11px' }}>{item.name}</span>
-                              <span style={{ fontSize: '9px', color: '#64748b' }}>
-                                Cód: {item.id} | {item.brand} | {item.unit}
-                              </span>
-                              {subTab === 'ocm' && item.nomalm && (
-                                <span style={{
-                                  alignSelf: 'flex-start',
-                                  fontSize: '8px',
-                                  fontWeight: 800,
-                                  color: '#0369a1',
-                                  backgroundColor: '#e0f2fe',
-                                  padding: '1px 4px',
-                                  borderRadius: '3px',
-                                  marginTop: '1px'
-                                }}>
-                                  Destino: {item.nomalm}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td style={tdStyle}>
-                            <input 
-                              type="number" 
-                              value={item.quantity}
-                              onChange={(e) => handleUpdateQuantity(item.id, e.target.value)}
-                              onFocus={(e) => e.target.select()}
-                              disabled={(subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import')}
-                              style={{ ...tableInputStyle, height: '22px', padding: '1px 2px' }}
-                              min="0.0001"
-                              step="any"
-                            />
-                          </td>
-                          {subTab !== 'gim' && (
-                            <td style={tdStyle}>
-                              <input 
-                                type="number" 
-                                value={item.cost}
-                                onChange={(e) => handleUpdateCost(item.id, e.target.value)}
-                                onFocus={(e) => e.target.select()}
-                                style={{ ...tableInputStyle, height: '22px', padding: '1px 2px', textAlign: 'right' }}
-                                min="0.01"
-                                step="any"
-                              />
-                            </td>
-                          )}
-                          {subTab !== 'gim' && (
-                            <td style={tdStyle}>
-                              <input 
-                                type="number" 
-                                value={item.discount || 0}
-                                onChange={(e) => handleUpdateDiscount(item.id, e.target.value)}
-                                onFocus={(e) => e.target.select()}
-                                style={{ ...tableInputStyle, height: '22px', padding: '1px 2px' }}
-                                min="0"
-                                max="100"
-                                step="any"
-                              />
-                            </td>
-                          )}
-                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#0f172a', fontSize: '11px' }}>
-                            {formatCurrency(item.cost * item.quantity * (1 - (item.discount || 0) / 100))}
-                          </td>
-                          <td style={tdStyle}>
-                            <button 
-                              onClick={() => handleRemoveItem(item.id)}
-                              disabled={(subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import')}
-                              style={{
-                                ...deleteBtnStyle,
-                                opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.3 : 1
-                              }}
-                              title="Quitar ítem"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {cartItems.map((item, idx) => {
+                        const cant = Number(item.quantity) || 0;
+                        const preu = Number(item.cost) || 0; // P.Unitario neto sin IGV para OCM, costo con IGV para el resto
+                        const dsct = Number(item.discount) || 0;
+
+                        const vVenta = Number((cant * preu * (1 - dsct / 100)).toFixed(2));
+                        const isAigv = item.aigv === 'S' && !ocmInafec;
+                        const tVenta = Number((vVenta * (isAigv ? 1.18 : 1.00)).toFixed(2));
+
+                        return (
+                          <tr key={idx} style={trStyle}>
+                            {subTab === 'ocm' ? (
+                              <>
+                                <td style={{ ...tdStyle, fontSize: '10px', color: '#64748b', textAlign: 'center' }}>{idx + 1}</td>
+                                <td style={{ ...tdStyle, fontSize: '10px', fontWeight: 700 }}>{item.id}</td>
+                                <td style={{ ...tdStyle, fontSize: '10px' }}>{item.brand || 'ND'}</td>
+                                <td style={tdStyle}>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                    <span style={{ fontWeight: 800, color: '#1e293b', fontSize: '11px' }}>{item.name}</span>
+                                    {item.nomalm && (
+                                      <span style={{
+                                        alignSelf: 'flex-start',
+                                        fontSize: '8px',
+                                        fontWeight: 800,
+                                        color: '#0369a1',
+                                        backgroundColor: '#e0f2fe',
+                                        padding: '1px 4px',
+                                        borderRadius: '3px',
+                                        marginTop: '1px'
+                                      }}>
+                                        Destino: {item.nomalm}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td style={tdStyle}>
+                                  <input 
+                                    type="number" 
+                                    value={item.quantity}
+                                    onChange={(e) => handleUpdateQuantity(item.id, e.target.value)}
+                                    onFocus={(e) => e.target.select()}
+                                    style={{ ...tableInputStyle, height: '22px', padding: '1px 2px' }}
+                                    min="0.0001"
+                                    step="any"
+                                  />
+                                </td>
+                                <td style={{ ...tdStyle, fontSize: '10px', textAlign: 'center' }}>{item.unit || 'UND'}</td>
+                                <td style={tdStyle}>
+                                  <input 
+                                    type="number" 
+                                    value={item.cost}
+                                    onChange={(e) => handleUpdateCost(item.id, e.target.value)}
+                                    onFocus={(e) => e.target.select()}
+                                    style={{ ...tableInputStyle, height: '22px', padding: '1px 2px', textAlign: 'right' }}
+                                    min="0.0001"
+                                    step="any"
+                                  />
+                                </td>
+                                <td style={tdStyle}>
+                                  <input 
+                                    type="number" 
+                                    value={item.discount || 0}
+                                    onChange={(e) => handleUpdateDiscount(item.id, e.target.value)}
+                                    onFocus={(e) => e.target.select()}
+                                    style={{ ...tableInputStyle, height: '22px', padding: '1px 2px' }}
+                                    min="0"
+                                    max="100"
+                                    step="any"
+                                  />
+                                </td>
+                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#475569', fontSize: '11px' }}>
+                                  {formatCurrency(vVenta)}
+                                </td>
+                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#0f172a', fontSize: '11px' }}>
+                                  {formatCurrency(tVenta)}
+                                </td>
+                                <td style={tdStyle}>
+                                  <button 
+                                    onClick={() => handleRemoveItem(item.id)}
+                                    style={deleteBtnStyle}
+                                    title="Quitar ítem"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td style={tdStyle}>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                    <span style={{ fontWeight: 800, color: '#1e293b', fontSize: '11px' }}>{item.name}</span>
+                                    <span style={{ fontSize: '9px', color: '#64748b' }}>
+                                      Cód: {item.id} | {item.brand} | {item.unit}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td style={tdStyle}>
+                                  <input 
+                                    type="number" 
+                                    value={item.quantity}
+                                    onChange={(e) => handleUpdateQuantity(item.id, e.target.value)}
+                                    onFocus={(e) => e.target.select()}
+                                    disabled={(subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import')}
+                                    style={{ ...tableInputStyle, height: '22px', padding: '1px 2px' }}
+                                    min="0.0001"
+                                    step="any"
+                                  />
+                                </td>
+                                {subTab !== 'gim' && (
+                                  <td style={tdStyle}>
+                                    <input 
+                                      type="number" 
+                                      value={item.cost}
+                                      onChange={(e) => handleUpdateCost(item.id, e.target.value)}
+                                      onFocus={(e) => e.target.select()}
+                                      style={{ ...tableInputStyle, height: '22px', padding: '1px 2px', textAlign: 'right' }}
+                                      min="0.01"
+                                      step="any"
+                                    />
+                                  </td>
+                                )}
+                                {subTab !== 'gim' && (
+                                  <td style={tdStyle}>
+                                    <input 
+                                      type="number" 
+                                      value={item.discount || 0}
+                                      onChange={(e) => handleUpdateDiscount(item.id, e.target.value)}
+                                      onFocus={(e) => e.target.select()}
+                                      style={{ ...tableInputStyle, height: '22px', padding: '1px 2px' }}
+                                      min="0"
+                                      max="100"
+                                      step="any"
+                                    />
+                                  </td>
+                                )}
+                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#0f172a', fontSize: '11px' }}>
+                                  {formatCurrency(item.cost * item.quantity * (1 - (item.discount || 0) / 100))}
+                                </td>
+                                <td style={tdStyle}>
+                                  <button 
+                                    onClick={() => handleRemoveItem(item.id)}
+                                    disabled={(subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import')}
+                                    style={{
+                                      ...deleteBtnStyle,
+                                      opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.3 : 1
+                                    }}
+                                    title="Quitar ítem"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 )}
@@ -1912,11 +2126,11 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
               {/* Totales y Registro */}
               <div style={totalsWrapperStyle}>
                 <div style={totalRowStyle}>
-                  <span style={{ color: '#64748b', fontWeight: 700, fontSize: '11px' }}>Subtotal (Sin IGV)</span>
+                  <span style={{ color: '#64748b', fontWeight: 700, fontSize: '11px' }}>{subTab === 'ocm' ? 'Afecto' : 'Subtotal (Sin IGV)'}</span>
                   <span style={{ color: '#334155', fontWeight: 800, fontSize: '11px' }}>{formatCurrency(totals.subtotal)}</span>
                 </div>
                 <div style={totalRowStyle}>
-                  <span style={{ color: '#64748b', fontWeight: 700, fontSize: '11px' }}>IGV (18%)</span>
+                  <span style={{ color: '#64748b', fontWeight: 700, fontSize: '11px' }}>{subTab === 'ocm' ? 'IGV' : 'IGV (18%)'}</span>
                   <span style={{ color: '#334155', fontWeight: 800, fontSize: '11px' }}>{formatCurrency(totals.igv)}</span>
                 </div>
                 <div style={{ ...totalRowStyle, borderTop: '1px solid #e2e8f0', paddingTop: '4px' }}>
@@ -2195,7 +2409,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
 
       {/* Modal de Datos Adicionales al Guardar la OCM */}
       <AnimatePresence>
-        {isAdditionalDataModalOpen && (
+        {false && isAdditionalDataModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={overlayStyle}

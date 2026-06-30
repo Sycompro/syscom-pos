@@ -442,7 +442,9 @@ class NavaPurchaseService {
         tcam,
         atte,
         refe,
-        codscc
+        codscc,
+        inafec, // 1 para inafecto, 0/null para afecto
+        nroped  // Número de requerimiento
       } = data;
 
       if (!idApeCaj) throw new Error("ID de apertura de caja requerido");
@@ -535,10 +537,10 @@ class NavaPurchaseService {
           .input('codi', sql.Char(11), item.id.substring(0, 11))
           .query(`
             SELECT LTRIM(RTRIM(descr)) as descr, 
-                   LTRIM(RTRIM(codf)) as codf, 
-                   LTRIM(RTRIM(marc)) as marc, 
-                   LTRIM(RTRIM(umed)) as umed, 
-                   aigv
+            LTRIM(RTRIM(codf)) as codf, 
+            LTRIM(RTRIM(marc)) as marc, 
+            LTRIM(RTRIM(umed)) as umed, 
+            aigv
             FROM prd0101 WITH(nolock)
             WHERE codi = @codi
           `);
@@ -549,15 +551,13 @@ class NavaPurchaseService {
 
         const product = itemRes.recordset[0];
         const itemQty = Number(item.quantity) || 0;
-        const itemCostWithIgv = Number(item.cost) || 0;
+        const itemCostNet = Number(item.cost) || 0; // P.Unitario neto sin IGV
         const itemDiscount = Number(item.dsct) || 0;
 
-        const isTaxable = product.aigv === 'S';
-        const itemTotalBeforeDiscount = itemCostWithIgv * itemQty;
-        const itemTotal = Number((itemTotalBeforeDiscount * (1 - itemDiscount / 100)).toFixed(2));
-        const itemSubtotal = isTaxable ? Math.round((itemTotal / 1.18) * 10) / 10 : itemTotal;
-        const itemTax = isTaxable ? Number((itemTotal - itemSubtotal).toFixed(2)) : 0;
-        const itemNetUnitPrice = isTaxable ? Number((itemCostWithIgv / 1.18).toFixed(4)) : itemCostWithIgv;
+        const isTaxable = product.aigv === 'S' && Number(inafec) !== 1;
+        const itemSubtotal = Number((itemCostNet * itemQty * (1 - itemDiscount / 100)).toFixed(2));
+        const itemTax = isTaxable ? Number((itemSubtotal * 0.18).toFixed(2)) : 0;
+        const itemTotal = Number((itemSubtotal + itemTax).toFixed(2));
 
         headerTotalMonto += itemTotal;
         headerTotalTota += itemSubtotal;
@@ -571,8 +571,8 @@ class NavaPurchaseService {
           unit: product.umed || 'UND',
           aigv: product.aigv,
           quantity: itemQty,
-          costWithIgv: itemCostWithIgv,
-          netUnitPrice: itemNetUnitPrice,
+          costWithIgv: itemTotal / itemQty, // Autocalculado con IGV
+          netUnitPrice: itemCostNet,
           itemTotal,
           itemSubtotal,
           itemTax,
@@ -619,6 +619,8 @@ class NavaPurchaseService {
         .input('atte', sql.VarChar(30), (atte || '').substring(0, 30).padEnd(30, ' '))
         .input('refe', sql.Char(12), (refe || '').substring(0, 12).padEnd(12, ' '))
         .input('codscc', sql.Char(10), (codscc || '').substring(0, 10).padEnd(10, ' '))
+        .input('inafec', sql.Int, Number(inafec) === 1 ? 1 : 0)
+        .input('nroped', sql.VarChar(200), (nroped || '').substring(0, 200).padEnd(200, ' '))
         .query(`
           INSERT INTO mst01ocm (
             fecha, cdocu, ndocu, codpro, nompro, rucpro, atte, refe, mone, tcam,
@@ -638,8 +640,8 @@ class NavaPurchaseService {
             @codtra, @nombco, @nrocta, 0, @codcoc, 1, @codscc, '            ',
             '', '', '', '', '', '', '', '               ',
             NULL, 0, NULL, ' ', '            ', '            ', '', '0',
-            '                    ', '0 ', '  ', '            ', '', '', 'V0000', GETDATE(),
-            0, @feccad, 1, GETDATE(), @codusu, '                                                                                                    ', 0, 0,
+            '                    ', '0 ', '  ', '            ', @nroped, '', 'V0000', GETDATE(),
+            @inafec, @feccad, 1, GETDATE(), @codusu, '                                                                                                    ', 0, 0,
             '01', 0, 0, '   ', 0, '  ', '', @codusu,
             1, 0, 0, 0, 0, 0, '      ', NULL
           )
