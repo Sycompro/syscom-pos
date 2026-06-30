@@ -61,7 +61,6 @@ export async function GET(request) {
                 WHERE idapecaj = @id AND flag <> '*'
                 GROUP BY codcdv
             `);
-
         // 3. Desglose de Pagos (Sección 2 del reporte)
         const paymentsRes = await pool.request()
             .input('id', sql.Int, idapecaj)
@@ -75,7 +74,7 @@ export async function GET(request) {
                     FROM dtl_restpos_cobmixta c
                     LEFT JOIN tbl01tar t ON c.codtar = t.codtar
                     INNER JOIN mst01fac f ON c.ndocu = f.ndocu AND c.cdocu = f.cdocu
-                    WHERE f.idapecaj = @id AND f.flag <> '*'
+                    WHERE f.idapecaj = @id AND f.flag <> '*' AND f.Codcdv <> '02'
                     GROUP BY c.codtar, t.nomtar
                     
                     UNION ALL
@@ -86,12 +85,13 @@ export async function GET(request) {
                         SUM(f.totn) as total
                     FROM mst01fac f
                     LEFT JOIN tbl01tar t ON f.codtar = t.codtar
-                    WHERE f.idapecaj = @id AND f.flag <> '*' AND f.cobmixta = 0
+                    WHERE f.idapecaj = @id AND f.flag <> '*' AND f.cobmixta = 0 AND f.Codcdv <> '02'
                     GROUP BY f.codtar, t.nomtar
                 ) AS ResumenPagos
                 GROUP BY method
                 HAVING SUM(total) > 0
             `);
+
 
         // 4. Conteo de Documentos (Sección Docs Emitidos)
         const docsRes = await pool.request()

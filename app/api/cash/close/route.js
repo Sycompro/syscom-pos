@@ -90,7 +90,7 @@ export async function POST(request) {
                 .query(`
                     SELECT ndocu, cdocu, totn, codcli, nomcli, codven
                     FROM mst01fac 
-                    WHERE idapecaj = @id AND flag <> '*'
+                    WHERE idapecaj = @id AND flag <> '*' AND Codcdv <> '02'
                 `);
 
             if (salesRes.recordset.length > 0) {

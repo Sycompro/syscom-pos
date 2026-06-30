@@ -79,11 +79,9 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm, r
             const totals = [];
             const cashVal = summary?.payments?.find(p => p.method === 'EFECTIVO')?.total || 0;
             totals.push({ selpago: 1, codtar: '', totnsis: cashVal, totnfis: cashVal });
-
-            summary?.payments?.filter(p => p.method !== 'EFECTIVO').forEach(p => {
+            summary?.payments?.filter(p => p.method !== 'EFECTIVO' && p.method !== 'CREDITO' && p.method !== 'CRÉDITO').forEach(p => {
                 totals.push({ selpago: 3, codtar: '01', totnsis: p.total, totnfis: p.total });
             });
-
             const res = await fetch('/api/cash/close', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
