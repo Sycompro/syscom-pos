@@ -1146,9 +1146,17 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
 
       {/* RENDERIZADO MODO: CREACIÓN (FORMULARIO) */}
       {viewMode === 'create' && (
-        <div style={mainGridLayout}>
-          {/* Columna Izquierda: Ajustes de Cabecera y Referencias */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+          {/* Bloque Superior: Cabecera y Referencias (Distribución Horizontal) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            gap: '20px',
+            alignItems: 'start',
+            width: '100%'
+          }}>
+            {/* Lado Superior Izquierdo: Vincular Operación y Proveedor */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             {/* Opciones de Importación y Referencias (Solo para GIM y CCP) */}
             {subTab !== 'ocm' && (
@@ -1747,9 +1755,12 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
               Cancelar y volver al historial
             </button>
           </div>
+          
+          {/* Cierre del Bloque Superior */}
+          </div>
 
-          {/* Columna Derecha: Detalle de Artículos */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Bloque Inferior: Detalle de Artículos (Ocupa todo el ancho abajo) */}
+          <div style={{ width: '100%' }}>
             
             <div style={cardStyle}>
               <div style={cardHeaderStyle}>
