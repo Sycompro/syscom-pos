@@ -1078,7 +1078,32 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(29,78,216,0.06);
         }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          background: transparent;
+          bottom: 0;
+          color: transparent;
+          cursor: pointer;
+          height: auto;
+          left: 0;
+          position: absolute;
+          right: 0;
+          top: 0;
+          width: auto;
+          opacity: 0;
+        }
+        input[type="date"] {
+          position: relative;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        select {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+        }
       `}} />
+
       {/* Cabecera Principal */}
       <div style={headerStyle}>
         <div>
@@ -3213,12 +3238,18 @@ const textInputStyle = {
   outline: 'none',
   width: '100%'
 };
-
 const selectStyle = {
   ...textInputStyle,
-  cursor: 'pointer'
+  cursor: 'pointer',
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  MozAppearance: 'none',
+  backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'right 8px center',
+  backgroundSize: '12px',
+  paddingRight: '28px'
 };
-
 const dateInputWrapperStyle = {
   display: 'flex',
   alignItems: 'center',
