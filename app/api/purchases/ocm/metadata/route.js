@@ -27,16 +27,32 @@ export async function GET(req) {
             ORDER BY codcoc
         `);
 
+        // Obtener almacenes de tbl01alm
+        const almResult = await pool.request().query(`
+            SELECT LTRIM(RTRIM(codalm)) as codalm, LTRIM(RTRIM(nomalm)) as nomalm 
+            FROM tbl01alm WITH(nolock) 
+            ORDER BY codalm
+        `);
+
+        // Obtener transportistas de tbl01tra
+        const traResult = await pool.request().query(`
+            SELECT LTRIM(RTRIM(codtra)) as codtra, LTRIM(RTRIM(nomtra)) as nomtra 
+            FROM tbl01tra WITH(nolock) 
+            ORDER BY codtra
+        `);
+
         return NextResponse.json({
             success: true,
             conditions: condResult.recordset,
-            classifications: cocResult.recordset
+            classifications: cocResult.recordset,
+            warehouses: almResult.recordset,
+            transportists: traResult.recordset
         });
 
     } catch (err) {
         logger.error(`[API/Purchases/Ocm/Metadata] Error al obtener metadata de OCM: ${err.message}`);
         return NextResponse.json({ 
-            error: 'Error al obtener condiciones y clasificaciones', 
+            error: 'Error al obtener condiciones, clasificaciones, almacenes y transportistas', 
             details: err.message 
         }, { status: 500 });
     }

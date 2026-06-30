@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { 
   Search, Trash2, Calendar, Loader2, Save, ShoppingCart, 
   User, Receipt, ArrowRight, Check, AlertCircle, RefreshCw,
@@ -9,6 +10,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProductCreateModal from './ProductCreateModal';
 
 export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab }) {
+  const { data: session } = useSession();
+  const userRole = session?.user?.role?.toUpperCase() || '';
+  const userId = session?.user?.id?.trim() || '';
+  const isUserAdmin = userRole === 'ADMINISTRADOR' || userRole === 'SUPERVISOR' || userId === '001';
+
   // Pestañas principales: 'ocm' = Orden de Compra, 'gim' = Nota de Ingreso, 'ccp' = Facturas/Boletas
   const [subTab, setSubTab] = useState('ccp');
   // Modo de visualización: 'list' (historial) o 'create' (formulario de registro)
@@ -61,6 +67,37 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   const [conditionsList, setConditionsList] = useState([]);
   const [classificationsList, setClassificationsList] = useState([]);
 
+  // Estados para Almacenes y Transportistas cargados de Metadata
+  const [warehousesList, setWarehousesList] = useState([]);
+  const [transportistsList, setTransportistsList] = useState([]);
+
+  // Estados para Modal de Adición de Producto (Almacén por ítem)
+  const [pendingProductToAdd, setPendingProductToAdd] = useState(null);
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [selectedItemWarehouse, setSelectedItemWarehouse] = useState('');
+  const [selectedItemQuantity, setSelectedItemQuantity] = useState(1);
+  const [selectedItemCost, setSelectedItemCost] = useState(0);
+  const [applyWarehouseToAll, setApplyWarehouseToAll] = useState(false);
+  const [globalWarehouseSelected, setGlobalWarehouseSelected] = useState('');
+
+  // Estados para Modal de Datos Adicionales de OCM al Guardar
+  const [isAdditionalDataModalOpen, setIsAdditionalDataModalOpen] = useState(false);
+  const [fechaOCMEntrega, setFechaOCMEntrega] = useState('');
+  const [ocmPlazoDias, setOcmPlazoDias] = useState(0);
+  const [ocmLugarEntrega, setOcmLugarEntrega] = useState('LUIS GONZALES');
+  const [ocmPlazoCaducidad, setOcmPlazoCaducidad] = useState(90);
+  const [fechaOCMCaducidad, setFechaOCMCaducidad] = useState('');
+  const [ocmCodtra, setOcmCodtra] = useState('T0000');
+  const [ocmNombco, setOcmNombco] = useState('');
+  const [ocmNrocta, setOcmNrocta] = useState('');
+  const [ocmObservacion, setOcmObservacion] = useState('');
+
+  // Estado para bloquear OCM en edición
+  const [isOcmBlocked, setIsOcmBlocked] = useState(false);
+  const [ocmBlockReason, setOcmBlockReason] = useState(null); // 'has_gim' o 'approved'
+  const [editingOcmNumber, setEditingOcmNumber] = useState(null);
+  const [disapproving, setDisapproving] = useState(false);
+
   // Estados específicos de GIM (Creación)
   const [gimImportMode, setGimImportMode] = useState('direct'); // 'direct' o 'import'
   const [pendingOcms, setPendingOcms] = useState([]);
@@ -108,9 +145,15 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     const today = new Date().toISOString().split('T')[0];
     setFechaOCMEmision(today);
     setFechaOCMVencimiento(today);
+    setFechaOCMEntrega(today);
     setFechaGIMEmision(today);
     setFechaCCPEmision(today);
     setFechaCCPVencimiento(today);
+
+    // Calcular caducidad de 90 días por defecto
+    const dCad = new Date();
+    dCad.setDate(dCad.getDate() + 90);
+    setFechaOCMCaducidad(dCad.toISOString().split('T')[0]);
 
     const fetchMetadata = async () => {
       try {
@@ -119,6 +162,9 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         if (data.success) {
           setConditionsList(data.conditions || []);
           setClassificationsList(data.classifications || []);
+          setWarehousesList(data.warehouses || []);
+          setTransportistsList(data.transportists || []);
+
           if (data.conditions && data.conditions.length > 0) {
             const defaultCond = data.conditions.find(c => c.nomcdv.trim() === 'EFECTIVO' || c.nomcdv.trim() === 'CONTADO');
             if (defaultCond) {
@@ -134,6 +180,9 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
             } else {
               setOcmCodcoc(data.classifications[0].codcoc);
             }
+          }
+          if (data.transportists && data.transportists.length > 0) {
+            setOcmCodtra(data.transportists[0].codtra);
           }
         }
       } catch (err) {
@@ -459,6 +508,24 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   };
 
   const handleAddProductToCart = (prod) => {
+    if (subTab === 'ocm') {
+      const defaultAlm = globalWarehouseSelected || (warehousesList[0]?.codalm || '03');
+      
+      if (applyWarehouseToAll && globalWarehouseSelected) {
+        confirmAddProductToCart(prod, globalWarehouseSelected, 1, prod.price || 0);
+      } else {
+        setPendingProductToAdd(prod);
+        setSelectedItemWarehouse(defaultAlm);
+        setSelectedItemQuantity(1);
+        setSelectedItemCost(prod.price || 0);
+        setIsAddProductModalOpen(true);
+      }
+    } else {
+      handleAddProductDirect(prod);
+    }
+  };
+
+  const handleAddProductDirect = (prod) => {
     const exists = cartItems.find(item => item.id === prod.id);
     if (exists) {
       setCartItems(cartItems.map(item => 
@@ -472,9 +539,53 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         brand: prod.brand,
         unit: prod.unit,
         quantity: 1,
-        cost: prod.price || 0 // Usar precio venta como costo compra por defecto
+        cost: prod.price || 0
       }]);
     }
+    setProductSearchQuery('');
+    setProductResults([]);
+    setShowProductDropdown(false);
+    setErrorMsg(null);
+  };
+
+  const confirmAddProductToCart = (prod, codalm, qty, cost) => {
+    const targetWarehouse = warehousesList.find(w => w.codalm === codalm);
+    const nomalm = targetWarehouse ? targetWarehouse.nomalm : '';
+
+    if (applyWarehouseToAll) {
+      setGlobalWarehouseSelected(codalm);
+    }
+
+    const exists = cartItems.find(item => item.id === prod.id);
+    let updatedCart = [];
+    if (exists) {
+      updatedCart = cartItems.map(item => 
+        item.id === prod.id 
+          ? { ...item, quantity: item.quantity + qty, cost, codalm, nomalm } 
+          : item
+      );
+    } else {
+      updatedCart = [...cartItems, {
+        id: prod.id,
+        userCode: prod.userCode,
+        name: prod.name,
+        brand: prod.brand,
+        unit: prod.unit,
+        quantity: qty,
+        cost: cost,
+        codalm,
+        nomalm
+      }];
+    }
+
+    // Si se activa "aplicar a todo", propagar el almacén a todos los ítems actuales
+    if (applyWarehouseToAll) {
+      updatedCart = updatedCart.map(item => ({ ...item, codalm, nomalm }));
+    }
+
+    setCartItems(updatedCart);
+    setIsAddProductModalOpen(false);
+    setPendingProductToAdd(null);
     setProductSearchQuery('');
     setProductResults([]);
     setShowProductDropdown(false);
@@ -520,7 +631,13 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   const handleSaveOCM = async () => {
     setErrorMsg(null);
     if (!validateBasicForm()) return;
+    
+    // Antes de guardar, abrimos el modal de Datos Adicionales
+    setIsAdditionalDataModalOpen(true);
+  };
 
+  const executeSaveOCM = async () => {
+    setIsAdditionalDataModalOpen(false);
     setLoading(true);
     try {
       const payload = {
@@ -530,10 +647,18 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         fechaVencimiento: fechaOCMVencimiento,
         cond: ocmCond,
         codcoc: ocmCodcoc,
+        fechaEntrega: fechaOCMEntrega,
+        fechaCaducidad: fechaOCMCaducidad,
+        lugarEntrega: ocmLugarEntrega,
+        observacion: ocmObservacion,
+        codtra: ocmCodtra,
+        nombco: ocmNombco,
+        nrocta: ocmNrocta,
         items: cartItems.map(item => ({
           id: item.id,
           quantity: item.quantity,
-          cost: item.cost
+          cost: item.cost,
+          codalm: item.codalm // Almacén destino individual
         }))
       };
 
@@ -546,13 +671,26 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
       if (result.success) {
         setSuccessData({
           title: 'Orden de Compra Registrada',
-          subtitle: 'El pedido se ha programado en el ERP.',
+          subtitle: `Se generó el documento correlativo ${result.ndocu} en el ERP Navasoft.`,
           info: [
-            { label: 'Orden de Compra (OCM)', value: result.ndocu },
-            { label: 'Proveedor', value: result.supplier.nompro },
-            { label: 'Total Importe', value: formatCurrency(result.total), highlight: true }
+            { label: 'Número de OCM', value: result.ndocu },
+            { label: 'Proveedor', value: result.supplier?.nompro || '' },
+            { label: 'Condición', value: ocmCond },
+            { label: 'Total Neto', value: formatCurrency(result.total), highlight: true }
           ]
         });
+
+        // Limpiar carrito y proveedor
+        setCartItems([]);
+        setSelectedSupplier(null);
+        setSupplierSearchQuery('');
+        setGlobalWarehouseSelected('');
+        
+        // Limpiar datos adicionales
+        setOcmNombco('');
+        setOcmNrocta('');
+        setOcmObservacion('');
+
         setViewMode('list');
         fetchHistory();
       } else {
@@ -562,6 +700,31 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
       setErrorMsg(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDisapproveOcm = async (ndocu) => {
+    if (!window.confirm(`¿Estás seguro de desaprobar la Orden de Compra ${ndocu}? Volverá a ser editable.`)) {
+      return;
+    }
+    setDisapproving(true);
+    setErrorMsg(null);
+    try {
+      const res = await fetch('/api/purchases/ocm/disapprove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ndocu })
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Error al desaprobar OCM');
+      }
+      alert(data.message || 'La Orden de Compra ha sido desaprobada.');
+      fetchHistory();
+    } catch (err) {
+      setErrorMsg(err.message);
+    } finally {
+      setDisapproving(false);
     }
   };
 
@@ -855,12 +1018,14 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     {subTab === 'ccp' && <th style={thStyle}>Voucher</th>}
                     {subTab !== 'ocm' && <th style={thStyle}>Referencia</th>}
                     <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
-                    <th style={{ ...thStyle, width: '60px' }}>Estado</th>
+                    {subTab === 'ocm' && <th style={{ ...thStyle, width: '90px' }}>Aprobación</th>}
+                    <th style={{ ...thStyle, width: '70px' }}>Estado</th>
+                    {subTab === 'ocm' && <th style={{ ...thStyle, width: '80px', textAlign: 'center' }}>Acción</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {subTab === 'ocm' && ocmList.length === 0 && (
-                    <tr><td colSpan="5" style={emptyRowStyle}>No se encontraron órdenes de compra registradas.</td></tr>
+                    <tr><td colSpan="8" style={emptyRowStyle}>No se encontraron órdenes de compra registradas.</td></tr>
                   )}
                   {subTab === 'gim' && gimList.length === 0 && (
                     <tr><td colSpan="6" style={emptyRowStyle}>No se encontraron notas de ingreso registradas.</td></tr>
@@ -869,22 +1034,57 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     <tr><td colSpan="6" style={emptyRowStyle}>No se encontraron facturas registradas.</td></tr>
                   )}
 
-                  {subTab === 'ocm' && ocmList.map((item, idx) => (
-                    <tr key={idx} style={trStyle}>
-                      <td style={tdStyle}>{formatDate(item.fecha)}</td>
-                      <td style={{ ...tdStyle, fontWeight: 900, color: '#3b82f6' }}>{item.ndocu}</td>
-                      <td style={tdStyle}>
-                        <div style={{ fontWeight: 800 }}>{item.nompro}</div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>RUC: {item.rucpro}</div>
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900 }}>{formatCurrency(item.totn)}</td>
-                      <td style={tdStyle}>
-                        <span style={item.flag === '1' ? activeBadgeStyle : inactiveBadgeStyle}>
-                          {item.flag === '1' ? 'Activo' : 'Cerrado'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {subTab === 'ocm' && ocmList.map((item, idx) => {
+                    const isApproved = item.apro == 1 || item.apro === '1';
+                    const hasGim = item.flag === '1' || item.flag === '2' || (item.nota && item.nota.trim() !== '');
+
+                    return (
+                      <tr key={idx} style={trStyle}>
+                        <td style={tdStyle}>{formatDate(item.fecha)}</td>
+                        <td style={{ ...tdStyle, fontWeight: 900, color: '#3b82f6' }}>{item.ndocu}</td>
+                        <td style={tdStyle}>
+                          <div style={{ fontWeight: 800 }}>{item.nompro}</div>
+                          <div style={{ fontSize: '10px', color: '#64748b' }}>RUC: {item.rucpro}</div>
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900 }}>{formatCurrency(item.totn)}</td>
+                        <td style={tdStyle}>
+                          <span style={isApproved ? activeBadgeStyle : pendingBadgeStyle}>
+                            {isApproved ? 'Aprobado' : 'Pendiente'}
+                          </span>
+                        </td>
+                        <td style={tdStyle}>
+                          <span style={hasGim ? inactiveBadgeStyle : activeBadgeStyle}>
+                            {hasGim ? 'Cerrado/Atend' : 'Activo'}
+                          </span>
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          {isApproved && !hasGim ? (
+                            <button
+                              onClick={() => handleDisapproveOcm(item.ndocu)}
+                              disabled={!isUserAdmin || disapproving}
+                              style={{
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                border: 'none',
+                                background: isUserAdmin ? '#ef4444' : '#cbd5e1',
+                                color: '#fff',
+                                fontSize: '10px',
+                                fontWeight: 800,
+                                cursor: isUserAdmin ? 'pointer' : 'not-allowed'
+                              }}
+                              title={isUserAdmin ? 'Desaprobar OCM' : 'Requiere permisos de Administrador'}
+                            >
+                              {disapproving ? '...' : 'Desaprobar'}
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '10px', color: '#94a3b8', fontStyle: 'italic' }}>
+                              {hasGim ? 'Con Ingreso' : '-'}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
 
                   {subTab === 'gim' && gimList.map((item, idx) => (
                     <tr key={idx} style={trStyle}>
@@ -1642,11 +1842,24 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                       {cartItems.map((item, idx) => (
                         <tr key={idx} style={trStyle}>
                           <td style={tdStyle}>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                               <span style={{ fontWeight: 800, color: '#1e293b' }}>{item.name}</span>
-                              <span style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                              <span style={{ fontSize: '10px', color: '#64748b' }}>
                                 Cód: {item.id} | {item.brand} | {item.unit}
                               </span>
+                              {subTab === 'ocm' && item.nomalm && (
+                                <span style={{
+                                  alignSelf: 'flex-start',
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  color: '#0369a1',
+                                  backgroundColor: '#e0f2fe',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px'
+                                }}>
+                                  Destino: {item.nomalm}
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td style={tdStyle}>
@@ -1798,6 +2011,413 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         onSuccess={handleProductCreated}
         initialDescr={productSearchQuery}
       />
+
+      {/* Modal de Configuración y Selección de Almacén por Producto */}
+      <AnimatePresence>
+        {isAddProductModalOpen && pendingProductToAdd && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={overlayStyle}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }}
+              style={{
+                ...successModalStyle,
+                width: '420px',
+                padding: '24px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(226, 232, 240, 0.8)'
+              }}
+            >
+              <h3 style={{ margin: '0 0 16px', fontWeight: 900, color: '#0f172a', fontSize: '16px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+                Configuración del Producto
+              </h3>
+              
+              <div style={{ marginBottom: '14px', textAlign: 'left' }}>
+                <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Artículo</span>
+                <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '13px', marginTop: '2px' }}>
+                  {pendingProductToAdd.name}
+                </div>
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                  Cod: {pendingProductToAdd.id} | Marca: {pendingProductToAdd.brand || 'N/A'}
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px', textAlign: 'left' }}>
+                <div>
+                  <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    Cantidad
+                  </label>
+                  <input 
+                    type="number"
+                    value={selectedItemQuantity}
+                    onChange={(e) => setSelectedItemQuantity(Math.max(0.0001, parseFloat(e.target.value) || 0))}
+                    style={tableInputStyle}
+                    min="0.0001"
+                    step="any"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    Costo Unit. (c/IGV)
+                  </label>
+                  <input 
+                    type="number"
+                    value={selectedItemCost}
+                    onChange={(e) => setSelectedItemCost(Math.max(0, parseFloat(e.target.value) || 0))}
+                    style={tableInputStyle}
+                    min="0"
+                    step="any"
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+                <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                  Almacén Destino
+                </label>
+                <select
+                  value={selectedItemWarehouse}
+                  onChange={(e) => setSelectedItemWarehouse(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#334155',
+                    background: '#fff'
+                  }}
+                >
+                  {warehousesList.map((alm) => (
+                    <option key={alm.codalm} value={alm.codalm}>
+                      {alm.codalm} - {alm.nomalm}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', textAlign: 'left' }}>
+                <input 
+                  type="checkbox"
+                  id="applyAllAlm"
+                  checked={applyWarehouseToAll}
+                  onChange={(e) => setApplyWarehouseToAll(e.target.checked)}
+                  style={{ width: '15px', height: '15px', cursor: 'pointer' }}
+                />
+                <label htmlFor="applyAllAlm" style={{ fontSize: '11px', fontWeight: 700, color: '#475569', cursor: 'pointer' }}>
+                  Aplicar este almacén a todos los artículos
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => {
+                    setIsAddProductModalOpen(false);
+                    setPendingProductToAdd(null);
+                  }}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#f8fafc',
+                    color: '#64748b',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => confirmAddProductToCart(pendingProductToAdd, selectedItemWarehouse, selectedItemQuantity, selectedItemCost)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: '#3b82f6',
+                    color: '#fff',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Confirmar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Datos Adicionales al Guardar la OCM */}
+      <AnimatePresence>
+        {isAdditionalDataModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={overlayStyle}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }}
+              style={{
+                ...successModalStyle,
+                width: '560px',
+                padding: '24px',
+                background: 'rgba(255, 255, 255, 0.97)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(226, 232, 240, 0.8)'
+              }}
+            >
+              <h3 style={{ margin: '0 0 16px', fontWeight: 950, color: '#0f172a', fontSize: '18px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+                Datos Adicionales de la Orden
+              </h3>
+
+              {/* Sección 1: Despacho Destino */}
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', marginBottom: '14px', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
+                  Despacho Destino
+                </span>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      Fecha de Entrega
+                    </label>
+                    <input 
+                      type="date"
+                      value={fechaOCMEntrega}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFechaOCMEntrega(val);
+                        const days = Math.round((new Date(val) - new Date(fechaOCMEmision)) / (24 * 60 * 60 * 1000));
+                        setOcmPlazoDias(isNaN(days) ? 0 : days);
+                      }}
+                      style={{ ...tableInputStyle, height: '36px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      Días de Plazo
+                    </label>
+                    <input 
+                      type="number"
+                      value={ocmPlazoDias}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setOcmPlazoDias(val);
+                        const d = new Date(fechaOCMEmision || new Date());
+                        d.setDate(d.getDate() + val);
+                        setFechaOCMEntrega(d.toISOString().split('T')[0]);
+                      }}
+                      style={{ ...tableInputStyle, height: '36px' }}
+                      min="0"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                    Dirección de Entrega / Lugar
+                  </label>
+                  <input 
+                    type="text"
+                    value={ocmLugarEntrega}
+                    onChange={(e) => setOcmLugarEntrega(e.target.value)}
+                    style={{ ...tableInputStyle, height: '36px' }}
+                    maxLength="60"
+                  />
+                </div>
+              </div>
+
+              {/* Sección 2: Caducidad */}
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', marginBottom: '14px', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
+                  Caducidad del Documento
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      Validez (Días)
+                    </label>
+                    <input 
+                      type="number"
+                      value={ocmPlazoCaducidad}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setOcmPlazoCaducidad(val);
+                        const d = new Date(fechaOCMEmision || new Date());
+                        d.setDate(d.getDate() + val);
+                        setFechaOCMCaducidad(d.toISOString().split('T')[0]);
+                      }}
+                      style={{ ...tableInputStyle, height: '36px' }}
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      Fecha de Caducidad
+                    </label>
+                    <input 
+                      type="date"
+                      value={fechaOCMCaducidad}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFechaOCMCaducidad(val);
+                        const days = Math.round((new Date(val) - new Date(fechaOCMEmision)) / (24 * 60 * 60 * 1000));
+                        setOcmPlazoCaducidad(isNaN(days) ? 0 : days);
+                      }}
+                      style={{ ...tableInputStyle, height: '36px' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 3: Transportista y Bancos */}
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', marginBottom: '14px', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
+                  Transportista & Bancos
+                </span>
+                
+                <div style={{ marginBottom: '10px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                    Sírvase a enviar por (Transportista)
+                  </label>
+                  <select
+                    value={ocmCodtra}
+                    onChange={(e) => setOcmCodtra(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#334155',
+                      background: '#fff'
+                    }}
+                  >
+                    {transportistsList.map((tra) => (
+                      <option key={tra.codtra} value={tra.codtra}>
+                        {tra.nomtra}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      Nombre del Banco
+                    </label>
+                    <input 
+                      type="text"
+                      placeholder="Ej. BCP, BBVA..."
+                      value={ocmNombco}
+                      onChange={(e) => setOcmNombco(e.target.value.toUpperCase())}
+                      style={{ ...tableInputStyle, height: '36px' }}
+                      maxLength="15"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      Nro de Cta. Cte.
+                    </label>
+                    <input 
+                      type="text"
+                      placeholder="Cta Corriente del proveedor"
+                      value={ocmNrocta}
+                      onChange={(e) => setOcmNrocta(e.target.value.replace(/[^0-9-]/g, ''))}
+                      style={{ ...tableInputStyle, height: '36px' }}
+                      maxLength="20"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 4: Observaciones */}
+              <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+                <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
+                  Observación
+                </label>
+                <textarea 
+                  value={ocmObservacion}
+                  onChange={(e) => setOcmObservacion(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#334155',
+                    minHeight: '60px',
+                    maxHeight: '100px',
+                    resize: 'vertical'
+                  }}
+                  maxLength="100"
+                  placeholder="Detalles u observaciones de la compra..."
+                />
+              </div>
+
+              {/* Resumen de totales */}
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                background: '#f8fafc', 
+                padding: '12px 16px', 
+                borderRadius: '8px', 
+                marginBottom: '20px',
+                border: '1px solid #e2e8f0'
+              }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569' }}>
+                  Afecto: {formatCurrency(totals.subtotal)}
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569' }}>
+                  I.G.V.: {formatCurrency(totals.igv)}
+                </span>
+                <span style={{ fontSize: '13px', fontWeight: 950, color: '#10b981' }}>
+                  TOTAL OCM: {formatCurrency(totals.total)}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setIsAdditionalDataModalOpen(false)}
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#f8fafc',
+                    color: '#64748b',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Volver
+                </button>
+                <button
+                  onClick={executeSaveOCM}
+                  style={{
+                    padding: '10px 22px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: '#10b981',
+                    color: '#fff',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Continuar &gt;&gt;
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

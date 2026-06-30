@@ -428,9 +428,16 @@ class NavaPurchaseService {
         supplier, // { codpro, nompro, rucpro }
         fechaEmision,
         fechaVencimiento,
-        items, // Array de { id, quantity, cost } (cost = unit cost with IGV)
+        items, // Array de { id, quantity, cost, codalm } (cost = unit cost with IGV)
         cond,
-        codcoc
+        codcoc,
+        fechaEntrega,
+        fechaCaducidad,
+        lugarEntrega,
+        observacion,
+        codtra,
+        nombco,
+        nrocta
       } = data;
 
       if (!idApeCaj) throw new Error("ID de apertura de caja requerido");
@@ -469,6 +476,15 @@ class NavaPurchaseService {
 
       const fechaStr = fechaEmision || peruvianDate;
       const fechaVencStr = fechaVencimiento || fechaStr;
+      const fechaEntregaStr = fechaEntrega || fechaVencStr;
+      
+      // Calcular fecha de caducidad por defecto (Emisión + 90 días) si no viene configurada
+      let fechaCaducidadStr = fechaCaducidad;
+      if (!fechaCaducidadStr) {
+        const dCad = new Date(fechaStr);
+        dCad.setDate(dCad.getDate() + 90);
+        fechaCaducidadStr = dCad.toISOString().split('T')[0];
+      }
 
       // 4. Tipo de cambio
       const tcaRes = await transaction.request()
@@ -549,7 +565,8 @@ class NavaPurchaseService {
           netUnitPrice: itemNetUnitPrice,
           itemTotal,
           itemSubtotal,
-          itemTax
+          itemTax,
+          codalm: item.codalm || resolvedWarehouse // Asignación de almacén individual
         });
       }
 
@@ -576,11 +593,17 @@ class NavaPurchaseService {
         .input('tota', sql.Decimal(18, 2), subtotalAmount)
         .input('toti', sql.Decimal(18, 2), taxAmount)
         .input('totn', sql.Decimal(18, 2), totalAmount)
-        .input('fven', sql.Date, fechaVencStr)
-        .input('codalm', sql.Char(2), resolvedWarehouse)
+        .input('fven', sql.Date, fechaEntregaStr)
+        .input('codalm', sql.Char(2), processedItems[0]?.codalm || resolvedWarehouse) // Almacén de cabecera por defecto
         .input('codusu', sql.Char(3), erpUsu.substring(0, 3))
         .input('cond', sql.VarChar(80), finalCond.padEnd(80, ' '))
         .input('codcoc', sql.Char(2), finalCodcoc)
+        .input('feccad', sql.Date, fechaCaducidadStr)
+        .input('entr', sql.Char(60), (lugarEntrega || 'LUIS GONZALES').substring(0, 60).padEnd(60, ' '))
+        .input('obse', sql.VarChar(100), (observacion || '').substring(0, 100))
+        .input('codtra', sql.Char(5), (codtra || 'T0000').substring(0, 5))
+        .input('nombco', sql.Char(15), (nombco || '').substring(0, 15))
+        .input('nrocta', sql.Char(20), (nrocta || '').substring(0, 20))
         .query(`
           INSERT INTO mst01ocm (
             fecha, cdocu, ndocu, codpro, nompro, rucpro, atte, refe, mone, tcam,
@@ -595,14 +618,13 @@ class NavaPurchaseService {
             idarea, comesp, atte_item1, atte_item2, agecar_item, flaenv, codenv, fecenv
           ) VALUES (
             @fecha, '28', @ndocu, @codpro, @nompro, @rucpro, '                              ', '            ', 'S', @tcam,
-            @totb, 0, @tota, @toti, @totn, @fven, '1', 'ABASTECEDOR                                                 ',
-            '                                                                                ', @cond,
+            @totb, 0, @tota, @toti, @totn, @fven, '0', @entr, @obse, @cond,
             '            ', @codalm, '', '                                        ', 0, 0, 0, ' ', 0,
-            '     ', '               ', '                    ', 0, @codcoc, 1, '          ', '            ',
+            @codtra, @nombco, @nrocta, 0, @codcoc, 1, '          ', '            ',
             '', '', '', '', '', '', '', '               ',
             NULL, 0, NULL, ' ', '            ', '            ', '', '0',
             '                    ', '0 ', '  ', '            ', '', '', 'V0000', GETDATE(),
-            0, NULL, 1, GETDATE(), @codusu, '                                                                                                    ', 0, 0,
+            0, @feccad, 1, GETDATE(), @codusu, '                                                                                                    ', 0, 0,
             '01', 0, 0, '   ', 0, '  ', '', @codusu,
             1, 0, 0, 0, 0, 0, '      ', NULL
           )
@@ -626,7 +648,7 @@ class NavaPurchaseService {
           .input('tota', sql.Decimal(18, 2), item.itemSubtotal)
           .input('totn', sql.Decimal(18, 2), item.itemTotal)
           .input('tcam', sql.Decimal(18, 4), exchangeRateVal)
-          .input('codalm', sql.Char(2), resolvedWarehouse)
+          .input('codalm', sql.Char(2), item.codalm)
           .input('aigv', sql.Char(1), item.aigv)
           .query(`
             INSERT INTO dtl01ocm (
@@ -638,7 +660,7 @@ class NavaPurchaseService {
             ) VALUES (
               @fecha, '28', @ndocu, @codpro, @item, @codi, @codf, @marc, @descr, @umed,
               @cant, @preu, @totb, 0, 0, 0, @tota, @totn, @tcam, 'S',
-              '1', 0, @codalm, @aigv, ' ', ' ', @umed, '   ', 1, 0,
+              '0', 0, @codalm, @aigv, ' ', ' ', @umed, '   ', 1, 0,
               'S', 0, 0, '', ' ', 0, 0, 0, 0,
               0, 0, 0, '01'
             )
