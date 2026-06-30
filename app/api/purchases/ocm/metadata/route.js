@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getConnection } from "@/lib/db";
 import logger from "@/lib/logger";
+import sql from 'mssql';
 
 export async function GET(req) {
     try {
