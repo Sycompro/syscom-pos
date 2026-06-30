@@ -15,8 +15,29 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
     const [newCreditLimit, setNewCreditLimit] = useState('');
     const [amortizingInvoice, setAmortizingInvoice] = useState(null);
     const [collectAmount, setCollectAmount] = useState('');
-    const [collectMethod, setCollectMethod] = useState('Efectivo');
+    const [collectMethod, setCollectMethod] = useState('EF');
     const [isSubmittingCollection, setIsSubmittingCollection] = useState(false);
+    const [paymentMethods, setPaymentMethods] = useState([]);
+
+    useEffect(() => {
+        fetchPaymentMethods();
+    }, []);
+
+    const fetchPaymentMethods = async () => {
+        try {
+            const res = await fetch('/api/payment-methods');
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setPaymentMethods(data);
+                const defaultMethod = data.find(m => m.type === 1 || m.id === 'EF') || data[0];
+                if (defaultMethod) {
+                    setCollectMethod(defaultMethod.id);
+                }
+            }
+        } catch (e) {
+            console.error('Error fetching payment methods:', e);
+        }
+    };
 
     const fetchCreditStatus = async (codcli) => {
         setLoadingCredit(true);
@@ -1162,26 +1183,28 @@ export default function CustomersView({ activeTab = 'customers', onSelectCustome
                                     <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
                                         Método de Pago
                                     </span>
-                                    <div style={{ display: 'flex', gap: '6px' }}>
-                                        {['Efectivo', 'Tarjeta'].map((method) => (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '6px' }}>
+                                        {paymentMethods.map((method) => (
                                             <button
-                                                key={method}
+                                                key={method.id}
                                                 type="button"
-                                                onClick={() => setCollectMethod(method)}
+                                                onClick={() => setCollectMethod(method.id)}
                                                 style={{
-                                                    flex: 1,
-                                                    padding: '8px',
+                                                    padding: '6px 8px',
                                                     borderRadius: '8px',
                                                     border: '1px solid',
-                                                    borderColor: collectMethod === method ? '#3b82f6' : '#e2e8f0',
-                                                    background: collectMethod === method ? '#eff6ff' : '#fff',
-                                                    color: collectMethod === method ? '#3b82f6' : '#475569',
+                                                    borderColor: collectMethod === method.id ? '#3b82f6' : '#e2e8f0',
+                                                    background: collectMethod === method.id ? '#eff6ff' : '#fff',
+                                                    color: collectMethod === method.id ? '#3b82f6' : '#475569',
                                                     fontSize: '11px',
                                                     fontWeight: 700,
-                                                    cursor: 'pointer'
+                                                    cursor: 'pointer',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis'
                                                 }}
                                             >
-                                                {method}
+                                                {method.name}
                                             </button>
                                         ))}
                                     </div>

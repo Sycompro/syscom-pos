@@ -76,6 +76,12 @@ export async function POST(req) {
         }).format(now);
         const fechaStr = peruvianDate; // YYYY-MM-DD
 
+        const isCash = (paymentMethod === 'EF' || paymentMethod === 'Efectivo');
+        const finalCodbco = (isCash || paymentMethod === 'Tarjeta') ? '  ' : paymentMethod.substring(0, 2);
+        const finalCpago = isCash ? 'E' : 'T';
+        const finalSelpago = isCash ? 1 : 3;
+        const finalCajrecib = isCash ? numericAmount : 0.00;
+
         // Iniciar transacción SQL para garantizar atomicidad
         transaction = new sql.Transaction(pool);
         await transaction.begin();
@@ -119,12 +125,12 @@ export async function POST(req) {
             .input('codcli', sql.Char(6), codcli)
             .input('nomcli', sql.VarChar(60), cleanNomcli.substring(0, 60))
             .input('monto', sql.Decimal(18, 2), numericAmount)
-            .input('cpago', paymentMethod === 'Efectivo' ? 'E' : 'T')
+            .input('cpago', finalCpago)
             .input('npago', sql.Char(12), nextNdocu.substring(0, 12))
             .input('mone', 'S')
             .input('tcam', sql.Decimal(18, 4), tcam_vta)
             .input('tcheq', 'N')
-            .input('codbco', '  ')
+            .input('codbco', finalCodbco)
             .input('nrocta', '               ')
             .input('flag', '1')
             .input('codven', sql.Char(5), finalCodVen.substring(0, 5))
@@ -150,9 +156,9 @@ export async function POST(req) {
             .input('impdonac', 0.00)
             .input('codmot', '  ')
             .input('idapecaj', sql.Int, idApeCaj)
-            .input('selpago', paymentMethod === 'Efectivo' ? 1 : 3)
+            .input('selpago', finalSelpago)
             .input('cobmixta', 0)
-            .input('cajrecib', sql.Decimal(18, 2), paymentMethod === 'Efectivo' ? numericAmount : 0.00)
+            .input('cajrecib', sql.Decimal(18, 2), finalCajrecib)
             .input('monrecib', 'S')
             .input('cajvuelto', 0.00)
             .input('monvuelto', 'S')
@@ -185,11 +191,11 @@ export async function POST(req) {
             .input('crefe', cdocu_ref.substring(0, 2))
             .input('nrefe', ndocu_ref.substring(0, 12))
             .input('monto', sql.Decimal(18, 2), numericAmount)
-            .input('cpago', paymentMethod === 'Efectivo' ? 'E' : 'T')
+            .input('cpago', finalCpago)
             .input('npago', '            ')
             .input('mone', 'S')
             .input('tcam', sql.Decimal(18, 4), tcam_vta)
-            .input('codbco', '  ')
+            .input('codbco', finalCodbco)
             .input('codven', sql.Char(5), finalCodVen.substring(0, 5))
             .input('nplan', '            ')
             .input('valori', sql.Decimal(18, 2), numericAmount)
@@ -252,7 +258,7 @@ export async function POST(req) {
             .input('abono', sql.Decimal(18, 2), numericAmount)
             .input('mone', 'S')
             .input('tcam', sql.Decimal(18, 4), tcam_vta)
-            .input('cpago', paymentMethod === 'Efectivo' ? 'E' : 'T')
+            .input('cpago', finalCpago)
             .input('compro', formattedCompro)
             .query(`
                 INSERT INTO dtl01ccc (
