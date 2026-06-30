@@ -1878,6 +1878,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                               type="number" 
                               value={item.quantity}
                               onChange={(e) => handleUpdateQuantity(item.id, e.target.value)}
+                              onFocus={(e) => e.target.select()}
                               disabled={(subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import')}
                               style={tableInputStyle}
                               min="0.0001"
@@ -1890,6 +1891,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                                 type="number" 
                                 value={item.cost}
                                 onChange={(e) => handleUpdateCost(item.id, e.target.value)}
+                                onFocus={(e) => e.target.select()}
                                 style={tableInputStyle}
                                 min="0.01"
                                 step="any"
@@ -2064,6 +2066,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     type="number"
                     value={selectedItemQuantity}
                     onChange={(e) => setSelectedItemQuantity(Math.max(0.0001, parseFloat(e.target.value) || 0))}
+                    onFocus={(e) => e.target.select()}
                     style={tableInputStyle}
                     min="0.0001"
                     step="any"
@@ -2077,6 +2080,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     type="number"
                     value={selectedItemCost}
                     onChange={(e) => setSelectedItemCost(Math.max(0, parseFloat(e.target.value) || 0))}
+                    onFocus={(e) => e.target.select()}
                     style={tableInputStyle}
                     min="0"
                     step="any"
@@ -2222,6 +2226,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                         d.setDate(d.getDate() + val);
                         setFechaOCMEntrega(d.toISOString().split('T')[0]);
                       }}
+                      onFocus={(e) => e.target.select()}
                       style={{ ...tableInputStyle, height: '36px' }}
                       min="0"
                     />
@@ -2262,6 +2267,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                         d.setDate(d.getDate() + val);
                         setFechaOCMCaducidad(d.toISOString().split('T')[0]);
                       }}
+                      onFocus={(e) => e.target.select()}
                       style={{ ...tableInputStyle, height: '36px' }}
                       min="1"
                     />
