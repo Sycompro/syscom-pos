@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { 
   Search, Trash2, Calendar, Loader2, Save, ShoppingCart, 
   User, Receipt, ArrowRight, Check, AlertCircle, RefreshCw,
-  FileText, Clipboard, Link as LinkIcon, Plus
+  FileText, Clipboard, Link as LinkIcon, Plus, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCreateModal from './ProductCreateModal';
