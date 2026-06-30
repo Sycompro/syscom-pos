@@ -11,7 +11,20 @@ export async function GET(req) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
+        const { searchParams } = new URL(req.url);
+        const idApeCaj = searchParams.get('idApeCaj');
+        let codpto = searchParams.get('codpto') || '01';
+
         const pool = await getConnection(session.user.company);
+
+        if (idApeCaj && idApeCaj !== 'undefined' && idApeCaj !== 'null') {
+            const activeCashRes = await pool.request()
+                .input('idapecaj', sql.Int, parseInt(idApeCaj, 10))
+                .query('SELECT codpto FROM dtl_restpos_apecaj WHERE LTRIM(RTRIM(idapecaj)) = LTRIM(RTRIM(@idapecaj))');
+            if (activeCashRes.recordset.length > 0) {
+                codpto = activeCashRes.recordset[0].codpto.trim();
+            }
+        }
         
         // Obtener condiciones de pago de tbl01cdc (Condiciones de Compra)
         const condResult = await pool.request().query(`
@@ -56,6 +69,26 @@ export async function GET(req) {
             ORDER BY fecha DESC
         `);
 
+        // Obtener el correlativo actual de OCM (cdocu = '28') para el punto de venta
+        const corResult = await pool.request()
+            .input('cdocu', '28')
+            .input('codpto', codpto)
+            .query(`
+                SELECT LTRIM(RTRIM(nroini)) as nroini 
+                FROM tbl01cor WITH(nolock) 
+                WHERE cdocu = @cdocu AND codpto = @codpto
+            `);
+
+        let nextNdocu = '';
+        if (corResult.recordset.length > 0) {
+            const currentNroIni = corResult.recordset[0].nroini;
+            const parts = currentNroIni.split('-');
+            const series = parts[0];
+            const numPartClean = (parts[1] || parts[0]).replace(/[^0-9]/g, '');
+            const nextNum = (parseInt(numPartClean, 10) + 1).toString().padStart(numPartClean.length, '0');
+            nextNdocu = `${series}-${nextNum}`;
+        }
+
         const exchangeRate = tcResult.recordset.length > 0 ? tcResult.recordset[0] : { tcvta: 3.40, tccom: 3.39 };
 
         return NextResponse.json({
@@ -65,7 +98,8 @@ export async function GET(req) {
             warehouses: almResult.recordset,
             transportists: traResult.recordset,
             subCentersOfCost: sccResult.recordset,
-            exchangeRate: exchangeRate
+            exchangeRate: exchangeRate,
+            nextNdocu: nextNdocu
         });
 
     } catch (err) {

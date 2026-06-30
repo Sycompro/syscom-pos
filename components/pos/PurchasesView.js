@@ -102,6 +102,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   const [ocmNroped, setOcmNroped] = useState('');
   const [ocmInafec, setOcmInafec] = useState(false);
   const [ocmCodalmGlobal, setOcmCodalmGlobal] = useState('');
+  const [ocmNextNdocu, setOcmNextNdocu] = useState('');
 
   // Estado para bloquear OCM en edición
   const [isOcmBlocked, setIsOcmBlocked] = useState(false);
@@ -165,54 +166,60 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     const dCad = new Date();
     dCad.setDate(dCad.getDate() + 90);
     setFechaOCMCaducidad(dCad.toISOString().split('T')[0]);
-
-    const fetchMetadata = async () => {
-      try {
-        const res = await fetch('/api/purchases/ocm/metadata');
-        const data = await res.json();
-        if (data.success) {
-          setConditionsList(data.conditions || []);
-          setClassificationsList(data.classifications || []);
-          if (data.warehouses && data.warehouses.length > 0) {
-            setWarehousesList(data.warehouses);
-            setOcmCodalmGlobal(data.warehouses[0].codalm);
-            setSelectedItemWarehouse(data.warehouses[0].codalm);
-          }
-          setTransportistsList(data.transportists || []);
-          setSubCentersOfCostList(data.subCentersOfCost || []);
-          
-          if (data.exchangeRate) {
-            setExchangeRateDaily(data.exchangeRate);
-            setOcmTcam(data.exchangeRate.tcvta);
-          }
-
-          if (data.conditions && data.conditions.length > 0) {
-            const defaultCond = data.conditions.find(c => c.nomcdv.trim() === 'EFECTIVO' || c.nomcdv.trim() === 'CONTADO');
-            if (defaultCond) {
-              setOcmCond(defaultCond.nomcdv.trim());
-            } else {
-              setOcmCond(data.conditions[0].nomcdv.trim());
-            }
-          }
-          if (data.classifications && data.classifications.length > 0) {
-            const defaultCoc = data.classifications.find(c => c.codcoc.trim() === '01');
-            if (defaultCoc) {
-              setOcmCodcoc(defaultCoc.codcoc);
-            } else {
-              setOcmCodcoc(data.classifications[0].codcoc);
-            }
-          }
-          if (data.transportists && data.transportists.length > 0) {
-            setOcmCodtra(data.transportists[0].codtra);
-          }
-          setOcmCodscc('');
-        }
-      } catch (err) {
-        console.error('Error fetching OCM metadata:', err);
-      }
-    };
-    fetchMetadata();
   }, []);
+
+  const fetchMetadata = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/purchases/ocm/metadata?idApeCaj=${idApeCaj}`);
+      const data = await res.json();
+      if (data.success) {
+        setConditionsList(data.conditions || []);
+        setClassificationsList(data.classifications || []);
+        if (data.warehouses && data.warehouses.length > 0) {
+          setWarehousesList(data.warehouses);
+          setOcmCodalmGlobal(data.warehouses[0].codalm);
+          setSelectedItemWarehouse(data.warehouses[0].codalm);
+        }
+        setTransportistsList(data.transportists || []);
+        setSubCentersOfCostList(data.subCentersOfCost || []);
+        if (data.nextNdocu) {
+          setOcmNextNdocu(data.nextNdocu);
+        }
+        
+        if (data.exchangeRate) {
+          setExchangeRateDaily(data.exchangeRate);
+          setOcmTcam(data.exchangeRate.tcvta);
+        }
+
+        if (data.conditions && data.conditions.length > 0) {
+          const defaultCond = data.conditions.find(c => c.nomcdv.trim() === 'EFECTIVO' || c.nomcdv.trim() === 'CONTADO');
+          if (defaultCond) {
+            setOcmCond(defaultCond.nomcdv.trim());
+          } else {
+            setOcmCond(data.conditions[0].nomcdv.trim());
+          }
+        }
+        if (data.classifications && data.classifications.length > 0) {
+          const defaultCoc = data.classifications.find(c => c.codcoc.trim() === '01');
+          if (defaultCoc) {
+            setOcmCodcoc(defaultCoc.codcoc);
+          } else {
+            setOcmCodcoc(data.classifications[0].codcoc);
+          }
+        }
+        if (data.transportists && data.transportists.length > 0) {
+          setOcmCodtra(data.transportists[0].codtra);
+        }
+        setOcmCodscc('');
+      }
+    } catch (err) {
+      console.error('Error fetching OCM metadata:', err);
+    }
+  }, [idApeCaj]);
+
+  useEffect(() => {
+    fetchMetadata();
+  }, [fetchMetadata]);
 
   // Cargar historial en base a pestaña activa
   useEffect(() => {
@@ -261,6 +268,10 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     setSelectedSupplier(null);
     setSupplierSearchQuery('');
     setIsGenericSupplier(false);
+    
+    if (subTab === 'ocm') {
+      fetchMetadata();
+    }
     
     if (subTab === 'gim') {
       setGimImportMode('direct');
@@ -761,6 +772,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
 
         setViewMode('list');
         fetchHistory();
+        fetchMetadata();
       } else {
         throw new Error(result.error || result.details || 'Error al guardar OCM');
       }
@@ -1241,7 +1253,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                       <span style={{ ...fieldLabelStyle, fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '2px' }}>Documento</span>
                       <input 
                         type="text" 
-                        value={editingOcmNumber || ''} 
+                        value={editingOcmNumber || ocmNextNdocu || ''} 
                         disabled 
                         style={{ ...textInputStyle, height: '28px', fontSize: '11px', padding: '2px 6px', background: '#f1f5f9', color: '#64748b', fontWeight: 700 }}
                       />
