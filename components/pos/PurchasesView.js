@@ -70,6 +70,8 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   // Estados para Almacenes y Transportistas cargados de Metadata
   const [warehousesList, setWarehousesList] = useState([]);
   const [transportistsList, setTransportistsList] = useState([]);
+  const [subCentersOfCostList, setSubCentersOfCostList] = useState([]);
+  const [exchangeRateDaily, setExchangeRateDaily] = useState({ tcvta: 3.40, tccom: 3.39 });
 
   // Estados para Modal de Adición de Producto (Almacén por ítem)
   const [pendingProductToAdd, setPendingProductToAdd] = useState(null);
@@ -77,6 +79,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   const [selectedItemWarehouse, setSelectedItemWarehouse] = useState('');
   const [selectedItemQuantity, setSelectedItemQuantity] = useState(1);
   const [selectedItemCost, setSelectedItemCost] = useState(0);
+  const [selectedItemDiscount, setSelectedItemDiscount] = useState(0);
   const [applyWarehouseToAll, setApplyWarehouseToAll] = useState(false);
   const [globalWarehouseSelected, setGlobalWarehouseSelected] = useState('');
 
@@ -90,6 +93,11 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
   const [ocmCodtra, setOcmCodtra] = useState('T0000');
   const [ocmNombco, setOcmNombco] = useState('');
   const [ocmNrocta, setOcmNrocta] = useState('');
+  const [ocmMone, setOcmMone] = useState('S');
+  const [ocmTcam, setOcmTcam] = useState(3.40);
+  const [ocmAtte, setOcmAtte] = useState('');
+  const [ocmRefe, setOcmRefe] = useState('');
+  const [ocmCodscc, setOcmCodscc] = useState('');
   const [ocmObservacion, setOcmObservacion] = useState('');
 
   // Estado para bloquear OCM en edición
@@ -164,6 +172,12 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
           setClassificationsList(data.classifications || []);
           setWarehousesList(data.warehouses || []);
           setTransportistsList(data.transportists || []);
+          setSubCentersOfCostList(data.subCentersOfCost || []);
+          
+          if (data.exchangeRate) {
+            setExchangeRateDaily(data.exchangeRate);
+            setOcmTcam(data.exchangeRate.tcvta);
+          }
 
           if (data.conditions && data.conditions.length > 0) {
             const defaultCond = data.conditions.find(c => c.nomcdv.trim() === 'EFECTIVO' || c.nomcdv.trim() === 'CONTADO');
@@ -183,6 +197,9 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
           }
           if (data.transportists && data.transportists.length > 0) {
             setOcmCodtra(data.transportists[0].codtra);
+          }
+          if (data.subCentersOfCost && data.subCentersOfCost.length > 0) {
+            setOcmCodscc(data.subCentersOfCost[0].codscc);
           }
         }
       } catch (err) {
@@ -512,12 +529,13 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
       const defaultAlm = globalWarehouseSelected || (warehousesList[0]?.codalm || '03');
       
       if (applyWarehouseToAll && globalWarehouseSelected) {
-        confirmAddProductToCart(prod, globalWarehouseSelected, 1, prod.price || 0);
+        confirmAddProductToCart(prod, globalWarehouseSelected, 1, prod.price || 0, 0);
       } else {
         setPendingProductToAdd(prod);
         setSelectedItemWarehouse(defaultAlm);
         setSelectedItemQuantity(1);
         setSelectedItemCost(prod.price || 0);
+        setSelectedItemDiscount(0);
         setIsAddProductModalOpen(true);
       }
     } else {
@@ -539,7 +557,8 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         brand: prod.brand,
         unit: prod.unit,
         quantity: 1,
-        cost: prod.price || 0
+        cost: prod.price || 0,
+        discount: 0
       }]);
     }
     setProductSearchQuery('');
@@ -548,7 +567,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     setErrorMsg(null);
   };
 
-  const confirmAddProductToCart = (prod, codalm, qty, cost) => {
+  const confirmAddProductToCart = (prod, codalm, qty, cost, dsct = 0) => {
     const targetWarehouse = warehousesList.find(w => w.codalm === codalm);
     const nomalm = targetWarehouse ? targetWarehouse.nomalm : '';
 
@@ -561,7 +580,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     if (exists) {
       updatedCart = cartItems.map(item => 
         item.id === prod.id 
-          ? { ...item, quantity: item.quantity + qty, cost, codalm, nomalm } 
+          ? { ...item, quantity: item.quantity + qty, cost, codalm, nomalm, discount: dsct } 
           : item
       );
     } else {
@@ -574,7 +593,8 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         quantity: qty,
         cost: cost,
         codalm,
-        nomalm
+        nomalm,
+        discount: dsct
       }];
     }
 
@@ -608,12 +628,24 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
     ));
   };
 
+  const handleUpdateDiscount = (id, val) => {
+    const num = parseFloat(val);
+    if (isNaN(num) || num < 0 || num > 100) return;
+    setCartItems(cartItems.map(item => 
+      item.id === id ? { ...item, discount: num } : item
+    ));
+  };
+
   const handleRemoveItem = (id) => {
     setCartItems(cartItems.filter(item => item.id !== id));
   };
 
   const calculateCartTotals = () => {
-    const total = cartItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
+    const total = cartItems.reduce((acc, item) => {
+      const beforeDiscount = item.cost * item.quantity;
+      const desc = item.discount || 0;
+      return acc + (beforeDiscount * (1 - desc / 100));
+    }, 0);
     const subtotal = total / 1.18;
     const igv = total - subtotal;
     return {
@@ -654,10 +686,16 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
         codtra: ocmCodtra,
         nombco: ocmNombco,
         nrocta: ocmNrocta,
+        mone: ocmMone,
+        tcam: ocmTcam,
+        atte: ocmAtte,
+        refe: ocmRefe,
+        codscc: ocmCodscc,
         items: cartItems.map(item => ({
           id: item.id,
           quantity: item.quantity,
           cost: item.cost,
+          dsct: item.discount || 0,
           codalm: item.codalm // Almacén destino individual
         }))
       };
@@ -1146,617 +1184,391 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
 
       {/* RENDERIZADO MODO: CREACIÓN (FORMULARIO) */}
       {viewMode === 'create' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
-          {/* Bloque Superior: Cabecera y Referencias (Distribución Horizontal) */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: '20px',
-            alignItems: 'start',
-            width: '100%'
-          }}>
-            {/* Lado Superior Izquierdo: Vincular Operación y Proveedor */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Opciones de Importación y Referencias (Solo para GIM y CCP) */}
-            {subTab !== 'ocm' && (
-              <div style={cardStyle}>
-                <div style={cardHeaderStyle}>
-                  <LinkIcon size={16} color="#3b82f6" />
-                  <h3 style={cardTitleStyle}>Vincular Operación</h3>
-                </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+          
+          {/* Tarjeta Única de Datos de Cabecera (Compacta y Horizontal) */}
+          <div style={{ ...cardStyle, padding: '14px' }}>
+            <div style={{ ...cardHeaderStyle, borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
+              <Receipt size={16} color="#3b82f6" />
+              <h3 style={cardTitleStyle}>
+                {subTab === 'ocm' ? 'Datos Generales de la Orden' :
+                 subTab === 'gim' ? 'Datos de la Nota de Ingreso' : 'Datos Generales del Comprobante'}
+              </h3>
+            </div>
 
-                {subTab === 'gim' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
-                        onClick={() => {
-                          setGimImportMode('direct');
-                          setSelectedOcmNumber('');
-                          setCartItems([]);
-                          setSelectedSupplier(null);
-                          setSupplierSearchQuery('');
-                        }}
-                        style={gimImportMode === 'direct' ? activeTabBtnStyle : inactiveTabBtnStyle}
-                      >
-                        Ingreso Directo
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setGimImportMode('import');
-                          setCartItems([]);
-                          setSelectedSupplier(null);
-                          setSupplierSearchQuery('');
-                        }}
-                        style={gimImportMode === 'import' ? activeTabBtnStyle : inactiveTabBtnStyle}
-                      >
-                        Importar Pedido (OCM)
-                      </button>
-                    </div>
-
-                    {gimImportMode === 'import' && (
-                      <div ref={ocmRef} style={{ display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
-                        <span style={fieldLabelStyle}>Seleccionar OCM Pendiente</span>
-                        
-                        {!selectedOcmNumber ? (
-                          <>
-                            <div style={inputWrapperStyle}>
-                              <Search size={16} color="#94a3b8" />
-                              <input 
-                                type="text" 
-                                placeholder="Buscar OCM por número o proveedor..."
-                                value={ocmSearchQuery}
-                                onChange={(e) => {
-                                  setOcmSearchQuery(e.target.value);
-                                  setShowOcmDropdown(true);
-                                }}
-                                onFocus={() => setShowOcmDropdown(true)}
-                                style={inputStyle}
-                              />
-                            </div>
-
-                            {showOcmDropdown && (
-                              <div style={dropdownListStyle}>
-                                {pendingOcms
-                                  .filter(ocm => 
-                                    ocm.ndocu.toLowerCase().includes(ocmSearchQuery.toLowerCase()) ||
-                                    ocm.nompro.toLowerCase().includes(ocmSearchQuery.toLowerCase())
-                                  )
-                                  .map((ocm, idx) => (
-                                    <div 
-                                      key={idx} 
-                                      onClick={() => {
-                                        setSelectedOcmNumber(ocm.ndocu);
-                                        handleImportOcm(ocm.ndocu);
-                                        setShowOcmDropdown(false);
-                                        setOcmSearchQuery('');
-                                      }}
-                                      className="search-dropdown-item"
-                                    >
-                                      <div style={{ fontWeight: 800, color: '#334155' }}>{ocm.ndocu}</div>
-                                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                                        {ocm.nompro} | {formatCurrency(ocm.totn)}
-                                      </div>
-                                    </div>
-                                  ))
-                                }
-                                {pendingOcms.filter(ocm => 
-                                  ocm.ndocu.toLowerCase().includes(ocmSearchQuery.toLowerCase()) ||
-                                  ocm.nompro.toLowerCase().includes(ocmSearchQuery.toLowerCase())
-                                ).length === 0 && (
-                                  <div style={{ ...dropdownItemStyle, textAlign: 'center', color: '#64748b', cursor: 'default' }}>
-                                    No se encontraron órdenes pendientes.
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div style={{
-                            ...selectedSupplierBadgeStyle,
-                            display: 'flex',
-                            justifyContent: 'between',
-                            alignItems: 'center',
-                            width: '100%',
-                            marginTop: '4px'
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <Check size={14} color="#10b981" style={{ marginRight: '6px' }} />
-                              <div style={{ fontSize: '12px' }}>
-                                <strong>Importado OCM:</strong> {selectedOcmNumber} {selectedSupplier ? ` - ${selectedSupplier.nompro}` : ''}
-                              </div>
-                            </div>
-                            <button 
-                              onClick={() => {
-                                setSelectedOcmNumber('');
-                                setCartItems([]);
-                                setSelectedSupplier(null);
-                                setSupplierSearchQuery('');
-                              }}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#ef4444',
-                                fontSize: '11px',
-                                fontWeight: 850,
-                                cursor: 'pointer',
-                                padding: '2px 6px',
-                                marginLeft: 'auto'
-                              }}
-                            >
-                              Limpiar
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {subTab === 'ccp' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
-                        onClick={() => {
-                          setCcpImportMode('direct');
-                          setSelectedGimNumber('');
-                          setCartItems([]);
-                          setSelectedSupplier(null);
-                          setSupplierSearchQuery('');
-                        }}
-                        style={ccpImportMode === 'direct' ? activeTabBtnStyle : inactiveTabBtnStyle}
-                      >
-                        Compra Directa
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setCcpImportMode('import');
-                          setCartItems([]);
-                          setSelectedSupplier(null);
-                          setSupplierSearchQuery('');
-                        }}
-                        style={ccpImportMode === 'import' ? activeTabBtnStyle : inactiveTabBtnStyle}
-                      >
-                        Importar Ingreso (GIM)
-                      </button>
-                    </div>
-
-                    {ccpImportMode === 'import' && (
-                      <div ref={gimRef} style={{ display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
-                        <span style={fieldLabelStyle}>Seleccionar GIM Pendiente</span>
-                        
-                        {!selectedGimNumber ? (
-                          <>
-                            <div style={inputWrapperStyle}>
-                              <Search size={16} color="#94a3b8" />
-                              <input 
-                                type="text" 
-                                placeholder="Buscar GIM por número o proveedor..."
-                                value={gimSearchQuery}
-                                onChange={(e) => {
-                                  setGimSearchQuery(e.target.value);
-                                  setShowGimDropdown(true);
-                                }}
-                                onFocus={() => setShowGimDropdown(true)}
-                                style={inputStyle}
-                              />
-                            </div>
-
-                            {showGimDropdown && (
-                              <div style={dropdownListStyle}>
-                                {pendingGims
-                                  .filter(gim => 
-                                    gim.ndocu.toLowerCase().includes(gimSearchQuery.toLowerCase()) ||
-                                    gim.nompro.toLowerCase().includes(gimSearchQuery.toLowerCase())
-                                  )
-                                  .map((gim, idx) => (
-                                    <div 
-                                      key={idx} 
-                                      onClick={() => {
-                                        setSelectedGimNumber(gim.ndocu);
-                                        handleImportGim(gim.ndocu);
-                                        setShowGimDropdown(false);
-                                        setGimSearchQuery('');
-                                      }}
-                                      className="search-dropdown-item"
-                                    >
-                                      <div style={{ fontWeight: 800, color: '#334155' }}>{gim.ndocu}</div>
-                                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                                        {gim.nompro} | {formatCurrency(gim.totn)}
-                                      </div>
-                                    </div>
-                                  ))
-                                }
-                                {pendingGims.filter(gim => 
-                                  gim.ndocu.toLowerCase().includes(gimSearchQuery.toLowerCase()) ||
-                                  gim.nompro.toLowerCase().includes(gimSearchQuery.toLowerCase())
-                                ).length === 0 && (
-                                  <div style={{ ...dropdownItemStyle, textAlign: 'center', color: '#64748b', cursor: 'default' }}>
-                                    No se encontraron notas de ingreso pendientes.
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div style={{
-                            ...selectedSupplierBadgeStyle,
-                            display: 'flex',
-                            justifyContent: 'between',
-                            alignItems: 'center',
-                            width: '100%',
-                            marginTop: '4px'
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <Check size={14} color="#10b981" style={{ marginRight: '6px' }} />
-                              <div style={{ fontSize: '12px' }}>
-                                <strong>Importado GIM:</strong> {selectedGimNumber} {selectedSupplier ? ` - ${selectedSupplier.nompro}` : ''}
-                              </div>
-                            </div>
-                            <button 
-                              onClick={() => {
-                                setSelectedGimNumber('');
-                                setCartItems([]);
-                                setSelectedSupplier(null);
-                                setSupplierSearchQuery('');
-                              }}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#ef4444',
-                                fontSize: '11px',
-                                fontWeight: 850,
-                                cursor: 'pointer',
-                                padding: '2px 6px',
-                                marginLeft: 'auto'
-                              }}
-                            >
-                              Limpiar
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Datos del Proveedor */}
-            <div style={cardStyle}>
-              <div style={cardHeaderStyle}>
-                <User size={16} color="#3b82f6" />
-                <h3 style={cardTitleStyle}>Proveedor</h3>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {/* Checkbox de proveedor genérico deshabilitado si estamos en modo importación */}
-                <label style={{
-                  ...checkboxLabelStyle,
-                  opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.5 : 1,
-                  pointerEvents: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 'none' : 'auto'
-                }}>
-                  <input 
-                    type="checkbox" 
-                    checked={isGenericSupplier} 
-                    onChange={(e) => {
-                      setIsGenericSupplier(e.target.checked);
-                      setSelectedSupplier(null);
-                      setSupplierSearchQuery('');
-                      setErrorMsg(null);
-                    }}
-                    style={checkboxInputStyle}
-                  />
-                  <span style={{ fontWeight: 800, color: '#475569' }}>Proveedor Varios (Manual)</span>
-                </label>
-
-                {!isGenericSupplier ? (
-                  <div ref={supplierRef} style={{ position: 'relative' }}>
-                    <div style={{
-                      ...inputWrapperStyle,
-                      opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.6 : 1,
-                      pointerEvents: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 'none' : 'auto'
-                    }}>
-                      <Search size={16} color="#94a3b8" />
-                      <input 
-                        type="text" 
-                        placeholder="Buscar por RUC o Razón Social..."
-                        value={supplierSearchQuery}
-                        onChange={(e) => {
-                          setSupplierSearchQuery(e.target.value);
-                          setSelectedSupplier(null);
-                          setShowSupplierDropdown(true);
-                          setQuickLookupResult(null);
-                        }}
-                        onFocus={() => setShowSupplierDropdown(true)}
-                        style={inputStyle}
-                      />
-                      {searchingSupplier && <Loader2 className="animate-spin" size={14} color="#3b82f6" />}
-                    </div>
-
-                    {showSupplierDropdown && (supplierResults.length > 0 || (/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11))) && (
-                      <div style={dropdownListStyle}>
-                        {supplierResults.map((s, idx) => (
-                          <div 
-                            key={idx} 
-                            onClick={() => handleSelectSupplier(s)}
-                            className="search-dropdown-item"
-                          >
-                            <div style={{ fontWeight: 800, color: '#334155' }}>{s.nompro}</div>
-                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                              RUC: {s.rucpro} | Código: {s.codpro}
-                            </div>
-                          </div>
-                        ))}
-
-                        {/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11) && (
-                          <div 
-                            onClick={() => {
-                              handleQuickLookup(supplierSearchQuery);
-                              setShowSupplierDropdown(false);
-                            }}
-                            className="quick-lookup-option"
-                          >
-                            <Search size={14} color="#1d4ed8" />
-                            <span>Consultar {supplierSearchQuery.length === 11 ? 'RUC' : 'DNI'} "{supplierSearchQuery}" en SUNAT/RENIEC...</span>
-                            {searchingQuickLookup && <Loader2 className="animate-spin" size={12} style={{ marginLeft: 'auto' }} />}
-                          </div>
-                        )}
-
-                        {supplierResults.length === 0 && (!/^[0-9]+$/.test(supplierSearchQuery) || (supplierSearchQuery.length !== 8 && supplierSearchQuery.length !== 11)) && (
-                          <div style={{ ...dropdownItemStyle, textAlign: 'center', color: '#64748b', cursor: 'default' }}>
-                            No se encontraron proveedores.
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {selectedSupplier && (
-                      <div style={selectedSupplierBadgeStyle}>
-                        <Check size={14} color="#10b981" style={{ marginRight: '6px' }} />
-                        <div style={{ fontSize: '12px' }}>
-                          <strong>Seleccionado:</strong> {selectedSupplier.nompro} ({selectedSupplier.rucpro})
-                        </div>
-                      </div>
-                    )}
-
-                    {quickLookupResult && (
-                      <div style={quickLookupCardStyle}>
-                        <div style={{ fontWeight: 800, color: '#0f766e', fontSize: '12px' }}>
-                          Proveedor encontrado en SUNAT:
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#334155', marginTop: '4px' }}>
-                          <strong>Razón Social:</strong> {quickLookupResult.nompro}
-                        </div>
-                        {quickLookupResult.dirpro && (
-                          <div style={{ fontSize: '11px', color: '#334155' }}>
-                            <strong>Dirección:</strong> {quickLookupResult.dirpro}
-                          </div>
-                        )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              
+              {/* FILA 1: Vinculación (si no es OCM) y Proveedor */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : (subTab !== 'ocm' ? '1fr 1.5fr' : '1fr'),
+                gap: '12px',
+                alignItems: 'end'
+              }}>
+                {/* Opciones de Importación y Referencias (Solo para GIM y CCP) */}
+                {subTab !== 'ocm' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Vincular Documento</span>
+                    
+                    {subTab === 'gim' && (
+                      <div style={{ display: 'flex', gap: '6px' }}>
                         <button 
-                          onClick={handleRegisterQuickSupplier}
-                          style={quickLookupRegisterBtnStyle}
-                          disabled={loading}
+                          onClick={() => {
+                            setGimImportMode('direct');
+                            setSelectedOcmNumber('');
+                            setCartItems([]);
+                            setSelectedSupplier(null);
+                            setSupplierSearchQuery('');
+                          }}
+                          style={gimImportMode === 'direct' ? { ...activeTabBtnStyle, padding: '6px 12px', fontSize: '11px' } : { ...inactiveTabBtnStyle, padding: '6px 12px', fontSize: '11px' }}
                         >
-                          {loading ? <Loader2 className="animate-spin" size={12} /> : 'Registrar y Seleccionar'}
+                          Directo
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setGimImportMode('import');
+                            setCartItems([]);
+                            setSelectedSupplier(null);
+                            setSupplierSearchQuery('');
+                          }}
+                          style={gimImportMode === 'import' ? { ...activeTabBtnStyle, padding: '6px 12px', fontSize: '11px' } : { ...inactiveTabBtnStyle, padding: '6px 12px', fontSize: '11px' }}
+                        >
+                          Importar OCM
                         </button>
                       </div>
                     )}
+
+                    {subTab === 'ccp' && (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button 
+                          onClick={() => {
+                            setCcpImportMode('direct');
+                            setSelectedGimNumber('');
+                            setCartItems([]);
+                            setSelectedSupplier(null);
+                            setSupplierSearchQuery('');
+                          }}
+                          style={ccpImportMode === 'direct' ? { ...activeTabBtnStyle, padding: '6px 12px', fontSize: '11px' } : { ...inactiveTabBtnStyle, padding: '6px 12px', fontSize: '11px' }}
+                        >
+                          Compra Directa
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setCcpImportMode('import');
+                            setCartItems([]);
+                            setSelectedSupplier(null);
+                            setSupplierSearchQuery('');
+                          }}
+                          style={ccpImportMode === 'import' ? { ...activeTabBtnStyle, padding: '6px 12px', fontSize: '11px' } : { ...inactiveTabBtnStyle, padding: '6px 12px', fontSize: '11px' }}
+                        >
+                          Importar GIM
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Selector de OCM / GIM a importar */}
+                    {subTab === 'gim' && gimImportMode === 'import' && (
+                      <div ref={ocmRef} style={{ position: 'relative', marginTop: '4px' }}>
+                        {!selectedOcmNumber ? (
+                          <div style={inputWrapperStyle}>
+                            <Search size={14} color="#94a3b8" />
+                            <input 
+                              type="text" 
+                              placeholder="Buscar OCM..."
+                              value={ocmSearchQuery}
+                              onChange={(e) => {
+                                setOcmSearchQuery(e.target.value);
+                                setShowOcmDropdown(true);
+                              }}
+                              onFocus={() => setShowOcmDropdown(true)}
+                              style={{ ...inputStyle, fontSize: '11px', height: '30px' }}
+                            />
+                          </div>
+                        ) : (
+                          <div style={{ ...selectedSupplierBadgeStyle, padding: '4px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '11px' }}><strong>OCM:</strong> {selectedOcmNumber}</span>
+                            <button onClick={() => { setSelectedOcmNumber(''); setCartItems([]); setSelectedSupplier(null); }} style={{ color: '#ef4444', border: 'none', background: 'transparent', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>X</button>
+                          </div>
+                        )}
+                        {showOcmDropdown && !selectedOcmNumber && (
+                          <div style={dropdownListStyle}>
+                            {pendingOcms.filter(o => o.ndocu.toLowerCase().includes(ocmSearchQuery.toLowerCase()) || o.nompro.toLowerCase().includes(ocmSearchQuery.toLowerCase())).map((o, idx) => (
+                              <div key={idx} onClick={() => { setSelectedOcmNumber(o.ndocu); handleImportOcm(o.ndocu); setShowOcmDropdown(false); }} className="search-dropdown-item" style={{ padding: '6px 10px', fontSize: '11px' }}>
+                                <strong>{o.ndocu}</strong> - {o.nompro}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {subTab === 'ccp' && ccpImportMode === 'import' && (
+                      <div ref={gimRef} style={{ position: 'relative', marginTop: '4px' }}>
+                        {!selectedGimNumber ? (
+                          <div style={inputWrapperStyle}>
+                            <Search size={14} color="#94a3b8" />
+                            <input 
+                              type="text" 
+                              placeholder="Buscar GIM..."
+                              value={gimSearchQuery}
+                              onChange={(e) => {
+                                setGimSearchQuery(e.target.value);
+                                setShowGimDropdown(true);
+                              }}
+                              onFocus={() => setShowGimDropdown(true)}
+                              style={{ ...inputStyle, fontSize: '11px', height: '30px' }}
+                            />
+                          </div>
+                        ) : (
+                          <div style={{ ...selectedSupplierBadgeStyle, padding: '4px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '11px' }}><strong>GIM:</strong> {selectedGimNumber}</span>
+                            <button onClick={() => { setSelectedGimNumber(''); setCartItems([]); setSelectedSupplier(null); }} style={{ color: '#ef4444', border: 'none', background: 'transparent', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>X</button>
+                          </div>
+                        )}
+                        {showGimDropdown && !selectedGimNumber && (
+                          <div style={dropdownListStyle}>
+                            {pendingGims.filter(g => g.ndocu.toLowerCase().includes(gimSearchQuery.toLowerCase()) || g.nompro.toLowerCase().includes(gimSearchQuery.toLowerCase())).map((g, idx) => (
+                              <div key={idx} onClick={() => { setSelectedGimNumber(g.ndocu); handleImportGim(g.ndocu); setShowGimDropdown(false); }} className="search-dropdown-item" style={{ padding: '6px 10px', fontSize: '11px' }}>
+                                <strong>{g.ndocu}</strong> - {g.nompro}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: '10px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={fieldLabelStyle}>RUC / Doc</span>
+                )}
+
+                {/* Proveedor */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Proveedor</span>
+                    <label style={{ ...checkboxLabelStyle, opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.5 : 1 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={isGenericSupplier} 
+                        onChange={(e) => {
+                          setIsGenericSupplier(e.target.checked);
+                          setSelectedSupplier(null);
+                          setSupplierSearchQuery('');
+                          setErrorMsg(null);
+                        }}
+                        style={checkboxInputStyle}
+                      />
+                      <span style={{ fontWeight: 800, color: '#475569', fontSize: '11px' }}>Varios (Manual)</span>
+                    </label>
+                  </div>
+
+                  {!isGenericSupplier ? (
+                    <div ref={supplierRef} style={{ position: 'relative' }}>
+                      <div style={{
+                        ...inputWrapperStyle,
+                        opacity: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 0.6 : 1,
+                        pointerEvents: (subTab === 'gim' && gimImportMode === 'import') || (subTab === 'ccp' && ccpImportMode === 'import') ? 'none' : 'auto'
+                      }}>
+                        <Search size={14} color="#94a3b8" />
+                        <input 
+                          type="text" 
+                          placeholder="Buscar por RUC o Razón Social..."
+                          value={supplierSearchQuery}
+                          onChange={(e) => {
+                            setSupplierSearchQuery(e.target.value);
+                            setSelectedSupplier(null);
+                            setShowSupplierDropdown(true);
+                          }}
+                          onFocus={() => setShowSupplierDropdown(true)}
+                          style={{ ...inputStyle, fontSize: '12px', height: '32px' }}
+                        />
+                      </div>
+
+                      {showSupplierDropdown && (supplierResults.length > 0 || (/^[0-9]+$/.test(supplierSearchQuery) && (supplierSearchQuery.length === 8 || supplierSearchQuery.length === 11))) && (
+                        <div style={dropdownListStyle}>
+                          {supplierResults.map((s, idx) => (
+                            <div key={idx} onClick={() => handleSelectSupplier(s)} className="search-dropdown-item" style={{ padding: '6px 10px', fontSize: '11px' }}>
+                              <strong>{s.nompro}</strong>
+                              <div style={{ fontSize: '9px', color: '#64748b' }}>RUC: {s.rucpro} | Código: {s.codpro}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {selectedSupplier && (
+                        <div style={{ ...selectedSupplierBadgeStyle, marginTop: '4px', padding: '4px 8px', fontSize: '11px' }}>
+                          <Check size={12} color="#10b981" style={{ marginRight: '4px' }} />
+                          <strong>{selectedSupplier.nompro}</strong> ({selectedSupplier.rucpro})
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                       <input 
                         type="text" 
-                        placeholder="Ingresar RUC" 
+                        placeholder="RUC del Proveedor" 
                         value={manualSupplierRuc}
                         onChange={e => setManualSupplierRuc(e.target.value.replace(/[^0-9]/g, ''))}
                         maxLength={11}
-                        style={textInputStyle}
+                        style={{ ...textInputStyle, height: '32px', fontSize: '12px' }}
                       />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={fieldLabelStyle}>Nombre / Razón Social</span>
                       <input 
                         type="text" 
-                        placeholder="Nombre comercial" 
+                        placeholder="Nombre / Razón Social" 
                         value={manualSupplierName}
                         onChange={e => setManualSupplierName(e.target.value)}
-                        style={textInputStyle}
+                        style={{ ...textInputStyle, height: '32px', fontSize: '12px' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* FILA 2: Fechas y Datos del Documento (Compacta y Grid responsivo) */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : (
+                  subTab === 'ocm' ? '1fr 1fr' : 
+                  subTab === 'gim' ? '1.5fr 1fr 1fr' : '1fr 1.5fr 1fr 1fr'
+                ),
+                gap: '12px',
+                alignItems: 'end'
+              }}>
+                {/* Campos para GIM: Nro Guía */}
+                {subTab === 'gim' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Guía Remisión Proveedor</span>
+                    <input 
+                      type="text" 
+                      placeholder="G001-0001234" 
+                      value={gimDocNumber}
+                      onChange={e => setGimDocNumber(e.target.value.toUpperCase())}
+                      style={{ ...textInputStyle, height: '32px', fontSize: '12px' }}
+                    />
+                  </div>
+                )}
+
+                {/* Campos para CCP: Comprobante, Serie y Nro */}
+                {subTab === 'ccp' && (
+                  <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Comprobante</span>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button onClick={() => setDocType('01')} style={docType === '01' ? { ...activeTabBtnStyle, padding: '4px 8px', fontSize: '10px' } : { ...inactiveTabBtnStyle, padding: '4px 8px', fontSize: '10px' }}>FACT (01)</button>
+                        <button onClick={() => setDocType('03')} style={docType === '03' ? { ...activeTabBtnStyle, padding: '4px 8px', fontSize: '10px' } : { ...inactiveTabBtnStyle, padding: '4px 8px', fontSize: '10px' }}>BOL (03)</button>
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '6px' }}>
+                      <input type="text" placeholder="Serie" value={docSerie} onChange={e => setDocSerie(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} maxLength={4} style={{ ...textInputStyle, height: '32px', fontSize: '12px' }} />
+                      <input type="text" placeholder="Número" value={docCorrelativo} onChange={e => setDocCorrelativo(e.target.value.replace(/[^0-9]/g, ''))} maxLength={8} style={{ ...textInputStyle, height: '32px', fontSize: '12px' }} />
+                    </div>
+                  </>
+                )}
+
+                {/* Fechas */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Fecha Emisión</span>
+                  <div style={{ ...dateInputWrapperStyle, height: '32px' }}>
+                    <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
+                    <input 
+                      type="date" 
+                      value={subTab === 'ocm' ? fechaOCMEmision : subTab === 'gim' ? fechaGIMEmision : fechaCCPEmision}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (subTab === 'ocm') setFechaOCMEmision(val);
+                        else if (subTab === 'gim') setFechaGIMEmision(val);
+                        else setFechaCCPEmision(val);
+                      }}
+                      style={{ ...dateStyle, fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+
+                {subTab !== 'gim' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Fecha Vencimiento</span>
+                    <div style={{ ...dateInputWrapperStyle, height: '32px' }}>
+                      <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
+                      <input 
+                        type="date" 
+                        value={subTab === 'ocm' ? fechaOCMVencimiento : fechaCCPVencimiento}
+                        onChange={e => {
+                          const val = e.target.value;
+                          if (subTab === 'ocm') setFechaOCMVencimiento(val);
+                          else setFechaCCPVencimiento(val);
+                        }}
+                        style={{ ...dateStyle, fontSize: '12px' }}
                       />
                     </div>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Detalles del Comprobante (Diferente según OCM, GIM, CCP) */}
-            <div style={cardStyle}>
-              <div style={cardHeaderStyle}>
-                <Receipt size={16} color="#3b82f6" />
-                <h3 style={cardTitleStyle}>Detalles del Documento</h3>
+              {/* FILA 3: Pago, Clasificación, Moneda, Tipo Cambio */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : (
+                  subTab === 'gim' ? '1fr 1fr' : '1.5fr 1.5fr 1fr 1fr'
+                ),
+                gap: '12px',
+                alignItems: 'end'
+              }}>
+                {subTab !== 'gim' && (
+                  <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Condición de Pago</span>
+                      <select 
+                        value={ocmCond}
+                        onChange={e => setOcmCond(e.target.value)}
+                        style={{ ...selectStyle, height: '32px', fontSize: '12px', padding: '4px 8px' }}
+                      >
+                        {conditionsList.map((condObj, idx) => (
+                          <option key={idx} value={condObj.nomcdv}>{condObj.nomcdv}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Clasificación</span>
+                      <select 
+                        value={ocmCodcoc}
+                        onChange={e => setOcmCodcoc(e.target.value)}
+                        style={{ ...selectStyle, height: '32px', fontSize: '12px', padding: '4px 8px' }}
+                      >
+                        {classificationsList.map((cocObj, idx) => (
+                          <option key={idx} value={cocObj.codcoc}>{cocObj.nomcoc}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {/* Moneda */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Moneda</span>
+                  <select 
+                    value={ocmMone}
+                    onChange={e => setOcmMone(e.target.value)}
+                    style={{ ...selectStyle, height: '32px', fontSize: '12px', padding: '4px 8px' }}
+                  >
+                    <option value="S">SOLES (S/)</option>
+                    <option value="D">DÓLARES ($)</option>
+                  </select>
+                </div>
+
+                {/* Tipo de Cambio */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ ...fieldLabelStyle, fontSize: '11px' }}>Tipo de Cambio</span>
+                  <input 
+                    type="number"
+                    step="0.001"
+                    value={ocmTcam}
+                    onChange={e => setOcmTcam(parseFloat(e.target.value) || 0)}
+                    onFocus={e => e.target.select()}
+                    style={{ ...textInputStyle, height: '32px', fontSize: '12px', padding: '4px 8px' }}
+                    disabled={ocmMone === 'S'}
+                  />
+                </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                
-                {/* 1. Campos para ORDEN DE COMPRA (OCM) */}
-                {subTab === 'ocm' && (
-                  <>
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={fieldLabelStyle}>Fecha Emisión</span>
-                        <div style={dateInputWrapperStyle}>
-                          <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
-                          <input 
-                            type="date" 
-                            value={fechaOCMEmision}
-                            onChange={e => setFechaOCMEmision(e.target.value)}
-                            style={dateStyle}
-                          />
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={fieldLabelStyle}>Fecha Vencimiento</span>
-                        <div style={dateInputWrapperStyle}>
-                          <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
-                          <input 
-                            type="date" 
-                            value={fechaOCMVencimiento}
-                            onChange={e => setFechaOCMVencimiento(e.target.value)}
-                            style={dateStyle}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px', marginTop: '10px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={fieldLabelStyle}>Condición de Pago</span>
-                        <select 
-                          value={ocmCond}
-                          onChange={e => setOcmCond(e.target.value)}
-                          style={selectStyle}
-                        >
-                          {conditionsList.map((condObj, idx) => (
-                            <option key={idx} value={condObj.nomcdv}>
-                              {condObj.nomcdv}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={fieldLabelStyle}>Clasificación</span>
-                        <select 
-                          value={ocmCodcoc}
-                          onChange={e => setOcmCodcoc(e.target.value)}
-                          style={selectStyle}
-                        >
-                          {classificationsList.map((cocObj, idx) => (
-                            <option key={idx} value={cocObj.codcoc}>
-                              {cocObj.nomcoc}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* 2. Campos para NOTA DE INGRESO (GIM) */}
-                {subTab === 'gim' && (
-                  <>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={fieldLabelStyle}>Nro Guía Remisión Proveedor</span>
-                      <input 
-                        type="text" 
-                        placeholder="G001-0001234" 
-                        value={gimDocNumber}
-                        onChange={e => setGimDocNumber(e.target.value.toUpperCase())}
-                        style={textInputStyle}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={fieldLabelStyle}>Fecha de Ingreso</span>
-                      <div style={dateInputWrapperStyle}>
-                        <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
-                        <input 
-                          type="date" 
-                          value={fechaGIMEmision}
-                          onChange={e => setFechaGIMEmision(e.target.value)}
-                          style={dateStyle}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* 3. Campos para FACTURAS / BOLETAS (CCP) */}
-                {subTab === 'ccp' && (
-                  <>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={fieldLabelStyle}>Tipo Comprobante ERP</span>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button 
-                          onClick={() => setDocType('01')}
-                          style={docType === '01' ? activeTabBtnStyle : inactiveTabBtnStyle}
-                        >
-                          FACTURA (01)
-                        </button>
-                        <button 
-                          onClick={() => setDocType('03')}
-                          style={docType === '03' ? activeTabBtnStyle : inactiveTabBtnStyle}
-                        >
-                          BOLETA (03)
-                        </button>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={fieldLabelStyle}>Serie</span>
-                        <input 
-                          type="text" 
-                          placeholder="F001" 
-                          value={docSerie}
-                          onChange={e => setDocSerie(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                          maxLength={4}
-                          style={textInputStyle}
-                        />
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={fieldLabelStyle}>Número</span>
-                        <input 
-                          type="text" 
-                          placeholder="0001234" 
-                          value={docCorrelativo}
-                          onChange={e => setDocCorrelativo(e.target.value.replace(/[^0-9]/g, ''))}
-                          maxLength={8}
-                          style={textInputStyle}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={fieldLabelStyle}>Fecha Emisión</span>
-                        <div style={dateInputWrapperStyle}>
-                          <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
-                          <input 
-                            type="date" 
-                            value={fechaCCPEmision}
-                            onChange={e => setFechaCCPEmision(e.target.value)}
-                            style={dateStyle}
-                          />
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={fieldLabelStyle}>Fecha Vencimiento</span>
-                        <div style={dateInputWrapperStyle}>
-                          <Calendar size={14} color="#64748b" style={{ marginRight: '6px' }} />
-                          <input 
-                            type="date" 
-                            value={fechaCCPVencimiento}
-                            onChange={e => setFechaCCPVencimiento(e.target.value)}
-                            style={dateStyle}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
             </div>
-            
-            <button 
-              onClick={() => setViewMode('list')}
-              style={backToListBtnStyle}
-            >
-              Cancelar y volver al historial
-            </button>
-          </div>
-          
-          {/* Cierre del Bloque Superior */}
           </div>
 
           {/* Bloque Inferior: Detalle de Artículos (Ocupa todo el ancho abajo) */}
@@ -1845,6 +1657,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                         <th style={thStyle}>Producto</th>
                         <th style={{ ...thStyle, width: '90px' }}>Cant</th>
                         {subTab !== 'gim' && <th style={{ ...thStyle, width: '120px' }}>Costo c/IGV</th>}
+                        {subTab !== 'gim' && <th style={{ ...thStyle, width: '80px' }}>Dscto %</th>}
                         <th style={{ ...thStyle, width: '100px', textAlign: 'right' }}>Total</th>
                         <th style={{ ...thStyle, width: '40px' }}></th>
                       </tr>
@@ -1898,8 +1711,22 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                               />
                             </td>
                           )}
+                          {subTab !== 'gim' && (
+                            <td style={tdStyle}>
+                              <input 
+                                type="number" 
+                                value={item.discount || 0}
+                                onChange={(e) => handleUpdateDiscount(item.id, e.target.value)}
+                                onFocus={(e) => e.target.select()}
+                                style={tableInputStyle}
+                                min="0"
+                                max="100"
+                                step="any"
+                              />
+                            </td>
+                          )}
                           <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>
-                            {formatCurrency(item.cost * item.quantity)}
+                            {formatCurrency(item.cost * item.quantity * (1 - (item.discount || 0) / 100))}
                           </td>
                           <td style={tdStyle}>
                             <button 
@@ -1943,29 +1770,52 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                   </div>
                 )}
 
-                <button 
-                  onClick={
-                    subTab === 'ocm' ? handleSaveOCM :
-                    subTab === 'gim' ? handleSaveGIM : handleSaveCCP
-                  }
-                  disabled={loading}
-                  style={loading ? disabledRegisterBtnStyle : registerBtnStyle}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="animate-spin" size={16} />
-                      <span>Procesando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save size={16} />
-                      <span>
-                        {subTab === 'ocm' ? 'Guardar Orden de Compra' :
-                         subTab === 'gim' ? 'Registrar Nota de Ingreso' : 'Guardar y Sincronizar Comprobante'}
-                      </span>
-                    </>
-                  )}
-                </button>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                  <button 
+                    onClick={() => setViewMode('list')}
+                    style={{
+                      flex: 1,
+                      padding: '10px 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: '#f8fafc',
+                      color: '#64748b',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  
+                  <button 
+                    onClick={
+                      subTab === 'ocm' ? handleSaveOCM :
+                      subTab === 'gim' ? handleSaveGIM : handleSaveCCP
+                    }
+                    disabled={loading}
+                    style={loading ? { ...disabledRegisterBtnStyle, flex: 2, margin: 0 } : { ...registerBtnStyle, flex: 2, margin: 0 }}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="animate-spin" size={16} />
+                        <span>Procesando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save size={16} />
+                        <span>
+                          {subTab === 'ocm' ? 'Guardar OCM' :
+                           subTab === 'gim' ? 'Registrar GIM' : 'Guardar Comprobante'}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2057,7 +1907,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px', textAlign: 'left' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '14px', textAlign: 'left' }}>
                 <div>
                   <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
                     Cantidad
@@ -2074,7 +1924,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                 </div>
                 <div>
                   <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-                    Costo Unit. (c/IGV)
+                    Costo c/IGV
                   </label>
                   <input 
                     type="number"
@@ -2083,6 +1933,21 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                     onFocus={(e) => e.target.select()}
                     style={tableInputStyle}
                     min="0"
+                    step="any"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    Dscto %
+                  </label>
+                  <input 
+                    type="number"
+                    value={selectedItemDiscount}
+                    onChange={(e) => setSelectedItemDiscount(Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))}
+                    onFocus={(e) => e.target.select()}
+                    style={tableInputStyle}
+                    min="0"
+                    max="100"
                     step="any"
                   />
                 </div>
@@ -2147,7 +2012,7 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                   Cancelar
                 </button>
                 <button
-                  onClick={() => confirmAddProductToCart(pendingProductToAdd, selectedItemWarehouse, selectedItemQuantity, selectedItemCost)}
+                  onClick={() => confirmAddProductToCart(pendingProductToAdd, selectedItemWarehouse, selectedItemQuantity, selectedItemCost, selectedItemDiscount)}
                   style={{
                     padding: '8px 16px',
                     borderRadius: '8px',
@@ -2350,6 +2215,69 @@ export default function PurchasesView({ idApeCaj, onPurchaseSuccess, currentTab 
                       maxLength="20"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Sección 5: Control y Clasificación */}
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', marginBottom: '14px', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
+                  Atención & Control
+                </span>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      Atención (Contacto)
+                    </label>
+                    <input 
+                      type="text"
+                      placeholder="Nombre del contacto..."
+                      value={ocmAtte}
+                      onChange={(e) => setOcmAtte(e.target.value)}
+                      style={{ ...tableInputStyle, height: '36px' }}
+                      maxLength="30"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      Referencia / Cotización
+                    </label>
+                    <input 
+                      type="text"
+                      placeholder="Nro. Cotización..."
+                      value={ocmRefe}
+                      onChange={(e) => setOcmRefe(e.target.value)}
+                      style={{ ...tableInputStyle, height: '36px' }}
+                      maxLength="12"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                    Sub Centro de Costo
+                  </label>
+                  <select
+                    value={ocmCodscc}
+                    onChange={(e) => setOcmCodscc(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#334155',
+                      background: '#fff'
+                    }}
+                  >
+                    <option value="">-- Sin Sub Centro --</option>
+                    {subCentersOfCostList.map((scc) => (
+                      <option key={scc.codscc} value={scc.codscc}>
+                        [{scc.codscc.trim()}] {scc.nomscc.trim()}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

@@ -428,7 +428,7 @@ class NavaPurchaseService {
         supplier, // { codpro, nompro, rucpro }
         fechaEmision,
         fechaVencimiento,
-        items, // Array de { id, quantity, cost, codalm } (cost = unit cost with IGV)
+        items, // Array de { id, quantity, cost, codalm, dsct }
         cond,
         codcoc,
         fechaEntrega,
@@ -437,7 +437,12 @@ class NavaPurchaseService {
         observacion,
         codtra,
         nombco,
-        nrocta
+        nrocta,
+        mone,
+        tcam,
+        atte,
+        refe,
+        codscc
       } = data;
 
       if (!idApeCaj) throw new Error("ID de apertura de caja requerido");
@@ -487,10 +492,13 @@ class NavaPurchaseService {
       }
 
       // 4. Tipo de cambio
-      const tcaRes = await transaction.request()
-        .input('fecha', sql.Date, fechaStr)
-        .query("SELECT TOP 1 venta FROM tbl01tca WHERE fecha = @fecha");
-      const exchangeRateVal = tcaRes.recordset[0]?.venta || 3.75;
+      let exchangeRateVal = Number(tcam) || 0;
+      if (exchangeRateVal <= 0) {
+        const tcaRes = await transaction.request()
+          .input('fecha', sql.Date, fechaStr)
+          .query("SELECT TOP 1 CAST(tcvta as float) as tcvta FROM tbl01tca WHERE fecha = @fecha");
+        exchangeRateVal = tcaRes.recordset[0]?.tcvta || 3.40;
+      }
 
       // 5. Correlativo OCM (cdocu = '28')
       const requestCor = new sql.Request(transaction);
@@ -542,9 +550,11 @@ class NavaPurchaseService {
         const product = itemRes.recordset[0];
         const itemQty = Number(item.quantity) || 0;
         const itemCostWithIgv = Number(item.cost) || 0;
+        const itemDiscount = Number(item.dsct) || 0;
 
         const isTaxable = product.aigv === 'S';
-        const itemTotal = Number((itemCostWithIgv * itemQty).toFixed(2));
+        const itemTotalBeforeDiscount = itemCostWithIgv * itemQty;
+        const itemTotal = Number((itemTotalBeforeDiscount * (1 - itemDiscount / 100)).toFixed(2));
         const itemSubtotal = isTaxable ? Math.round((itemTotal / 1.18) * 10) / 10 : itemTotal;
         const itemTax = isTaxable ? Number((itemTotal - itemSubtotal).toFixed(2)) : 0;
         const itemNetUnitPrice = isTaxable ? Number((itemCostWithIgv / 1.18).toFixed(4)) : itemCostWithIgv;
@@ -566,6 +576,7 @@ class NavaPurchaseService {
           itemTotal,
           itemSubtotal,
           itemTax,
+          discount: itemDiscount,
           codalm: item.codalm || resolvedWarehouse // Asignación de almacén individual
         });
       }
@@ -604,6 +615,10 @@ class NavaPurchaseService {
         .input('codtra', sql.Char(5), (codtra || 'T0000').substring(0, 5))
         .input('nombco', sql.Char(15), (nombco || '').substring(0, 15))
         .input('nrocta', sql.Char(20), (nrocta || '').substring(0, 20))
+        .input('mone', sql.Char(1), (mone || 'S').substring(0, 1))
+        .input('atte', sql.VarChar(30), (atte || '').substring(0, 30).padEnd(30, ' '))
+        .input('refe', sql.Char(12), (refe || '').substring(0, 12).padEnd(12, ' '))
+        .input('codscc', sql.Char(10), (codscc || '').substring(0, 10).padEnd(10, ' '))
         .query(`
           INSERT INTO mst01ocm (
             fecha, cdocu, ndocu, codpro, nompro, rucpro, atte, refe, mone, tcam,
@@ -617,10 +632,10 @@ class NavaPurchaseService {
             CodCdc, confirm, attach, codtie, origen, codpai, agecar, codusu,
             idarea, comesp, atte_item1, atte_item2, agecar_item, flaenv, codenv, fecenv
           ) VALUES (
-            @fecha, '28', @ndocu, @codpro, @nompro, @rucpro, '                              ', '            ', 'S', @tcam,
+            @fecha, '28', @ndocu, @codpro, @nompro, @rucpro, @atte, @refe, @mone, @tcam,
             @totb, 0, @tota, @toti, @totn, @fven, '0', @entr, @obse, @cond,
             '            ', @codalm, '', '                                        ', 0, 0, 0, ' ', 0,
-            @codtra, @nombco, @nrocta, 0, @codcoc, 1, '          ', '            ',
+            @codtra, @nombco, @nrocta, 0, @codcoc, 1, @codscc, '            ',
             '', '', '', '', '', '', '', '               ',
             NULL, 0, NULL, ' ', '            ', '            ', '', '0',
             '                    ', '0 ', '  ', '            ', '', '', 'V0000', GETDATE(),
@@ -650,6 +665,8 @@ class NavaPurchaseService {
           .input('tcam', sql.Decimal(18, 4), exchangeRateVal)
           .input('codalm', sql.Char(2), item.codalm)
           .input('aigv', sql.Char(1), item.aigv)
+          .input('dsct', sql.Decimal(18, 4), item.discount)
+          .input('mone', sql.Char(1), (mone || 'S').substring(0, 1))
           .query(`
             INSERT INTO dtl01ocm (
               fecha, cdocu, ndocu, codpro, item, codi, codf, marc, descr, umed,
@@ -659,7 +676,7 @@ class NavaPurchaseService {
               dsctnc3, preucon, confirm, codmotalt
             ) VALUES (
               @fecha, '28', @ndocu, @codpro, @item, @codi, @codf, @marc, @descr, @umed,
-              @cant, @preu, @totb, 0, 0, 0, @tota, @totn, @tcam, 'S',
+              @cant, @preu, @totb, @dsct, 0, 0, @tota, @totn, @tcam, @mone,
               '0', 0, @codalm, @aigv, ' ', ' ', @umed, '   ', 1, 0,
               'S', 0, 0, '', ' ', 0, 0, 0, 0,
               0, 0, 0, '01'

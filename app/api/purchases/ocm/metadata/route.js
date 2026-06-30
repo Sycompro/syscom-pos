@@ -41,18 +41,37 @@ export async function GET(req) {
             ORDER BY codtra
         `);
 
+        // Obtener sub-centros de costo de tbl01scc
+        const sccResult = await pool.request().query(`
+            SELECT LTRIM(RTRIM(codscc)) as codscc, LTRIM(RTRIM(nomscc)) as nomscc 
+            FROM tbl01scc WITH(nolock) 
+            ORDER BY codscc
+        `);
+
+        // Obtener tipo de cambio de hoy o el último registrado
+        const tcResult = await pool.request().query(`
+            SELECT TOP 1 CAST(tcvta as float) as tcvta, CAST(tccom as float) as tccom 
+            FROM tbl01tca WITH(nolock) 
+            WHERE tcvta > 0 AND fecha <= GETDATE() 
+            ORDER BY fecha DESC
+        `);
+
+        const exchangeRate = tcResult.recordset.length > 0 ? tcResult.recordset[0] : { tcvta: 3.40, tccom: 3.39 };
+
         return NextResponse.json({
             success: true,
             conditions: condResult.recordset,
             classifications: cocResult.recordset,
             warehouses: almResult.recordset,
-            transportists: traResult.recordset
+            transportists: traResult.recordset,
+            subCentersOfCost: sccResult.recordset,
+            exchangeRate: exchangeRate
         });
 
     } catch (err) {
         logger.error(`[API/Purchases/Ocm/Metadata] Error al obtener metadata de OCM: ${err.message}`);
         return NextResponse.json({ 
-            error: 'Error al obtener condiciones, clasificaciones, almacenes y transportistas', 
+            error: 'Error al obtener condiciones, clasificaciones, almacenes, transportistas y tipo de cambio', 
             details: err.message 
         }, { status: 500 });
     }
